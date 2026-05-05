@@ -437,17 +437,9 @@
         display: flex;
         flex-direction: column;
         padding: 16px 0;
-        transition: transform 0.3s ease;
+        
       }
-      @media (max-width: 768px) {
-  .sidebar {
-    display: none; /* This removes the sidebar entirely on mobile to clear the overlap */
-  }
-  .main-content {
-    width: 100%;
-    padding: 10px;
-  }
-}
+
       .sidebar-title {
         font-size: 0.7rem;
         text-transform: uppercase;
@@ -529,6 +521,116 @@
       .neg {
         color: var(--red);
       }
+       /* ─── SIDEBAR TICKER ─── */
+  .sidebar {
+    width: 260px; flex-shrink: 0;
+    background: var(--grey);
+    border-right: 1px solid var(--border);
+    overflow-y: auto; overflow-x: hidden;
+    display: flex; flex-direction: column;
+    padding: 16px 0;
+    transition: width 0.28s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.22s ease,
+                padding 0.28s ease;
+    position: relative;
+  }
+  .sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    opacity: 0;
+    border-right-color: transparent;
+    overflow: hidden;
+  }
+ 
+  /* Toggle button — floats just outside the sidebar edge */
+  .sidebar-toggle {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 260px; /* matches sidebar width */
+    z-index: 200;
+    width: 20px; height: 52px;
+    background: var(--grey);
+    border: 1px solid var(--border);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green);
+    font-size: 0.65rem;
+    transition: left 0.28s cubic-bezier(0.4,0,0.2,1),
+                background 0.15s, color 0.15s;
+    box-shadow: 3px 0 12px rgba(0,0,0,0.4);
+  }
+  .sidebar-toggle:hover {
+    background: var(--grey2);
+    color: var(--text);
+    box-shadow: 3px 0 18px rgba(0,255,127,0.12);
+  }
+  .sidebar-toggle.collapsed {
+    left: 0;
+    border-left: 1px solid var(--border);
+    border-right: none;
+    border-radius: 0 6px 6px 0;
+  }
+  /* Arrow chevron inside the button */
+  .toggle-arrow {
+    display: inline-block;
+    transition: transform 0.28s ease;
+    line-height: 1;
+  }
+  .sidebar-toggle.collapsed .toggle-arrow {
+    transform: rotate(180deg);
+  }
+ 
+  .sidebar-title {
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--text-dim);
+    padding: 0 16px 12px;
+    font-family: var(--font-mono);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    white-space: nowrap;
+  }
+ 
+  .token-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; cursor: pointer;
+    transition: background 0.12s;
+    border-radius: 0;
+  }
+  .token-row:hover { background: var(--grey2); }
+  .token-row.selected { background: rgba(0,255,127,0.07); border-left: 2px solid var(--green); }
+ 
+  .token-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    font-family: var(--font-mono);
+  }
+ 
+  .token-info { flex: 1; min-width: 0; }
+  .token-sym {
+    font-weight: 700; font-size: 0.85rem; font-family: var(--font-mono);
+    color: var(--text); display: block;
+  }
+  .token-name {
+    font-size: 0.7rem; color: var(--text-dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+ 
+  .token-price-col { text-align: right; }
+  .token-price {
+    font-family: var(--font-mono); font-size: 0.82rem;
+    color: var(--text); display: block; font-weight: 700;
+  }
+  .token-change {
+    font-family: var(--font-mono); font-size: 0.7rem;
+    display: block;
+  }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+ 
 
       /* ─── MAIN CONTENT ─── */
       .main-content {
@@ -1153,57 +1255,45 @@
         <button class="btn-connect" id="connectBtn">Connect Wallet</button>
       </div>
 
-      <!-- Body -->
-      <div class="app-body">
-        <!-- Sidebar -->
-<div class="sidebar" style="width: 260px; height: 125vh; display: flex; flex-direction: column; background: var(--grey); border-right: 1px solid var(--border); position: sticky; top: 0; overflow: hidden;">
-  <!-- This section stays fixed at the top -->
-  <div class="sidebar-header" style="padding: 16px; border-bottom: 1px solid var(--border); background: var(--grey);">
-    <div class="sidebar-title" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-      <span style="font-size: 0.7rem; text-transform: uppercase; color: #00FF7F; font-family: var(--font-mono);">Market Assets</span>
-      <span class="pulse-dot"></span>
-    </div>
-    <!-- Search Input -->
-    <input 
-      type="text" 
-      id="tokenSearch" 
-      placeholder="Search Symbol..." 
-      onkeyup="filterSidebar()"
-      autocomplete="off"
-      style="
-        width: 100%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 12px 14px;
-        color: #fff;
-        font-size: 0.85rem;
-        outline: none;
-        transition: all 0.2s ease;
-        font-family: var(--font-mono);
-      "
-      onfocus="this.style.borderColor='var(--green)'; this.style.boxShadow='0 0 10px rgba(0, 255, 127, 0.2)';"
-      onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.boxShadow='none';"
-    >
-  </div>
-
-  <!-- Independent Scrollable Area -->
-  <div id="tokenList" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 0;">
-    <!-- JS Ticker Rows Go Here -->
-  </div>
-</div>
-
-<!-- Chart section -->
-<div class="chart-section">
-  <div class="chart-header">
-    <div style="display: flex; align-items: center; gap: 12px;">   
-      <div>
-        <!-- Name element deleted -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-        </div>
+     <!-- Body -->
+  <div class="app-body">
+ 
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle market panel">
+      <span class="toggle-arrow">&#8249;</span>
+    </button>
+ 
+    <!-- Sidebar -->
+    <div class="sidebar" id="appSidebar">
+      <div class="sidebar-title">
+        Markets&nbsp;<span class="pulse-dot" style="vertical-align:middle;margin-left:4px;"></span>
       </div>
+      <div id="tokenList"><!-- JS --></div>
     </div>
-  </div>
+ 
+    <!-- Main -->
+    <div class="main-content">
+ 
+      <!-- Chart section -->
+      <div class="chart-section">
+ 
+        <div class="chart-header">
+          <div>
+            <div class="chart-token-name" id="chartTitle">
+              <span id="chartIcon" style="background:#627EEA;color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">ETH</span>
+              ETH / USDT
+            </div>
+            <span class="chart-price-big" id="chartPrice">$0.00</span>
+            <span class="chart-change-big pos" id="chartChange">+0.00%</span>
+          </div>
+          <div class="timeframe-btns">
+            <button class="tf-btn active" onclick="setTf(this,'1H')">1H</button>
+            <button class="tf-btn" onclick="setTf(this,'4H')">4H</button>
+            <button class="tf-btn" onclick="setTf(this,'1D')">1D</button>
+            <button class="tf-btn" onclick="setTf(this,'1W')">1W</button>
+          </div>
+        </div>
+ 
 
   <!-- Chart Container -->
   <div class="chart-box" style="height: 500px; overflow: hidden; margin-top: 1px;">
@@ -1822,6 +1912,7 @@ function updateUIConnected(address) {
         }
       }
       // ─── RENDER SIDEBAR ───
+      
       function renderSidebar() {
   const el = document.getElementById('tokenList');
   if (!el) return;
@@ -1849,6 +1940,7 @@ function updateUIConnected(address) {
     })
     .join('');
 }
+
       // ─── RENDER TICKER ───
       function renderTicker() {
         const items = TOKENS.filter((t) => t.sym !== 'USDT')
@@ -2177,6 +2269,7 @@ window.selectToken = function(sym) {
         }
     }
 }
+
     // ─── TOKEN MODAL ───
 // --- TOKEN MODAL LOGIC ---
 
@@ -2349,7 +2442,15 @@ function pickToken(sym) {
         .addEventListener('click', function (e) {
           if (e.target === this) closeTokenModal();
         });
-
+// ─── SIDEBAR TOGGLE ───
+function toggleSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  const btn     = document.getElementById('sidebarToggle');
+  const isCollapsed = sidebar.classList.toggle('collapsed');
+  btn.classList.toggle('collapsed', isCollapsed);
+  // Shift the button left when sidebar is hidden (left: 0), right when open (left: 260px)
+  btn.style.left = isCollapsed ? '0px' : '260px';
+}
       // init fallback chart (before launch)
       chartHistory = generateFakeHistory(2450);
     </script>
