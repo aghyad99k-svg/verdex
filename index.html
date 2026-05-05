@@ -1273,54 +1273,30 @@
  
     <!-- Main -->
     <div class="main-content">
- 
-      <!-- Chart section -->
-      <div class="chart-section">
- 
-        <div class="chart-header">
-          <div>
-            <div class="chart-token-name" id="chartTitle">
-              <span id="chartIcon" style="background:#627EEA;color:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">ETH</span>
-              ETH / USDT
-            </div>
-            <span class="chart-price-big" id="chartPrice">$0.00</span>
-            <span class="chart-change-big pos" id="chartChange">+0.00%</span>
-          </div>
-          <div class="timeframe-btns">
-            <button class="tf-btn active" onclick="setTf(this,'1H')">1H</button>
-            <button class="tf-btn" onclick="setTf(this,'4H')">4H</button>
-            <button class="tf-btn" onclick="setTf(this,'1D')">1D</button>
-            <button class="tf-btn" onclick="setTf(this,'1W')">1W</button>
-          </div>
-        </div>
- 
+  <!-- Main Middle Column -->
+<div class="main-content-area" style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
 
-  <!-- Chart Container -->
-  <div class="chart-box" style="height: 500px; overflow: hidden; margin-top: 1px;">
+  <!-- 1. Wide Chart Container -->
+  <div class="chart-box" style="height: 600px; width: 100%; overflow: hidden; background: var(--grey);">
     <div id="tradingview_dex_chart" style="height: 100%; width: 100%;"></div>
   </div>
 
 
-  <!-- Order book + recent trades -->
-  
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-    <div class="order-book">
-      <div class="ob-title">Order Book</div>
-      <div class="ob-headers">
-        <span>Price</span><span>Amount</span><span style="text-align: right">Total</span>
+     <!-- Order book + recent trades -->
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="order-book">
+        <div class="ob-title">Order Book</div>
+        <div class="ob-headers"><span>Price</span><span>Amount</span><span style="text-align:right">Total</span></div>
+        <div id="obAsks"></div>
+        <div class="ob-spread">Spread: <span id="obSpread">—</span></div>
+        <div id="obBids"></div>
       </div>
-      <div id="obAsks"></div>
-      <div class="ob-spread">Spread: <span id="obSpread">—</span></div>
-      <div id="obBids"></div>
-    </div>
-    <div class="recent-trades">
-      <div class="rt-title">Recent Trades</div>
-      <div class="rt-headers">
-        <span>Price</span><span>Amount</span><span>Time</span><span>Type</span>
+      <div class="recent-trades">
+        <div class="rt-title">Recent Trades</div>
+        <div class="rt-headers"><span>Price</span><span>Amount</span><span>Time</span><span>Type</span></div>
+        <div id="recentTradesList"></div>
       </div>
-      <div id="recentTradesList"></div>
     </div>
-  </div>
 </div>
 
           <!-- Swap Panel -->
