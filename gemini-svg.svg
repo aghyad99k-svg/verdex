@@ -1,0 +1,15 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Glow Effect -->
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- The Neon Diamond -->
+  <rect x="16" y="4" width="17" height="17" 
+        transform="rotate(45 16 4)" 
+        fill="#00FF7F" 
+        filter="url(#glow)" />
+</svg>
