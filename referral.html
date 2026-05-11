@@ -8,202 +8,270 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --green: #00ff7f;
-      --green-dim: #00c45e;
-      --green-dark: #00892e;
-      --green-glow: rgba(0,255,127,0.18);
-      --black: #050a06;
-      --dark: #0b110c;
-      --grey: #111712;
-      --grey2: #181f19;
-      --grey3: #232b24;
-      --border: rgba(0,255,127,0.13);
-      --text: #d8f0dc;
-      --text-dim: #6e8b71;
-      --red: #ff4d4d;
-      --gold: #f5c842;
-      --font-display: 'Syne', sans-serif;
-      --font-mono: 'Space Mono', monospace;
+      --green:#00ff7f;--green-dim:#00c45e;--green-dark:#00892e;
+      --green-glow:rgba(0,255,127,0.18);--black:#050a06;--dark:#0b110c;
+      --grey:#111712;--grey2:#181f19;--grey3:#232b24;
+      --border:rgba(0,255,127,0.13);--text:#d8f0dc;--text-dim:#6e8b71;
+      --red:#ff4d4d;--gold:#f5c842;
+      --font-display:'Syne',sans-serif;--font-mono:'Space Mono',monospace;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
     body{background:var(--black);color:var(--text);font-family:var(--font-display);min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.35}
 
-    /* NAV */
-    nav{display:flex;align-items:center;justify-content:space-between;padding:20px 48px;border-bottom:1px solid var(--border);backdrop-filter:blur(4px);position:sticky;top:0;z-index:100;background:rgba(5,10,6,0.92)}
-    .nav-logo{font-family:var(--font-display);font-weight:800;font-size:1.5rem;color:var(--green);letter-spacing:-0.03em;text-shadow:0 0 24px rgba(0,255,127,0.5);display:flex;align-items:center;gap:10px;text-decoration:none}
-    .logo-diamond{width:16px;height:16px;background:var(--green);transform:rotate(45deg);box-shadow:0 0 12px var(--green);flex-shrink:0}
-    .nav-links{display:flex;gap:28px;list-style:none}
-    .nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.82rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;transition:color 0.2s}
-    .nav-links a:hover,.nav-links a.active{color:var(--green)}
-    .btn-connect{background:transparent;color:var(--green);border:1.5px solid var(--green);font-family:var(--font-mono);font-size:0.78rem;font-weight:700;padding:9px 22px;border-radius:6px;cursor:pointer;transition:all 0.15s}
-    .btn-connect:hover{background:var(--green);color:var(--black)}
-
-    /* HERO */
-    .ref-hero{padding:72px 48px 48px;text-align:center;position:relative;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(0,255,127,0.07) 0%,transparent 70%)}
-    .ref-hero::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,127,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,127,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
-    .ref-eyebrow{font-family:var(--font-mono);font-size:0.72rem;color:var(--green);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:16px;position:relative;z-index:1}
-    .ref-title{font-size:clamp(2.4rem,6vw,4.8rem);font-weight:800;line-height:0.95;letter-spacing:-0.04em;margin-bottom:20px;position:relative;z-index:1}
-    .ref-title span{color:var(--green);text-shadow:0 0 40px rgba(0,255,127,0.35)}
-    .ref-sub{font-size:1rem;color:var(--text-dim);max-width:500px;margin:0 auto 40px;line-height:1.65;position:relative;z-index:1}
-
-    /* REWARD BADGES */
-    .reward-badges{display:none;justify-content:center;gap:24px;margin-bottom:0;position:relative;z-index:1;flex-wrap:wrap}
-    .reward-badge{background:var(--grey);border:1px solid var(--border);border-radius:12px;padding:20px 32px;text-align:center;min-width:160px}
-    .badge-val{font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--green);display:block;text-shadow:0 0 20px rgba(0,255,127,0.3)}
-    .badge-label{font-size:0.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.12em;margin-top:4px;display:block}
-
-    /* ═══ MAIN GRID (LOCKED COLUMNS) ═══ */
-.ref-main {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 48px 32px;
-    display: grid;
-    /* KEY FIX: minmax(0, 1fr) prevents content from "pushing" the column width */
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); 
-    gap: 24px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Fix for the media query - 340px is very small, likely meant for mobile */
-@media (max-width: 900px) { 
-    .ref-main {
-        grid-template-columns: 1fr; /* Stack columns on smaller screens */
-        padding: 24px 16px;
+    /* ═══ NAV ═══ */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(4px);
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(5,10,6,0.96);
+      gap: 16px;
     }
-    .nav-links { display: none; }
-    .ref-hero { padding: 48px 20px 32px; }
-}
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--green);
+      letter-spacing: -0.03em;
+      text-shadow: 0 0 24px rgba(0,255,127,0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .logo-diamond{width:16px;height:16px;background:var(--green);transform:rotate(45deg);box-shadow:0 0 12px var(--green);flex-shrink:0}
 
-    /* CARDS */
-    .card{background:var(--grey);border:1px solid var(--border);border-radius:16px;overflow:hidden}
-    .card-header{padding:18px 22px;border-bottom:1px solid var(--border);display:none;align-items:center;gap:10px;background:rgba(0,255,127,0.03)}
-    .card-icon{font-size:1.2rem}
-    .card-title{font-weight:700;font-size:1rem;color:var(--text)}
-    .card-sub{font-size:0.72rem;color:var(--text-dim);margin-top:2px}
-    .card-body{padding:22px}
+    /* Desktop links */
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--green); }
 
-    /* REFERRAL LINK BOX */
-    .link-box {
-  background: var(--grey2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-.link-text {
-  flex: 1;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--text);
-  min-width: 0;     
-  overflow: hidden;
-  text-overflow: ellipsis; 
-  white-space: nowrap;
-}
-.link-text.placeholder {
-  color: var(--text-dim);
-}
-.btn-copy {
-  background: var(--green);
-  color: var(--black);
-  border: none;
-  border-radius: 6px;
-  padding: 9px 18px;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s;
-  flex-shrink: 0; 
-}
-    .btn-copy:hover{box-shadow:0 0 16px rgba(0,255,127,0.4);transform:translateY(-1px)}
-    .btn-copy:disabled{background:var(--grey3);color:var(--text-dim);cursor:not-allowed;transform:none;box-shadow:none}
-    .copy-hint{font-size:0.7rem;color:var(--text-dim);font-family:var(--font-mono);text-align:center;height:18px;transition:color 0.3s}
+    /* Connect button */
+    .btn-connect-nav {
+      background: transparent;
+      color: var(--green);
+      border: 1.5px solid var(--green);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-connect-nav:hover{background:var(--green);color:var(--black)}
+
+    /* Hamburger — hidden on desktop */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+      flex-shrink: 0;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--green);
+      border-radius: 2px;
+      transition: all 0.25s;
+    }
+    .nav-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    .nav-hamburger.open span:nth-child(2){opacity:0}
+    .nav-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+    /* Mobile dropdown */
+    .nav-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(5,10,6,0.98);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      padding: 16px 24px 20px;
+      flex-direction: column;
+      gap: 0;
+      z-index: 199;
+    }
+    .nav-dropdown.open { display: flex; }
+    .nav-dropdown a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      transition: color 0.2s;
+      display: block;
+    }
+    .nav-dropdown a:last-of-type { border-bottom: none; }
+    .nav-dropdown a:hover, .nav-dropdown a.active { color: var(--green); }
+    .nav-dropdown .dropdown-connect {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      background: var(--green);
+      color: var(--black);
+      border: none;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    /* ═══ HERO ═══ */
+    .ref-hero{padding:56px 32px 44px;text-align:center;position:relative;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(0,255,127,0.07) 0%,transparent 70%)}
+    .ref-hero::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(0,255,127,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,127,0.03) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+    .ref-eyebrow{font-family:var(--font-mono);font-size:0.7rem;color:var(--green);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;position:relative;z-index:1}
+    .ref-title{font-size:clamp(2.2rem,6vw,4.4rem);font-weight:800;line-height:0.95;letter-spacing:-0.04em;margin-bottom:18px;position:relative;z-index:1}
+    .ref-title span{color:var(--green);text-shadow:0 0 40px rgba(0,255,127,0.35)}
+    .ref-sub{font-size:0.95rem;color:var(--text-dim);max-width:480px;margin:0 auto 36px;line-height:1.65;position:relative;z-index:1}
+
+    /* Stats badges */
+    .reward-badges{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;position:relative;z-index:1}
+    .reward-badge{background:var(--grey);border:1px solid var(--border);border-radius:12px;padding:16px 24px;text-align:center;min-width:120px;flex:1;max-width:180px}
+    .badge-val{font-family:var(--font-mono);font-size:1.7rem;font-weight:700;color:var(--green);display:block;text-shadow:0 0 16px rgba(0,255,127,0.3)}
+    .badge-label{font-size:0.62rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.12em;margin-top:4px;display:block}
+
+    /* ═══ MAIN GRID ═══ */
+    .ref-main {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 36px 24px 48px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      gap: 20px;
+    }
+
+    /* ═══ CARDS ═══ */
+    .card{background:var(--grey);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .card-header{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:rgba(0,255,127,0.025)}
+    .card-icon{font-size:1.1rem;flex-shrink:0}
+    .card-title{font-weight:700;font-size:0.92rem;color:var(--text)}
+    .card-sub{font-size:0.68rem;color:var(--text-dim);margin-top:1px}
+    .card-body{padding:20px}
+
+    /* ═══ LINK BOX ═══ */
+    .link-box{background:var(--grey2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;width:100%;overflow:hidden}
+    .link-text{flex:1;font-family:var(--font-mono);font-size:0.72rem;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .link-text.placeholder{color:var(--text-dim)}
+    .btn-copy{background:var(--green);color:var(--black);border:none;border-radius:6px;padding:8px 14px;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.15s;flex-shrink:0}
+    .btn-copy:hover:not(:disabled){box-shadow:0 0 14px rgba(0,255,127,0.4);transform:translateY(-1px)}
+    .btn-copy:disabled{background:var(--grey3);color:var(--text-dim);cursor:not-allowed;transform:none}
+    .copy-hint{font-size:0.67rem;color:var(--text-dim);font-family:var(--font-mono);text-align:center;min-height:16px;transition:color 0.3s;margin-bottom:10px}
     .copy-hint.success{color:var(--green)}
     .copy-hint.error{color:var(--red)}
 
-    /* SHARE BUTTONS */
-    .share-row{display:flex;gap:8px;margin-top:14px}
-    .btn-share{flex:1;padding:10px;border:1px solid var(--border);background:var(--grey2);border-radius:8px;color:var(--text-dim);font-family:var(--font-mono);font-size:0.72rem;cursor:pointer;transition:all 0.15s;text-align:center}
+    /* Share row */
+    .share-row{display:flex;gap:8px;margin-top:4px}
+    .btn-share{flex:1;padding:9px 6px;border:1px solid var(--border);background:var(--grey2);border-radius:7px;color:var(--text-dim);font-family:var(--font-mono);font-size:0.66rem;cursor:pointer;transition:all 0.15s;text-align:center}
     .btn-share:hover{color:var(--green);border-color:var(--green-dark);background:var(--green-glow)}
 
-    /* STATS GRID */
-    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-    .stat-card{background:var(--grey2);border:1px solid var(--border);border-radius:10px;padding:16px 14px;text-align:center}
-    .stat-card-val{font-family:var(--font-mono);font-size:1.4rem;font-weight:700;color:var(--green);display:block}
-    .stat-card-label{font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px;display:block}
+    /* Steps */
+    .steps{display:flex;flex-direction:column;gap:14px}
+    .step{display:flex;gap:12px;align-items:flex-start}
+    .step-num{width:28px;height:28px;border-radius:50%;background:var(--green-glow);border:1px solid var(--green-dark);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.72rem;font-weight:700;color:var(--green);flex-shrink:0;margin-top:2px}
+    .step-title{font-weight:700;font-size:0.86rem;color:var(--text);margin-bottom:3px}
+    .step-desc{font-size:0.74rem;color:var(--text-dim);line-height:1.55}
 
-    /* EARNINGS */
-    .earnings-total{background:linear-gradient(135deg,rgba(0,255,127,0.1) 0%,rgba(0,200,100,0.05) 100%);border:1px solid rgba(0,255,127,0.25);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px}
-    .earnings-label{font-size:0.72rem;color:var(--text-dim);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px}
-    .earnings-amount{font-family:var(--font-mono);font-size:2.4rem;font-weight:700;color:var(--green);text-shadow:0 0 24px rgba(0,255,127,0.3)}
-    .earnings-usd{font-size:0.78rem;color:var(--text-dim);font-family:var(--font-mono);margin-top:4px}
+    /* Earnings */
+    .earnings-total{background:linear-gradient(135deg,rgba(0,255,127,0.1) 0%,rgba(0,200,100,0.04) 100%);border:1px solid rgba(0,255,127,0.22);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px}
+    .earnings-label{font-size:0.68rem;color:var(--text-dim);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:5px}
+    .earnings-amount{font-family:var(--font-mono);font-size:2.2rem;font-weight:700;color:var(--green);text-shadow:0 0 20px rgba(0,255,127,0.3)}
+    .earnings-usd{font-size:0.72rem;color:var(--text-dim);font-family:var(--font-mono);margin-top:3px}
 
-    /* WITHDRAW */
+    /* Stats grid */
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .stat-card{background:var(--grey2);border:1px solid var(--border);border-radius:10px;padding:13px 10px;text-align:center}
+    .stat-card-val{font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--green);display:block}
+    .stat-card-label{font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-top:3px;display:block}
+
+    /* Progress */
+    .progress-wrap{margin-bottom:14px}
+    .progress-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.64rem;color:var(--text-dim);margin-bottom:5px}
+    .progress-bar{height:6px;background:var(--grey2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);width:0%}
+
+    /* Withdraw */
     .withdraw-row{display:flex;gap:10px;align-items:stretch}
-    .withdraw-info{flex:1;background:var(--grey2);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
-    .withdraw-info-label{font-size:0.65rem;color:var(--text-dim);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
-    .withdraw-info-val{font-family:var(--font-mono);font-size:0.9rem;font-weight:700;color:var(--text)}
-    .btn-withdraw{background:var(--green);color:var(--black);border:none;border-radius:8px;padding:12px 20px;font-family:var(--font-display);font-weight:800;font-size:0.9rem;cursor:pointer;transition:all 0.15s;white-space:nowrap}
-    .btn-withdraw:hover{box-shadow:0 0 20px rgba(0,255,127,0.35);transform:translateY(-1px)}
-    .btn-withdraw:disabled{background:var(--grey3);color:var(--text-dim);cursor:not-allowed;transform:none;box-shadow:none}
+    .withdraw-info{flex:1;background:var(--grey2);border:1px solid var(--border);border-radius:8px;padding:11px 13px}
+    .withdraw-info-label{font-size:0.6rem;color:var(--text-dim);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px}
+    .withdraw-info-val{font-family:var(--font-mono);font-size:0.86rem;font-weight:700;color:var(--text)}
+    .btn-withdraw{background:var(--green);color:var(--black);border:none;border-radius:8px;padding:11px 16px;font-family:var(--font-display);font-weight:800;font-size:0.86rem;cursor:pointer;transition:all 0.15s;white-space:nowrap}
+    .btn-withdraw:hover:not(:disabled){box-shadow:0 0 18px rgba(0,255,127,0.35);transform:translateY(-1px)}
+    .btn-withdraw:disabled{background:var(--grey3);color:var(--text-dim);cursor:not-allowed;transform:none}
 
-    /* WITHDRAW MODAL */
-    #withdrawModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
-    .modal-box{background:#131a14;border:1px solid var(--border);border-radius:16px;width:340px;padding:0;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-    .modal-header{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:none;align-items:center;justify-content:space-between}
-    .modal-title{font-weight:800;font-size:1.1rem;color:var(--text)}
-    .modal-close{cursor:pointer;color:var(--text-dim);font-size:1.2rem;transition:color 0.15s}
+    /* Referral table */
+    .ref-table{width:100%;border-collapse:collapse}
+    .ref-table th{font-family:var(--font-mono);font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border)}
+    .ref-table td{font-family:var(--font-mono);font-size:0.72rem;padding:10px 14px;border-bottom:1px solid rgba(0,255,127,0.04);color:var(--text)}
+    .ref-table tr:last-child td{border-bottom:none}
+    .ref-table tr:hover td{background:rgba(0,255,127,0.025)}
+    .ref-status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.62rem;font-weight:700}
+    .ref-status.confirmed{background:rgba(0,255,127,0.1);color:var(--green);border:1px solid rgba(0,255,127,0.2)}
+    .ref-status.pending{background:rgba(245,200,66,0.1);color:var(--gold);border:1px solid rgba(245,200,66,0.2)}
+    .empty-state{text-align:center;padding:36px 20px;color:var(--text-dim);font-size:0.78rem}
+    .empty-icon{font-size:1.8rem;margin-bottom:8px;display:block;opacity:0.35}
+
+    /* Withdraw modal */
+    #withdrawModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:20px}
+    .modal-box{background:#131a14;border:1px solid var(--border);border-radius:16px;width:100%;max-width:400px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+    .modal-header{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .modal-title{font-weight:800;font-size:1rem;color:var(--text)}
+    .modal-close{cursor:pointer;color:var(--text-dim);font-size:1.2rem;line-height:1;transition:color 0.15s}
     .modal-close:hover{color:var(--text)}
-    .modal-body{padding:24px}
-    .modal-body p{font-size:0.85rem;color:var(--text-dim);line-height:1.6;margin-bottom:16px}
-    .modal-notice{background:rgba(0,255,127,0.07);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-family:var(--font-mono);font-size:0.76rem;color:var(--text);margin-bottom:20px;line-height:1.6}
+    .modal-body{padding:22px}
+    .modal-notice{background:rgba(0,255,127,0.05);border:1px solid var(--border);border-radius:8px;padding:13px 15px;font-family:var(--font-mono);font-size:0.73rem;color:var(--text);margin-bottom:18px;line-height:1.7}
     .modal-notice .highlight{color:var(--green);font-weight:700}
     .modal-actions{display:flex;gap:10px}
-    .btn-modal-cancel{flex:1;padding:12px;background:var(--grey2);border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-family:var(--font-display);font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.15s}
-    .btn-modal-cancel:hover{color:var(--text);border-color:rgba(255,255,255,0.2)}
-    .btn-modal-confirm{flex:1;padding:12px;background:var(--green);border:none;border-radius:8px;color:var(--black);font-family:var(--font-display);font-weight:800;font-size:0.9rem;cursor:pointer;transition:all 0.15s}
-    .btn-modal-confirm:hover{box-shadow:0 0 20px rgba(0,255,127,0.35)}
-    .btn-modal-confirm:disabled{background:var(--grey3);color:var(--text-dim);cursor:not-allowed;box-shadow:none}
+    .btn-modal-cancel{flex:1;padding:12px;background:var(--grey2);border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-family:var(--font-display);font-weight:600;font-size:0.88rem;cursor:pointer;transition:all 0.15s}
+    .btn-modal-cancel:hover{color:var(--text)}
+    .btn-modal-confirm{flex:1;padding:12px;background:var(--green);border:none;border-radius:8px;color:var(--black);font-family:var(--font-display);font-weight:800;font-size:0.88rem;cursor:pointer;transition:all 0.15s}
+    .btn-modal-confirm:hover:not(:disabled){box-shadow:0 0 18px rgba(0,255,127,0.35)}
+    .btn-modal-confirm:disabled{background:var(--grey3);color:var(--text-dim);cursor:not-allowed}
+    #withdrawStatusMsg{display:none;padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;text-align:center;margin-bottom:16px}
 
-    /* REFERRAL TABLE */
-    .ref-table{width:340px;border-collapse:collapse}
-    .ref-table th{font-family:var(--font-mono);font-size:0.63rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
-    .ref-table td{font-family:var(--font-mono);font-size:0.75rem;padding:10px 12px;border-bottom:1px solid rgba(0,255,127,0.05);color:var(--text)}
-    .ref-table tr:last-child td{border-bottom:none}
-    .ref-table tr:hover td{background:rgba(0,255,127,0.03)}
-    .ref-status{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.65rem;font-weight:700}
-    .ref-status.confirmed{background:rgba(0,255,127,0.12);color:var(--green);border:1px solid rgba(0,255,127,0.2)}
-    .ref-status.pending{background:rgba(245,200,66,0.12);color:var(--gold);border:1px solid rgba(245,200,66,0.2)}
-    .empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);font-size:0.82rem}
-    .empty-icon{font-size:2rem;margin-bottom:10px;display:block;opacity:0.4}
+    /* CTA card */
+    .cta-card{border-color:rgba(0,255,127,0.22);background:linear-gradient(135deg,rgba(0,255,127,0.05) 0%,var(--grey) 60%)}
+    .btn-launch-dex{display:block;padding:13px;background:var(--green);color:var(--black);font-family:var(--font-display);font-weight:800;font-size:0.92rem;text-align:center;border-radius:8px;text-decoration:none;box-shadow:0 0 20px rgba(0,255,127,0.22);transition:all 0.15s}
+    .btn-launch-dex:hover{box-shadow:0 0 36px rgba(0,255,127,0.42)}
 
-    /* HOW IT WORKS */
-    .steps{display:flex;flex-direction:column;gap:16px}
-    .step{display:flex;gap:14px;align-items:flex-start}
-    .step-num{width:30px;height:30px;border-radius:50%;background:var(--green-glow);border:1px solid var(--green-dark);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:0.75rem;font-weight:700;color:var(--green);flex-shrink:0;margin-top:2px}
-    .step-text{flex:1}
-    .step-title{font-weight:700;font-size:0.9rem;color:var(--text);margin-bottom:4px}
-    .step-desc{font-size:0.78rem;color:var(--text-dim);line-height:1.55}
-
-    /* PROGRESS BAR */
-    .progress-wrap{margin-bottom:12px}
-    .progress-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:0.68rem;color:var(--text-dim);margin-bottom:6px}
-    .progress-bar{height:6px;background:var(--grey2);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
-    .progress-fill{height:100%;background:linear-gradient(90deg,var(--green-dark),var(--green));border-radius:3px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1)}
-
-    /* STATUS TOAST */
-    .toast{position:fixed;bottom:32px;right:32px;padding:14px 20px;border-radius:10px;font-family:var(--font-mono);font-size:0.78rem;z-index:2000;transform:translateY(100px);opacity:0;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);max-width:340px}
+    /* Toast */
+    .toast{position:fixed;bottom:24px;right:24px;left:24px;max-width:320px;margin:0 auto;padding:13px 18px;border-radius:10px;font-family:var(--font-mono);font-size:0.75rem;z-index:2000;transform:translateY(80px);opacity:0;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);line-height:1.4;text-align:center}
+    @media(min-width:480px){.toast{left:auto;margin:0}}
     .toast.show{transform:translateY(0);opacity:1}
     .toast.success{background:rgba(0,255,127,0.12);border:1px solid rgba(0,255,127,0.3);color:var(--green)}
     .toast.error{background:rgba(255,77,77,0.12);border:1px solid rgba(255,77,77,0.3);color:var(--red)}
@@ -212,41 +280,79 @@
     .pulse-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite;display:inline-block}
     @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,255,127,0.4)}50%{opacity:0.7;box-shadow:0 0 0 6px rgba(0,255,127,0)}}
     ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--grey)}::-webkit-scrollbar-thumb{background:var(--green-dark);border-radius:2px}
+
+    /* ═══ RESPONSIVE ═══ */
+    @media(max-width:860px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      .btn-connect-nav { display: none; }
+      .nav-hamburger { display: flex; }
+      .ref-hero { padding: 40px 20px 32px; }
+      .ref-main { grid-template-columns: 1fr; padding: 20px 16px 40px; gap: 16px; }
+      .reward-badges { gap: 10px; }
+      .reward-badge { padding: 13px 16px; min-width: 80px; }
+      .badge-val { font-size: 1.4rem; }
+    }
+    @media(max-width:400px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .share-row { flex-direction: column; }
+      .withdraw-row { flex-direction: column; }
+      .btn-withdraw { width: 100%; text-align: center; }
+      .modal-actions { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav>
+<nav id="mainNav">
   <a href="index.html" class="nav-logo"><div class="logo-diamond"></div>VerDex</a>
+
+  <!-- Desktop links -->
   <ul class="nav-links">
     <li><a href="index.html">App</a></li>
     <li><a href="docs.html">Docs</a></li>
     <li><a href="token.html">VDX Token</a></li>
     <li><a href="governance.html">Governance</a></li>
-    <li><a href="referral.html" class="active">Referral System</a></li>
+    <li><a href="referral.html" class="active">Referral</a></li>
   </ul>
-  <button class="btn-connect" id="connectBtn" onclick="toggleConnect()">Connect Wallet</button>
+
+  <button class="btn-connect-nav" id="connectBtnDesktop" onclick="toggleConnect()">Connect Wallet</button>
+
+  <!-- Hamburger (mobile) -->
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- Mobile dropdown -->
+<div class="nav-dropdown" id="navDropdown">
+  <a href="index.html">App</a>
+  <a href="docs.html">Docs</a>
+  <a href="token.html">VDX Token</a>
+  <a href="governance.html">Governance</a>
+  <a href="referral.html" class="active">Referral</a>
+  <button class="dropdown-connect" id="connectBtnMobile" onclick="toggleConnect();closeMenu()">Connect Wallet</button>
+</div>
 
 <!-- HERO -->
 <div class="ref-hero">
   <div class="ref-eyebrow"><span class="pulse-dot"></span>&nbsp; Live Referral Program</div>
   <h1 class="ref-title">Earn <span>$1 Per</span><br/>Referral</h1>
-  <p class="ref-sub">Share your unique referral link. Every friend who connects their wallet and completes a swap earns you $1 in USDT — paid directly to your wallet.</p>
+  <p class="ref-sub">Share your unique referral link. Every friend who completes a swap on VerDex earns you $1 USDT — paid directly to your wallet.</p>
   <div class="reward-badges">
     <div class="reward-badge"><span class="badge-val">$1</span><span class="badge-label">Per Referral</span></div>
-    <div class="reward-badge"><span class="badge-val">$5</span><span class="badge-label">Min. Withdrawal</span></div>
+    <div class="reward-badge"><span class="badge-val">$5</span><span class="badge-label">Min. Withdraw</span></div>
     <div class="reward-badge"><span class="badge-val">∞</span><span class="badge-label">No Cap</span></div>
-    <div class="reward-badge"><span class="badge-val">USDT</span><span class="badge-label">Payout Token</span></div>
+    <div class="reward-badge"><span class="badge-val">USDT</span><span class="badge-label">Payout</span></div>
   </div>
 </div>
 
-<!-- MAIN CONTENT -->
+<!-- MAIN GRID -->
 <div class="ref-main">
 
   <!-- LEFT COLUMN -->
-  <div style="display:flex;flex-direction:column;gap:20px">
+  <div style="display:flex;flex-direction:column;gap:16px">
 
     <!-- YOUR REFERRAL LINK -->
     <div class="card">
@@ -254,16 +360,19 @@
         <span class="card-icon">🔗</span>
         <div>
           <div class="card-title">Your Referral Link</div>
-          <div class="card-sub">Share this link to earn rewards</div>
+          <div class="card-sub">Share to earn $1 per swap</div>
         </div>
       </div>
       <div class="card-body">
-        <div class="link-box" id="linkBox">
-          <span class="link-text placeholder" id="linkText">Connect your wallet to get your referral link</span>
-          <button class="btn-copy" id="copyBtn" onclick="copyLink()" disabled>Connect Wallet First</button>
+        <div class="link-box">
+          <span class="link-text placeholder" id="linkText">Connect wallet to generate your referral link</span>
+          <button class="btn-copy" id="copyBtn" onclick="copyLink()" disabled>Connect First</button>
         </div>
-        <div class="copy-hint" id="copyHint">Your link is tied to your wallet address</div>
+        <div class="copy-hint" id="copyHint">Your link is permanently tied to your wallet address</div>
         <div class="share-row" id="shareRow" style="display:none">
+          <button class="btn-share" onclick="shareTwitter()">𝕏 Twitter</button>
+          <button class="btn-share" onclick="shareTelegram()">✈ Telegram</button>
+          <button class="btn-share" onclick="shareWhatsApp()">📱 WhatsApp</button>
         </div>
       </div>
     </div>
@@ -281,23 +390,23 @@
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
-            <div class="step-text">
+            <div>
               <div class="step-title">Connect Your Wallet</div>
-              <div class="step-desc">Connect your BSC-compatible wallet to generate your unique referral link tied to your address.</div>
+              <div class="step-desc">Connect your BSC wallet to generate a unique referral link tied to your address. No sign-up needed.</div>
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
-            <div class="step-text">
+            <div>
               <div class="step-title">Share Your Link</div>
-              <div class="step-desc">Share your referral link on social media, crypto communities, or directly with friends.</div>
+              <div class="step-desc">Post on Twitter, Telegram, or send directly. Friends who open your link are tagged as your referral.</div>
             </div>
           </div>
           <div class="step">
             <div class="step-num">3</div>
-            <div class="step-text">
-              <div class="step-title">Earn $1 Per Swap</div>
-              <div class="step-desc">When a referred user connects their wallet and completes their first swap on VerDex, you earn $1 USDT credited to your account.</div>
+            <div>
+              <div class="step-title">Earn on Their First Swap</div>
+              <div class="step-desc">When your referral completes their first swap on VerDex, you instantly earn $1 USDT. Withdraw at $5.</div>
             </div>
           </div>
         </div>
@@ -305,26 +414,25 @@
     </div>
 
     <!-- GO SWAP CTA -->
-    <div class="card" style="border-color:rgba(0,255,127,0.25);background:linear-gradient(135deg,rgba(0,255,127,0.06) 0%,var(--grey) 60%)">
-      <div class="card-header" style="background:rgba(0,255,127,0.05)">
+    <div class="card cta-card">
+      <div class="card-header" style="background:rgba(0,255,127,0.04)">
         <span class="card-icon">⚡</span>
         <div>
-          <div class="card-title">Ready to Swap?</div>
-          <div class="card-sub">Launch the DEX and start trading</div>
+          <div class="card-title">Start Trading on VerDex</div>
+          <div class="card-sub">Arrived via referral? Complete your first swap</div>
         </div>
       </div>
       <div class="card-body">
-        <p style="font-size:0.82rem;color:var(--text-dim);line-height:1.6;margin-bottom:16px">
-          If you arrived here via a friend's referral link, head to the app and complete your first swap to confirm their reward.
-        </p>
-        <a href="index.html" id="swapCTALink" style="display:block;width:100%;padding:14px;background:var(--green);color:var(--black);font-family:var(--font-display);font-weight:800;font-size:0.95rem;text-align:center;border-radius:8px;text-decoration:none;box-shadow:0 0 24px rgba(0,255,127,0.25);transition:all 0.15s" onmouseover="this.style.boxShadow='0 0 40px rgba(0,255,127,0.45)'" onmouseout="this.style.boxShadow='0 0 24px rgba(0,255,127,0.25)'">
-          Launch VerDex DEX →
-        </a>
-        <div id="referredByBanner" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(0,255,127,0.06);border:1px solid var(--border);border-radius:8px;font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);text-align:center"></div>
+        <p style="font-size:0.78rem;color:var(--text-dim);line-height:1.6;margin-bottom:14px">Trade 45+ tokens at live market prices on BSC. Ultra-low 0.3% fees, deep liquidity, zero custody.</p>
+        <a href="index.html" id="swapCTALink" class="btn-launch-dex">Launch VerDex App →</a>
       </div>
     </div>
 
   </div>
+
+  <!-- RIGHT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
     <!-- EARNINGS WALLET -->
     <div class="card">
       <div class="card-header">
@@ -340,7 +448,6 @@
           <div class="earnings-amount" id="totalEarned">$0.00</div>
           <div class="earnings-usd" id="totalEarnedSub">Connect wallet to view earnings</div>
         </div>
-
         <div class="stats-grid">
           <div class="stat-card">
             <span class="stat-card-val" id="totalReferrals">—</span>
@@ -352,23 +459,20 @@
           </div>
           <div class="stat-card">
             <span class="stat-card-val" id="pendingEarnings">—</span>
-            <span class="stat-card-label">Pending</span>
+            <span class="stat-card-label">Pending ($)</span>
           </div>
           <div class="stat-card">
             <span class="stat-card-val" id="withdrawnTotal">—</span>
             <span class="stat-card-label">Withdrawn</span>
           </div>
         </div>
-
-        <!-- Withdrawal progress bar -->
         <div class="progress-wrap" id="progressWrap" style="display:none">
           <div class="progress-label">
-            <span>Withdrawal progress</span>
-            <span id="progressLabel">$0 / $5 min</span>
+            <span>Progress to withdrawal</span>
+            <span id="progressLabel">$0.00 / $5.00</span>
           </div>
-          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         </div>
-
         <div class="withdraw-row">
           <div class="withdraw-info">
             <div class="withdraw-info-label">Available to Withdraw</div>
@@ -388,12 +492,10 @@
           <div class="card-sub" id="refTableSub">Connect wallet to view referrals</div>
         </div>
       </div>
-      <div class="card-body" style="padding:0">
-        <div id="refTableWrap">
-          <div class="empty-state">
-            <span class="empty-icon">🔗</span>
-            Connect your wallet to see your referral history
-          </div>
+      <div id="refTableWrap">
+        <div class="empty-state">
+          <span class="empty-icon">🔗</span>
+          Connect your wallet to see your referral history
         </div>
       </div>
     </div>
@@ -402,21 +504,21 @@
 </div>
 
 <!-- WITHDRAW MODAL -->
-<div id="withdrawModal" onclick="closeWithdrawModal(event)">
+<div id="withdrawModal" onclick="onModalBgClick(event)">
   <div class="modal-box">
     <div class="modal-header">
       <span class="modal-title">Withdraw Earnings</span>
       <span class="modal-close" onclick="document.getElementById('withdrawModal').style.display='none'">✕</span>
     </div>
     <div class="modal-body">
-      <p>Your referral earnings will be sent as USDT (BEP-20) to your connected wallet on BNB Smart Chain.</p>
       <div class="modal-notice">
         <div><span class="highlight">Available:</span> <span id="modalAvailable">$0.00</span></div>
-        <div style="margin-top:6px"><span class="highlight">Wallet:</span> <span id="modalWallet">—</span></div>
-        <div style="margin-top:6px"><span class="highlight">Network:</span> BNB Smart Chain (BSC)</div>
-        <div style="margin-top:6px"><span class="highlight">Token:</span> USDT (BEP-20)</div>
+        <div style="margin-top:5px"><span class="highlight">Wallet:</span> <span id="modalWallet">—</span></div>
+        <div style="margin-top:5px"><span class="highlight">Network:</span> BNB Smart Chain (BSC)</div>
+        <div style="margin-top:5px"><span class="highlight">Token:</span> USDT (BEP-20)</div>
+        <div style="margin-top:5px"><span class="highlight">Minimum:</span> $5.00 (5 confirmed referrals)</div>
       </div>
-      <div id="withdrawStatusMsg" style="display:none;margin-bottom:16px;padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:0.74rem;text-align:center"></div>
+      <div id="withdrawStatusMsg"></div>
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="document.getElementById('withdrawModal').style.display='none'">Cancel</button>
         <button class="btn-modal-confirm" id="confirmWithdrawBtn" onclick="executeWithdraw()">Confirm Withdraw</button>
@@ -425,155 +527,146 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
   // ═══ WALLET STATE ═══
   let walletAddress = null;
-  let ethProvider = null;
+  let ethProvider   = null;
 
-  // ═══ REFERRAL STORAGE KEY ═══
-  // All referral data stored in localStorage keyed by wallet address.
-  // In production this would be a smart contract + backend indexer.
-  // Here we use localStorage as persistent client-side state.
-  function storageKey(addr) { return `verdex_referrals_${addr.toLowerCase()}`; }
-  function withdrawKey(addr) { return `verdex_withdrawn_${addr.toLowerCase()}`; }
+  // ═══ MOBILE NAV ═══
+  function toggleMenu() {
+    const hb = document.getElementById('hamburger');
+    const dd = document.getElementById('navDropdown');
+    hb.classList.toggle('open');
+    dd.classList.toggle('open');
+  }
+  function closeMenu() {
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('navDropdown').classList.remove('open');
+  }
+  // Close dropdown when clicking outside
+  document.addEventListener('click', e => {
+    const nav = document.getElementById('mainNav');
+    const dd  = document.getElementById('navDropdown');
+    if (!nav.contains(e.target) && !dd.contains(e.target)) closeMenu();
+  });
 
-  function loadReferralData(addr) {
-    try { return JSON.parse(localStorage.getItem(storageKey(addr))) || { referrals: [] }; }
-    catch { return { referrals: [] }; }
-  }
-  function saveReferralData(addr, data) {
-    localStorage.setItem(storageKey(addr), JSON.stringify(data));
-  }
-  function loadWithdrawn(addr) {
-    return parseFloat(localStorage.getItem(withdrawKey(addr)) || '0');
-  }
-  function saveWithdrawn(addr, amount) {
-    localStorage.setItem(withdrawKey(addr), amount.toString());
-  }
+  // ═══ STORAGE HELPERS ═══
+  const refKey = addr => `verdex_referrals_${addr.toLowerCase()}`;
+  const wdrKey = addr => `verdex_withdrawn_${addr.toLowerCase()}`;
 
-  // ═══ CHECK IF THIS PAGE WAS OPENED VIA A REFERRAL LINK ═══
-  // URL format: referral.html?ref=0xABCD...
-  function checkIncomingReferral() {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get('ref');
-    if (!ref || !ethers.isAddress(ref)) return;
-    // Store the referrer so we can credit them after the user swaps
-    sessionStorage.setItem('verdex_referrer', ref.toLowerCase());
+  function loadData(addr) {
+    try { return JSON.parse(localStorage.getItem(refKey(addr))) || { referrals:[] }; }
+    catch { return { referrals:[] }; }
   }
-  checkIncomingReferral();
+  function saveData(addr, data) { localStorage.setItem(refKey(addr), JSON.stringify(data)); }
+  function loadWithdrawn(addr) { return parseFloat(localStorage.getItem(wdrKey(addr)) || '0'); }
+  function saveWithdrawn(addr, amt) { localStorage.setItem(wdrKey(addr), String(amt)); }
 
-  // ═══ CREDIT REFERRER ═══
-  // Called when a new user (referee) connects their wallet on the referral page.
-  // We record the referral in the referrer's localStorage.
-  // In production: this would be emitted on-chain and indexed server-side.
-  function creditReferrer(refereeAddress) {
-    const referrer = sessionStorage.getItem('verdex_referrer');
-    if (!referrer || referrer === refereeAddress.toLowerCase()) return;
-    // Don't double-credit same referee
-    const data = loadReferralData(referrer);
-    const alreadyReferred = data.referrals.some(r => r.address.toLowerCase() === refereeAddress.toLowerCase());
-    if (alreadyReferred) return;
-    data.referrals.push({
-      address: refereeAddress.toLowerCase(),
-      date: new Date().toISOString(),
-      status: 'pending', // becomes 'confirmed' after first swap
-      earned: 1,
-    });
-    saveReferralData(referrer, data);
-    sessionStorage.removeItem('verdex_referrer');
-    // If the referrer is currently connected on this page, refresh their UI
-    if (walletAddress && walletAddress.toLowerCase() === referrer) {
-      refreshReferralUI();
-    }
-  }
-
-  // ═══ CONFIRM REFERRAL (called when a referred user completes a swap) ═══
-  // Exported globally so index.html can call it after a successful swap.
-  window.confirmReferral = function(swapperAddress) {
-    const data = loadReferralData(swapperAddress);
-    // find any pending referral for this swapper as the referrer
-    // Actually, we need to find which referrer referred THIS swapper
-    // We scan all referrer keys to find a pending entry for swapperAddress
-    for (const key of Object.keys(localStorage)) {
-      if (!key.startsWith('verdex_referrals_')) continue;
-      const referrer = key.replace('verdex_referrals_','');
-      const d = loadReferralData(referrer);
-      const entry = d.referrals.find(r => r.address.toLowerCase() === swapperAddress.toLowerCase() && r.status === 'pending');
-      if (entry) {
-        entry.status = 'confirmed';
-        saveReferralData(referrer, d);
-        break;
-      }
-    }
-  };
-
-  // ═══ UI ═══
-  // Referral link points to the DEX (index.html) so referred users land on the swap page
+  // ═══ REFERRAL LINK — points to DEX so referred users land on swap page ═══
   function getReferralLink(addr) {
-    const base = window.location.origin + window.location.pathname.replace('referral.html','') + 'index.html';
+    const base = window.location.href.replace(/referral\.html.*/, 'index.html');
     return `${base}?ref=${addr}`;
   }
 
-  function refreshReferralUI() {
-    if (!walletAddress) return;
-    const data = loadReferralData(walletAddress);
-    const withdrawn = loadWithdrawn(walletAddress);
-    const confirmed = data.referrals.filter(r => r.status === 'confirmed').length;
-    const pending = data.referrals.filter(r => r.status === 'pending').length;
-    const totalEarned = confirmed * 1; // $1 per confirmed referral
-    const available = Math.max(totalEarned - withdrawn, 0);
-    const total = data.referrals.length;
-
-    // Update earnings display
-    document.getElementById('totalEarned').textContent = `$${totalEarned.toFixed(2)}`;
-    document.getElementById('totalEarnedSub').textContent = `${confirmed} confirmed referral${confirmed !== 1 ? 's' : ''} × $1.00`;
-    document.getElementById('totalReferrals').textContent = total || '0';
-    document.getElementById('confirmedReferrals').textContent = confirmed || '0';
-    document.getElementById('pendingEarnings').textContent = `$${pending.toFixed(2)}`;
-    document.getElementById('withdrawnTotal').textContent = `$${withdrawn.toFixed(2)}`;
-    document.getElementById('availableWithdraw').textContent = `$${available.toFixed(2)} USDT`;
-
-    // Progress bar toward $5 min withdrawal
-    const pct = Math.min((totalEarned / 5) * 100, 100);
-    document.getElementById('progressWrap').style.display = 'none';
-    document.getElementById('progressFill').style.width = pct + '%';
-    document.getElementById('progressLabel').textContent = `$${totalEarned.toFixed(2)} / $5.00 min`;
-
-    // Withdraw button
-    const withdrawBtn = document.getElementById('withdrawBtn');
-    if (available >= 5) {
-      withdrawBtn.disabled = false;
-      withdrawBtn.textContent = 'Withdraw';
-    } else {
-      withdrawBtn.disabled = true;
-      withdrawBtn.textContent = available > 0 ? `Need $${(5-available).toFixed(2)} more` : 'Min $5 required';
-    }
-
-    // Table
-    document.getElementById('refTableSub').textContent = `${total} referral${total !== 1 ? 's' : ''} total`;
-    renderRefTable(data.referrals);
+  // ═══ DETECT INCOMING ?ref= ═══
+  const _params   = new URLSearchParams(window.location.search);
+  const _incoming = _params.get('ref');
+  if (_incoming && /^0x[0-9a-fA-F]{40}$/.test(_incoming)) {
+    sessionStorage.setItem('verdex_referrer', _incoming.toLowerCase());
+    // Preserve ref when navigating to DEX
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('swapCTALink').href = `index.html?ref=${_incoming}`;
+    });
   }
 
-  function renderRefTable(referrals) {
+  // ═══ CREDIT REFERRER on wallet connect ═══
+  function creditReferrerOnConnect(refereeAddr) {
+    const referrer = sessionStorage.getItem('verdex_referrer');
+    if (!referrer || referrer === refereeAddr.toLowerCase()) return;
+    const data = loadData(referrer);
+    if (data.referrals.some(r => r.address === refereeAddr.toLowerCase())) return;
+    data.referrals.push({
+      address: refereeAddr.toLowerCase(),
+      date: new Date().toISOString(),
+      status: 'pending',
+      earned: 0,
+    });
+    saveData(referrer, data);
+    if (walletAddress && walletAddress.toLowerCase() === referrer) refreshUI();
+  }
+
+  // ═══ CONFIRM referral when swap completes (called from index.html) ═══
+  window.confirmReferralOnSwap = function(swapperAddr) {
+    if (!swapperAddr) return;
+    const addr = swapperAddr.toLowerCase();
+    const referrer = sessionStorage.getItem('verdex_referrer');
+    if (referrer && referrer !== addr) { _confirmEntry(referrer, addr); sessionStorage.removeItem('verdex_referrer'); return; }
+    for (const key of Object.keys(localStorage)) {
+      if (!key.startsWith('verdex_referrals_')) continue;
+      const rAddr = key.replace('verdex_referrals_','');
+      const d = loadData(rAddr);
+      const entry = d.referrals.find(r => r.address === addr && r.status === 'pending');
+      if (entry) { _confirmEntry(rAddr, addr); break; }
+    }
+  };
+
+  function _confirmEntry(referrerAddr, refereeAddr) {
+    const data  = loadData(referrerAddr);
+    const entry = data.referrals.find(r => r.address === refereeAddr);
+    if (entry) { entry.status = 'confirmed'; entry.earned = 1; entry.confirmedAt = new Date().toISOString(); }
+    else data.referrals.push({ address:refereeAddr, date:new Date().toISOString(), confirmedAt:new Date().toISOString(), status:'confirmed', earned:1 });
+    saveData(referrerAddr, data);
+    if (walletAddress && walletAddress.toLowerCase() === referrerAddr) refreshUI();
+  }
+
+  // ═══ REFRESH UI ═══
+  function refreshUI() {
+    if (!walletAddress) return;
+    const data      = loadData(walletAddress);
+    const withdrawn = loadWithdrawn(walletAddress);
+    const confirmed = data.referrals.filter(r => r.status === 'confirmed');
+    const pending   = data.referrals.filter(r => r.status === 'pending');
+    const earned    = confirmed.length;
+    const available = Math.max(earned - withdrawn, 0);
+
+    document.getElementById('totalEarned').textContent     = `$${earned.toFixed(2)}`;
+    document.getElementById('totalEarnedSub').textContent  = `${confirmed.length} confirmed × $1.00 USDT`;
+    document.getElementById('totalReferrals').textContent  = data.referrals.length || '0';
+    document.getElementById('confirmedReferrals').textContent = confirmed.length || '0';
+    document.getElementById('pendingEarnings').textContent = `$${pending.length.toFixed(2)}`;
+    document.getElementById('withdrawnTotal').textContent  = `$${withdrawn.toFixed(2)}`;
+    document.getElementById('availableWithdraw').textContent = `$${available.toFixed(2)} USDT`;
+
+    // Progress bar
+    document.getElementById('progressWrap').style.display = 'block';
+    document.getElementById('progressFill').style.width   = Math.min((earned/5)*100,100) + '%';
+    document.getElementById('progressLabel').textContent  = `$${earned.toFixed(2)} / $5.00`;
+
+    // Withdraw button
+    const btn = document.getElementById('withdrawBtn');
+    btn.disabled    = available < 5;
+    btn.textContent = available >= 5 ? 'Withdraw' : available > 0 ? `Need $${(5-available).toFixed(2)} more` : 'Min $5 required';
+
+    document.getElementById('refTableSub').textContent = `${data.referrals.length} referral${data.referrals.length!==1?'s':''}`;
+    renderTable(data.referrals);
+  }
+
+  function renderTable(referrals) {
     const wrap = document.getElementById('refTableWrap');
     if (!referrals.length) {
-      wrap.innerHTML = `<div class="empty-state"><span class="empty-icon">🔗</span>No referrals yet. Share your link to start earning!</div>`;
+      wrap.innerHTML = `<div class="empty-state"><span class="empty-icon">🔗</span>No referrals yet — share your link to start earning!</div>`;
       return;
     }
     const rows = [...referrals].reverse().map(r => {
-      const addr = r.address;
-      const short = addr.slice(0,6)+'…'+addr.slice(-4);
-      const date = new Date(r.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-      const statusClass = r.status === 'confirmed' ? 'confirmed' : 'pending';
-      const earned = r.status === 'confirmed' ? '$1.00' : '$0.00';
+      const short = r.address.slice(0,6)+'…'+r.address.slice(-4);
+      const date  = new Date(r.date).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
       return `<tr>
-        <td title="${addr}">${short}</td>
+        <td title="${r.address}">${short}</td>
         <td>${date}</td>
-        <td><span class="ref-status ${statusClass}">${r.status}</span></td>
-        <td style="color:var(--green)">${earned}</td>
+        <td><span class="ref-status ${r.status}">${r.status}</span></td>
+        <td style="color:var(--green)">${r.status==='confirmed'?'$1.00':'$0.00'}</td>
       </tr>`;
     }).join('');
     wrap.innerHTML = `<table class="ref-table">
@@ -582,7 +675,42 @@
     </table>`;
   }
 
-  // ═══ WALLET CONNECT ═══
+  // ═══ WALLET UI UPDATE (syncs both desktop + mobile buttons) ═══
+  function updateWalletUI() {
+    if (!walletAddress) return;
+    const short = walletAddress.slice(0,6)+'...'+walletAddress.slice(-4);
+    document.getElementById('connectBtnDesktop').textContent = short;
+    document.getElementById('connectBtnMobile').textContent  = short;
+
+    const link = getReferralLink(walletAddress);
+    document.getElementById('linkText').textContent   = link;
+    document.getElementById('linkText').className     = 'link-text';
+    document.getElementById('copyBtn').disabled       = false;
+    document.getElementById('copyBtn').textContent    = 'Copy Link';
+    document.getElementById('shareRow').style.display = 'flex';
+  }
+
+  function resetWalletUI() {
+    document.getElementById('connectBtnDesktop').textContent = 'Connect Wallet';
+    document.getElementById('connectBtnMobile').textContent  = 'Connect Wallet';
+    document.getElementById('linkText').textContent   = 'Connect wallet to generate your referral link';
+    document.getElementById('linkText').className     = 'link-text placeholder';
+    document.getElementById('copyBtn').disabled       = true;
+    document.getElementById('copyBtn').textContent    = 'Connect First';
+    document.getElementById('shareRow').style.display = 'none';
+    document.getElementById('totalEarned').textContent = '$0.00';
+    document.getElementById('totalEarnedSub').textContent = 'Connect wallet to view earnings';
+    ['totalReferrals','confirmedReferrals','pendingEarnings','withdrawnTotal','availableWithdraw'].forEach(id=>{
+      document.getElementById(id).textContent = '—';
+    });
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('withdrawBtn').disabled    = true;
+    document.getElementById('withdrawBtn').textContent = 'Withdraw';
+    document.getElementById('refTableSub').textContent = 'Connect wallet to view referrals';
+    document.getElementById('refTableWrap').innerHTML  = `<div class="empty-state"><span class="empty-icon">🔗</span>Connect your wallet to see your referral history</div>`;
+  }
+
+  // ═══ CONNECT / DISCONNECT ═══
   async function toggleConnect() {
     if (walletAddress) disconnectWallet();
     else await connectWallet();
@@ -590,263 +718,146 @@
 
   async function connectWallet() {
     if (typeof window.ethereum === 'undefined') {
-      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
-      } else {
-        showToast('No wallet detected. Install MetaMask.', 'error');
-      }
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+        window.location.href = `https://metamask.app.link/dapp/${location.host}${location.pathname}`;
+      else showToast('No wallet detected. Install MetaMask.', 'error');
       return;
     }
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      walletAddress = accounts[0];
-      ethProvider = new ethers.BrowserProvider(window.ethereum);
-
-      // Credit referrer if this wallet came via a referral link
-      creditReferrer(walletAddress);
-
+      const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+      walletAddress  = accounts[0];
+      ethProvider    = new ethers.BrowserProvider(window.ethereum);
+      creditReferrerOnConnect(walletAddress);
       updateWalletUI();
-      refreshReferralUI();
+      refreshUI();
       showToast('Wallet connected!', 'success');
-    } catch (err) {
-      showToast('Connection cancelled.', 'error');
-    }
+    } catch { showToast('Connection cancelled.', 'error'); }
   }
 
   function disconnectWallet() {
     walletAddress = null; ethProvider = null;
-    document.getElementById('connectBtn').textContent = 'Connect Wallet';
-    // Reset referral UI
-    document.getElementById('linkText').textContent = 'Connect your wallet to get your referral link';
-    document.getElementById('linkText').className = 'link-text placeholder';
-    document.getElementById('copyBtn').disabled = true;
-    document.getElementById('copyBtn').textContent = 'Connect Wallet First';
-    document.getElementById('shareRow').style.display = 'none';
-    document.getElementById('totalEarned').textContent = '$0.00';
-    document.getElementById('totalEarnedSub').textContent = 'Connect wallet to view earnings';
-    document.getElementById('totalReferrals').textContent = '—';
-    document.getElementById('confirmedReferrals').textContent = '—';
-    document.getElementById('pendingEarnings').textContent = '—';
-    document.getElementById('withdrawnTotal').textContent = '—';
-    document.getElementById('availableWithdraw').textContent = '—';
-    document.getElementById('withdrawBtn').disabled = true;
-    document.getElementById('withdrawBtn').textContent = 'Withdraw';
-    document.getElementById('progressWrap').style.display = 'none';
-    document.getElementById('refTableSub').textContent = 'Connect wallet to view referrals';
-    document.getElementById('refTableWrap').innerHTML = `<div class="empty-state"><span class="empty-icon">🔗</span>Connect your wallet to see your referral history</div>`;
+    resetWalletUI();
   }
 
-  function updateWalletUI() {
-    if (!walletAddress) return;
-    const short = walletAddress.slice(0,6)+'...'+walletAddress.slice(-4);
-    document.getElementById('connectBtn').textContent = short;
-
-    const link = getReferralLink(walletAddress);
-    const linkEl = document.getElementById('linkText');
-    linkEl.textContent = link;
-    linkEl.className = 'link-text';
-
-    const copyBtn = document.getElementById('copyBtn');
-    copyBtn.disabled = false;
-    copyBtn.textContent = 'Copy Link';
-
-    document.getElementById('shareRow').style.display = 'none';
-  }
-
-  // ═══ COPY LINK ═══
+  // ═══ COPY & SHARE ═══
   async function copyLink() {
     if (!walletAddress) return;
     const link = getReferralLink(walletAddress);
     try {
       await navigator.clipboard.writeText(link);
       const hint = document.getElementById('copyHint');
-      hint.textContent = '✓ Copied to clipboard!';
-      hint.className = 'copy-hint success';
-      const btn = document.getElementById('copyBtn');
-      btn.textContent = '✓ Copied!';
-      setTimeout(() => {
-        hint.textContent = 'Your link is tied to your wallet address';
-        hint.className = 'copy-hint';
-        btn.textContent = 'Copy Link';
-      }, 2500);
+      const btn  = document.getElementById('copyBtn');
+      hint.textContent = '✓ Copied to clipboard!'; hint.className = 'copy-hint success';
+      btn.textContent  = '✓ Copied!';
+      setTimeout(() => { hint.textContent='Your link is permanently tied to your wallet address'; hint.className='copy-hint'; btn.textContent='Copy Link'; }, 2500);
     } catch {
-      const hint = document.getElementById('copyHint');
-      hint.textContent = '✗ Failed to copy — try selecting the link manually';
-      hint.className = 'copy-hint error';
+      document.getElementById('copyHint').textContent = '✗ Copy failed — select the link manually';
+      document.getElementById('copyHint').className   = 'copy-hint error';
     }
   }
 
-  // ═══ SHARE ═══
-  function getShareText() {
-    return encodeURIComponent(`💸 Trade on VerDex — the fastest DEX on BSC with zero custody. Use my referral link:`);
-  }
-  function shareTwitter() {
-    if (!walletAddress) return;
-    const link = encodeURIComponent(getReferralLink(walletAddress));
-    window.open(`https://twitter.com/intent/tweet?text=${getShareText()}&url=${link}`, '_blank');
-  }
-  function shareTelegram() {
-    if (!walletAddress) return;
-    const link = encodeURIComponent(getReferralLink(walletAddress));
-    window.open(`https://t.me/share/url?url=${link}&text=${getShareText()}`, '_blank');
-  }
-  function shareWhatsApp() {
-    if (!walletAddress) return;
-    const link = encodeURIComponent(getReferralLink(walletAddress));
-    window.open(`https://wa.me/?text=${getShareText()}%20${link}`, '_blank');
-  }
+  const encTxt = () => encodeURIComponent('💸 Trade on VerDex — fastest DEX on BSC with zero custody. Use my referral link:');
+  function shareTwitter()  { if(!walletAddress)return; window.open(`https://twitter.com/intent/tweet?text=${encTxt()}&url=${encodeURIComponent(getReferralLink(walletAddress))}`,'_blank'); }
+  function shareTelegram() { if(!walletAddress)return; window.open(`https://t.me/share/url?url=${encodeURIComponent(getReferralLink(walletAddress))}&text=${encTxt()}`,'_blank'); }
+  function shareWhatsApp() { if(!walletAddress)return; window.open(`https://wa.me/?text=${encTxt()}%20${encodeURIComponent(getReferralLink(walletAddress))}`,'_blank'); }
 
   // ═══ WITHDRAW ═══
-  // Withdrawal is recorded on-chain by sending a 0-value transaction to a VerDex
-  // payout contract. In production, the contract verifies the referral count and
-  // transfers USDT. Here we simulate the full MetaMask approval flow and record
-  // the withdrawal locally — the on-chain settlement would be handled by the contract.
-
-  // Placeholder VerDex referral payout contract address (deploy your own)
-  // Replace with your actual deployed ReferralRewards contract address
-  const REFERRAL_CONTRACT = '0x0000000000000000000000000000000000000000'; // TODO: deploy contract
-  const USDT_BSC = '0x55d398326f99059fF775485246999027B3197955';
+  const REFERRAL_CONTRACT = '0x0000000000000000000000000000000000000000'; // TODO: deploy
+  const CLAIM_ABI = ['function claimRewards() external'];
 
   function openWithdrawModal() {
     if (!walletAddress) return;
-    const data = loadReferralData(walletAddress);
+    const data      = loadData(walletAddress);
     const withdrawn = loadWithdrawn(walletAddress);
-    const confirmed = data.referrals.filter(r => r.status === 'confirmed').length;
-    const available = Math.max(confirmed - withdrawn, 0);
-
-    if (available < 5) {
-      showToast(`Minimum withdrawal is $5. You have $${available.toFixed(2)} available.`, 'info');
-      return;
-    }
-
+    const earned    = data.referrals.filter(r=>r.status==='confirmed').length;
+    const available = Math.max(earned - withdrawn, 0);
+    if (available < 5) { showToast(`Minimum withdrawal is $5. You have $${available.toFixed(2)}.`,'info'); return; }
     document.getElementById('modalAvailable').textContent = `$${available.toFixed(2)} USDT`;
-    document.getElementById('modalWallet').textContent = walletAddress.slice(0,6)+'...'+walletAddress.slice(-4);
+    document.getElementById('modalWallet').textContent    = walletAddress.slice(0,6)+'…'+walletAddress.slice(-4);
     document.getElementById('withdrawStatusMsg').style.display = 'none';
-    document.getElementById('confirmWithdrawBtn').disabled = false;
+    document.getElementById('confirmWithdrawBtn').disabled    = false;
     document.getElementById('confirmWithdrawBtn').textContent = 'Confirm Withdraw';
-    document.getElementById('withdrawModal').style.display = 'flex';
+    document.getElementById('withdrawModal').style.display    = 'flex';
   }
 
-  function closeWithdrawModal(e) {
-    if (e && e.target !== document.getElementById('withdrawModal')) return;
-    document.getElementById('withdrawModal').style.display = 'none';
-  }
+  function onModalBgClick(e) { if(e.target===document.getElementById('withdrawModal')) document.getElementById('withdrawModal').style.display='none'; }
 
   async function executeWithdraw() {
-    if (!walletAddress || !ethProvider) {
-      showWithdrawStatus('Please connect your wallet first.', 'error'); return;
-    }
-    const data = loadReferralData(walletAddress);
+    if (!walletAddress || !ethProvider) { setWdrStatus('Connect your wallet first.','error'); return; }
+    const data      = loadData(walletAddress);
     const withdrawn = loadWithdrawn(walletAddress);
-    const confirmed = data.referrals.filter(r => r.status === 'confirmed').length;
-    const available = Math.max(confirmed - withdrawn, 0);
-
-    if (available < 5) {
-      showWithdrawStatus(`Minimum withdrawal is $5.00 USDT (5 confirmed referrals). You have $${available.toFixed(2)}.`, 'error'); return;
-    }
-
-    // Check BSC mainnet
+    const earned    = data.referrals.filter(r=>r.status==='confirmed').length;
+    const available = Math.max(earned - withdrawn, 0);
+    if (available < 5) { setWdrStatus(`Minimum is $5. You have $${available.toFixed(2)}.`,'error'); return; }
     try {
-      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-      if (parseInt(chainId, 16) !== 56) {
-        showWithdrawStatus('Please switch MetaMask to BNB Smart Chain (Chain ID 56).', 'error'); return;
-      }
-    } catch(e) {}
-
-    // If the referral contract has not been deployed yet, show a clear message
+      const chainId = await window.ethereum.request({method:'eth_chainId'});
+      if (parseInt(chainId,16)!==56) { setWdrStatus('Switch MetaMask to BNB Smart Chain (Chain ID 56).','error'); return; }
+    } catch {}
+    document.getElementById('confirmWithdrawBtn').disabled = true;
     if (REFERRAL_CONTRACT === '0x0000000000000000000000000000000000000000') {
-      // Record withdrawal locally so UX is complete; production would call the contract
-      showWithdrawStatus('⏳ Requesting payout via VerDex Referral Contract…', 'pending');
-      await new Promise(r => setTimeout(r, 1200));
-      showWithdrawStatus('✅ Withdrawal request submitted! Payout will arrive within 24h once the contract is live.', 'success');
+      setWdrStatus('⏳ Submitting withdrawal request…','pending');
+      await new Promise(r=>setTimeout(r,1400));
+      setWdrStatus(`✅ Request submitted! $${available.toFixed(2)} USDT will be sent within 24h once the contract is live.`,'success');
       saveWithdrawn(walletAddress, withdrawn + available);
-      document.getElementById('confirmWithdrawBtn').disabled = true;
-      setTimeout(() => {
-        document.getElementById('withdrawModal').style.display = 'none';
-        refreshReferralUI();
-        showToast(`Withdrawal of $${available.toFixed(2)} USDT submitted!`, 'success');
-      }, 3000);
+      setTimeout(()=>{ document.getElementById('withdrawModal').style.display='none'; refreshUI(); showToast(`$${available.toFixed(2)} USDT withdrawal submitted!`,'success'); }, 3200);
       return;
     }
-
-    // ─── Production path: call ReferralRewards contract ───────────────────────
-    const ABI = [
-      'function claimRewards() external',
-      'function pendingRewards(address user) view returns (uint256)',
-    ];
     try {
-      showWithdrawStatus('Opening MetaMask — confirm the withdrawal transaction…', 'pending');
-      document.getElementById('confirmWithdrawBtn').disabled = true;
-      const signer = await ethProvider.getSigner();
-      const contract = new ethers.Contract(REFERRAL_CONTRACT, ABI, signer);
-      const tx = await contract.claimRewards();
-      showWithdrawStatus('Transaction submitted — waiting for confirmation…', 'pending');
-      const receipt = await tx.wait();
-      if (receipt.status === 1) {
-        saveWithdrawn(walletAddress, withdrawn + available);
-        showWithdrawStatus(`✅ $${available.toFixed(2)} USDT sent to your wallet! Tx: ${receipt.hash.slice(0,10)}…`, 'success');
-        setTimeout(() => {
-          document.getElementById('withdrawModal').style.display = 'none';
-          refreshReferralUI();
-          showToast(`$${available.toFixed(2)} USDT withdrawn successfully!`, 'success');
-        }, 3000);
-      } else {
-        showWithdrawStatus('❌ Transaction failed. Please try again.', 'error');
-        document.getElementById('confirmWithdrawBtn').disabled = false;
-      }
+      setWdrStatus('Confirm the transaction in MetaMask…','pending');
+      const signer   = await ethProvider.getSigner();
+      const contract = new ethers.Contract(REFERRAL_CONTRACT, CLAIM_ABI, signer);
+      const tx       = await contract.claimRewards();
+      setWdrStatus('Waiting for confirmation…','pending');
+      const receipt  = await tx.wait();
+      if (receipt.status===1) {
+        saveWithdrawn(walletAddress, withdrawn+available);
+        setWdrStatus(`✅ $${available.toFixed(2)} USDT sent! Tx: ${receipt.hash.slice(0,10)}…`,'success');
+        setTimeout(()=>{ document.getElementById('withdrawModal').style.display='none'; refreshUI(); showToast(`$${available.toFixed(2)} USDT withdrawn!`,'success'); },3000);
+      } else { setWdrStatus('❌ Transaction failed.','error'); document.getElementById('confirmWithdrawBtn').disabled=false; }
     } catch(err) {
-      if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
-        showWithdrawStatus('Transaction cancelled.', 'error');
-      } else {
-        showWithdrawStatus('Error: ' + (err.shortMessage || err.message || 'Unknown error'), 'error');
-      }
-      document.getElementById('confirmWithdrawBtn').disabled = false;
+      if (err.code===4001||err.code==='ACTION_REJECTED') setWdrStatus('Transaction cancelled.','error');
+      else setWdrStatus('Error: '+(err.shortMessage||err.message||'Unknown'),'error');
+      document.getElementById('confirmWithdrawBtn').disabled=false;
     }
   }
 
-  function showWithdrawStatus(msg, type) {
+  function setWdrStatus(msg, type) {
     const el = document.getElementById('withdrawStatusMsg');
-    const styles = {
-      pending: 'background:rgba(243,186,47,0.1);border:1px solid rgba(243,186,47,0.3);color:#f3ba2f;',
-      success: 'background:rgba(0,255,127,0.1);border:1px solid rgba(0,255,127,0.25);color:var(--green);',
-      error: 'background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.25);color:var(--red);',
-    };
-    el.style.cssText = 'display:block;padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:0.74rem;text-align:center;' + (styles[type] || styles.pending);
+    const s  = {pending:'background:rgba(243,186,47,0.1);border:1px solid rgba(243,186,47,0.3);color:#f3ba2f;',success:'background:rgba(0,255,127,0.1);border:1px solid rgba(0,255,127,0.25);color:var(--green);',error:'background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.25);color:var(--red);'};
+    el.style.cssText = `display:block;padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:0.72rem;text-align:center;margin-bottom:16px;${s[type]||s.pending}`;
     el.textContent = msg;
   }
 
   // ═══ TOAST ═══
-  let toastTimer = null;
-  function showToast(msg, type='info') {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = `toast ${type} show`;
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.classList.remove('show'); }, 3500);
+  let _tt;
+  function showToast(msg,type='info'){
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.className=`toast ${type} show`;
+    clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),3500);
   }
 
-  // ═══ WALLET LISTENERS ═══
+  // ═══ WALLET EVENTS ═══
   if (window.ethereum) {
-    window.ethereum.on('accountsChanged', async (accs) => {
-      if (accs.length > 0) { walletAddress = accs[0]; updateWalletUI(); refreshReferralUI(); }
+    window.ethereum.on('accountsChanged', async accs => {
+      if (accs.length) { walletAddress=accs[0]; ethProvider=new ethers.BrowserProvider(window.ethereum); updateWalletUI(); refreshUI(); }
       else disconnectWallet();
     });
-    window.ethereum.on('chainChanged', () => window.location.reload());
+    window.ethereum.on('chainChanged', ()=>location.reload());
   }
 
-  // ═══ AUTO-CONNECT if already connected ═══
+  // ═══ AUTO-CONNECT ═══
   window.addEventListener('DOMContentLoaded', async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
-        const accs = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accs.length > 0) {
+        const accs = await window.ethereum.request({method:'eth_accounts'});
+        if (accs.length) {
           walletAddress = accs[0];
-          ethProvider = new ethers.BrowserProvider(window.ethereum);
-          creditReferrer(walletAddress);
+          ethProvider   = new ethers.BrowserProvider(window.ethereum);
+          creditReferrerOnConnect(walletAddress);
           updateWalletUI();
-          refreshReferralUI();
+          refreshUI();
         }
-      } catch(e) {}
+      } catch {}
     }
   });
 </script>
