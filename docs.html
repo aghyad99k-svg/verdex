@@ -1,0 +1,2688 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VerDex Docs — Documentation</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --green: #00ff7f;
+        --green-dim: #00c45e;
+        --green-dark: #00892e;
+        --green-glow: rgba(0, 255, 127, 0.13);
+        --black: #050a06;
+        --dark: #0b110c;
+        --grey: #111712;
+        --grey2: #181f19;
+        --grey3: #1e271f;
+        --border: rgba(0, 255, 127, 0.12);
+        --text: #d8f0dc;
+        --text-dim: #6e8b71;
+        --text-faint: #3d5440;
+        --red: #ff4d4d;
+        --yellow: #f5a623;
+        --font-d: 'Syne', sans-serif;
+        --font-m: 'Space Mono', monospace;
+        --sidebar-w: 272px;
+        --header-h: 62px;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+        height: 100%;
+      }
+
+      body {
+        background: var(--black);
+        color: var(--text);
+        font-family: var(--font-d);
+        min-height: 100vh;
+        overflow-x: hidden;
+        line-height: 1.7;
+      }
+
+      /* noise */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.3;
+      }
+
+      /* ════ TOP HEADER ════ */
+      .top-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--header-h);
+        background: rgba(5, 10, 6, 0.92);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 28px;
+        z-index: 100;
+      }
+
+      .header-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--font-d);
+        font-weight: 800;
+        font-size: 1.25rem;
+        color: var(--green);
+        letter-spacing: -0.04em;
+        text-shadow: 0 0 20px rgba(0, 255, 127, 0.4);
+        text-decoration: none;
+      }
+      .logo-diamond {
+        width: 14px;
+        height: 14px;
+        background: var(--green);
+        transform: rotate(45deg);
+        box-shadow: 0 0 10px var(--green);
+        flex-shrink: 0;
+      }
+      .header-logo .docs-label {
+        font-size: 0.72rem;
+        font-family: var(--font-m);
+        color: var(--text-dim);
+        letter-spacing: 0.06em;
+        background: var(--grey2);
+        border: 1px solid var(--border);
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-left: 4px;
+        font-weight: 400;
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .header-search {
+        background: var(--grey2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 7px 14px;
+        color: var(--text);
+        font-family: var(--font-m);
+        font-size: 0.75rem;
+        outline: none;
+        width: 200px;
+        transition: border-color 0.2s;
+      }
+      .header-search::placeholder {
+        color: var(--text-dim);
+      }
+      .header-search:focus {
+        border-color: var(--green-dim);
+      }
+      .header-back {
+        font-family: var(--font-m);
+        font-size: 0.72rem;
+        color: var(--text-dim);
+        text-decoration: none;
+        letter-spacing: 0.06em;
+        border: 1px solid var(--border);
+        padding: 6px 14px;
+        border-radius: 5px;
+        transition: color 0.2s, border-color 0.2s;
+      }
+      .header-back:hover {
+        color: var(--green);
+        border-color: rgba(0, 255, 127, 0.3);
+      }
+      .launch-btn {
+        background: var(--green);
+        color: var(--black);
+        font-family: var(--font-d);
+        font-weight: 800;
+        font-size: 0.8rem;
+        padding: 8px 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: box-shadow 0.15s;
+        box-shadow: 0 0 16px rgba(0, 255, 127, 0.2);
+      }
+      .launch-btn:hover {
+        box-shadow: 0 0 28px rgba(0, 255, 127, 0.45);
+      }
+
+      /* ════ LAYOUT ════ */
+      .layout {
+        display: flex;
+        padding-top: var(--header-h);
+        min-height: 100vh;
+      }
+
+      /* ════ LEFT SIDEBAR ════ */
+      .docs-sidebar {
+        width: var(--sidebar-w);
+        flex-shrink: 0;
+        position: fixed;
+        top: var(--header-h);
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        background: var(--grey);
+        border-right: 1px solid var(--border);
+        padding: 24px 0 40px;
+      }
+
+      .docs-sidebar::-webkit-scrollbar {
+        width: 3px;
+      }
+      .docs-sidebar::-webkit-scrollbar-thumb {
+        background: var(--green-dark);
+        border-radius: 2px;
+      }
+
+      .nav-section-label {
+        font-family: var(--font-m);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--text-faint);
+        padding: 20px 20px 8px;
+      }
+      .nav-section-label:first-child {
+        padding-top: 4px;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 20px;
+        font-size: 0.82rem;
+        color: var(--text-dim);
+        text-decoration: none;
+        cursor: pointer;
+        border-left: 2px solid transparent;
+        transition: color 0.15s, background 0.15s, border-color 0.15s;
+      }
+      .nav-link:hover {
+        color: var(--text);
+        background: var(--grey2);
+      }
+      .nav-link.active {
+        color: var(--green);
+        border-left-color: var(--green);
+        background: rgba(0, 255, 127, 0.05);
+      }
+      .nav-link .nav-icon {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        width: 16px;
+        text-align: center;
+      }
+
+      /* ════ MAIN CONTENT ════ */
+      .docs-main {
+        margin-left: var(--sidebar-w);
+        flex: 1;
+        min-width: 0;
+        display: flex;
+      }
+
+      .docs-content {
+        flex: 1;
+        max-width: 780px;
+        padding: 48px 56px 80px;
+      }
+
+      /* right TOC */
+      .docs-toc {
+        width: 220px;
+        flex-shrink: 0;
+        position: sticky;
+        top: var(--header-h);
+        height: calc(100vh - var(--header-h));
+        overflow-y: auto;
+        padding: 36px 24px;
+        border-left: 1px solid var(--border);
+      }
+      .toc-title {
+        font-family: var(--font-m);
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--text-faint);
+        margin-bottom: 14px;
+      }
+      .toc-link {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        text-decoration: none;
+        padding: 4px 0;
+        border-left: 2px solid transparent;
+        padding-left: 10px;
+        transition: color 0.15s, border-color 0.15s;
+        font-family: var(--font-m);
+      }
+      .toc-link:hover {
+        color: var(--green);
+        border-left-color: var(--green-dark);
+      }
+      .toc-link.sub {
+        padding-left: 20px;
+        font-size: 0.7rem;
+        color: var(--text-faint);
+      }
+
+      /* ════ TYPOGRAPHY ════ */
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block;
+      }
+
+      h1.doc-title {
+        font-size: 2.4rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+        margin-bottom: 12px;
+      }
+      h1.doc-title .green {
+        color: var(--green);
+      }
+
+      .doc-meta {
+        font-family: var(--font-m);
+        font-size: 0.7rem;
+        color: var(--text-dim);
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--border);
+      }
+      .doc-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      h2 {
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-top: 52px;
+        margin-bottom: 16px;
+        color: var(--text);
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+        scroll-margin-top: 80px;
+      }
+      h3 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-top: 32px;
+        margin-bottom: 10px;
+        color: var(--text);
+        scroll-margin-top: 80px;
+      }
+      h4 {
+        font-size: 0.88rem;
+        font-weight: 700;
+        margin-top: 24px;
+        margin-bottom: 8px;
+        font-family: var(--font-m);
+        color: var(--green-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      p {
+        margin-bottom: 16px;
+        color: var(--text-dim);
+        font-size: 0.95rem;
+      }
+      strong {
+        color: var(--text);
+        font-weight: 700;
+      }
+      em {
+        color: var(--green-dim);
+        font-style: normal;
+      }
+
+      a {
+        color: var(--green-dim);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      a:hover {
+        color: var(--green);
+      }
+
+      /* callout boxes */
+      .callout {
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 20px 0;
+        border-left: 3px solid;
+        font-size: 0.88rem;
+      }
+      .callout.info {
+        background: rgba(0, 255, 127, 0.05);
+        border-color: var(--green-dark);
+      }
+      .callout.warn {
+        background: rgba(245, 166, 35, 0.06);
+        border-color: var(--yellow);
+      }
+      .callout.danger {
+        background: rgba(255, 77, 77, 0.06);
+        border-color: var(--red);
+      }
+      .callout-title {
+        font-family: var(--font-m);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 6px;
+      }
+      .callout.info .callout-title {
+        color: var(--green);
+      }
+      .callout.warn .callout-title {
+        color: var(--yellow);
+      }
+      .callout.danger .callout-title {
+        color: var(--red);
+      }
+      .callout p {
+        margin-bottom: 0;
+      }
+
+      /* code */
+      code {
+        font-family: var(--font-m);
+        font-size: 0.82rem;
+        background: var(--grey2);
+        border: 1px solid var(--border);
+        padding: 2px 7px;
+        border-radius: 4px;
+        color: var(--green-dim);
+      }
+      pre {
+        background: var(--grey);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px 22px;
+        margin: 20px 0;
+        overflow-x: auto;
+      }
+      pre code {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 0.82rem;
+        line-height: 1.7;
+        color: var(--text);
+      }
+      .code-comment {
+        color: var(--text-faint);
+      }
+      .code-key {
+        color: #7ec8ff;
+      }
+      .code-str {
+        color: #a5d6a7;
+      }
+      .code-num {
+        color: #ffcc80;
+      }
+      .code-fn {
+        color: var(--green-dim);
+      }
+
+      /* tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 0.85rem;
+      }
+      th {
+        text-align: left;
+        font-family: var(--font-m);
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-dim);
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        background: var(--grey2);
+      }
+      td {
+        padding: 10px 14px;
+        color: var(--text-dim);
+        font-size: 0.84rem;
+        border-bottom: 1px solid rgba(0, 255, 127, 0.05);
+      }
+      tr:hover td {
+        background: rgba(0, 255, 127, 0.02);
+      }
+      td strong {
+        color: var(--text);
+      }
+      td code {
+        font-size: 0.76rem;
+      }
+
+      /* step boxes */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 24px 0;
+      }
+      .step {
+        display: flex;
+        gap: 18px;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .step:last-child {
+        border-bottom: none;
+      }
+      .step-num {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        background: var(--green-glow);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-m);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--green);
+      }
+      .step-body h4 {
+        margin-top: 4px;
+      }
+      .step-body p {
+        margin-bottom: 0;
+        font-size: 0.88rem;
+      }
+
+      /* token grid */
+      .token-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 10px;
+        margin: 20px 0;
+      }
+      .token-card {
+        background: var(--grey2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .token-dot-sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.58rem;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+      }
+      .token-card-sym {
+        font-family: var(--font-m);
+        font-size: 0.8rem;
+        font-weight: 700;
+        display: block;
+      }
+      .token-card-name {
+        font-size: 0.65rem;
+        color: var(--text-dim);
+        display: block;
+      }
+
+      /* fee formula box */
+      .formula {
+        background: var(--grey2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px 24px;
+        margin: 20px 0;
+        text-align: center;
+        font-family: var(--font-m);
+        font-size: 1.05rem;
+        color: var(--text);
+        letter-spacing: 0.04em;
+      }
+      .formula .f-green {
+        color: var(--green);
+        font-weight: 700;
+      }
+      .formula small {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--text-dim);
+        margin-top: 8px;
+      }
+
+      /* badges */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-family: var(--font-m);
+        font-size: 0.65rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 700;
+      }
+      .badge-green {
+        background: rgba(0, 255, 127, 0.12);
+        color: var(--green);
+        border: 1px solid var(--border);
+      }
+      .badge-yellow {
+        background: rgba(245, 166, 35, 0.12);
+        color: var(--yellow);
+        border: 1px solid rgba(245, 166, 35, 0.2);
+      }
+      .badge-red {
+        background: rgba(255, 77, 77, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(255, 77, 77, 0.2);
+      }
+
+      /* divider */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 36px 0;
+      }
+
+      /* breadcrumb */
+      .breadcrumb {
+        font-family: var(--font-m);
+        font-size: 0.68rem;
+        color: var(--text-dim);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .breadcrumb a {
+        color: var(--text-dim);
+        text-decoration: none;
+      }
+      .breadcrumb a:hover {
+        color: var(--green);
+      }
+      .breadcrumb span {
+        color: var(--text-faint);
+      }
+
+      /* prev/next nav */
+      .doc-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 60px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+      }
+      .doc-nav-btn {
+        background: var(--grey2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px 18px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: border-color 0.2s, background 0.2s;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .doc-nav-btn:hover {
+        border-color: rgba(0, 255, 127, 0.3);
+        background: var(--grey3);
+      }
+      .doc-nav-btn.next {
+        text-align: right;
+      }
+      .doc-nav-label {
+        font-family: var(--font-m);
+        font-size: 0.62rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+      .doc-nav-title {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--text);
+      }
+
+      /* scrollbar */
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--grey);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--green-dark);
+        border-radius: 2px;
+      }
+
+      /* mobile */
+      .mob-menu-btn {
+        display: none;
+      }
+      @media (max-width: 1100px) {
+        .docs-toc {
+          display: none;
+        }
+      }
+      @media (max-width: 760px) {
+        .docs-sidebar {
+          display: none;
+        }
+        .docs-sidebar.mob-open {
+          display: block;
+          z-index: 150;
+        }
+        .docs-main {
+          margin-left: 0;
+        }
+        .docs-content {
+          padding: 28px 20px 60px;
+        }
+        .mob-menu-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: var(--grey2);
+          border: 1px solid var(--border);
+          color: var(--text-dim);
+          font-family: var(--font-m);
+          font-size: 0.72rem;
+          padding: 6px 12px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════ TOP HEADER ════ -->
+    <header class="top-header">
+      <a href="index.html" class="header-logo">
+        <div class="logo-diamond"></div>
+        VerDex
+        <span class="docs-label">Docs</span>
+      </a>
+      <div class="header-right">
+        <button class="mob-menu-btn" onclick="toggleMobNav()">☰ Menu</button>
+        <a
+          href="index.html"
+          class="launch-btn"
+          onclick="event.preventDefault();window.location.href='index.html'"
+          >Launch App</a
+        >
+      </div>
+    </header>
+
+    <!-- ════ LAYOUT ════ -->
+    <div class="layout">
+      <!-- ════ LEFT SIDEBAR NAV ════ -->
+      <nav class="docs-sidebar" id="docsSidebar">
+        <div class="nav-section-label">Getting Started</div>
+        <a class="nav-link active" onclick="showPage('intro')">
+          <span class="nav-icon">📖</span> Introduction</a
+        >
+        <a class="nav-link" onclick="showPage('quickstart')">
+          <span class="nav-icon">⚡</span> Quick Start</a
+        >
+        <a class="nav-link" onclick="showPage('connect')">
+          <span class="nav-icon">🔗</span> Connect Wallet</a
+        >
+
+        <div class="nav-section-label">Core Features</div>
+        <a class="nav-link" onclick="showPage('swap')">
+          <span class="nav-icon">🔄</span> Swapping Tokens</a
+        >
+        <a class="nav-link" onclick="showPage('tokens')">
+          <span class="nav-icon">🪙</span> Supported Tokens</a
+        >
+        <a class="nav-link" onclick="showPage('charts')">
+          <span class="nav-icon">📈</span> Charts &amp; Markets</a
+        >
+        <a class="nav-link" onclick="showPage('orderbook')">
+          <span class="nav-icon">📋</span> Order Book</a
+        >
+
+        <div class="nav-section-label">Trading</div>
+        <a class="nav-link" onclick="showPage('fees')">
+          <span class="nav-icon">💸</span> Fees &amp; Slippage</a
+        >
+        <a class="nav-link" onclick="showPage('priceimpact')">
+          <span class="nav-icon">⚠️</span> Price Impact</a
+        >
+        <a class="nav-link" onclick="showPage('routing')">
+          <span class="nav-icon">🗺️</span> Trade Routing</a
+        >
+
+        <div class="nav-section-label">Security</div>
+        <a class="nav-link" onclick="showPage('security')">
+          <span class="nav-icon">🛡️</span> Security Model</a
+        >
+        <a class="nav-link" onclick="showPage('contracts')">
+          <span class="nav-icon">📄</span> Smart Contracts</a
+        >
+
+        <div class="nav-section-label">Reference</div>
+        <a class="nav-link" onclick="showPage('faq')">
+          <span class="nav-icon">❓</span> FAQ</a
+        >
+        <a class="nav-link" onclick="showPage('glossary')">
+          <span class="nav-icon">📚</span> Glossary</a
+        >
+        <a class="nav-link" onclick="showPage('changelog')">
+          <span class="nav-icon">📝</span> Changelog</a
+        >
+      </nav>
+
+      <!-- ════ MAIN ════ -->
+      <div class="docs-main">
+        <div class="docs-content" id="docsContent">
+          <!-- ══ PAGE: INTRO ══ -->
+          <div class="page active" id="page-intro">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Getting
+              Started
+            </div>
+            <h1 class="doc-title">
+              Welcome to <span class="green">VerDex</span>
+            </h1>
+            <div class="doc-meta">
+              <span>📖 ~5 min read</span>
+              <span>🔄 Updated May 2026</span>
+              <span class="badge badge-green">v1.0</span>
+            </div>
+
+            <p>
+              VerDex is a
+              <strong>non-custodial decentralized exchange</strong> built on the
+              BNB Smart Chain (BSC). It allows anyone to swap tokens, view
+              real-time market data, and interact with on-chain liquidity — all
+              without handing custody of your assets to a third party.
+            </p>
+
+            <p>
+              Unlike centralized exchanges, VerDex never holds your funds. Every
+              swap is executed directly through a smart contract on BSC mainnet,
+              and your private keys never leave your wallet.
+            </p>
+
+            <div class="callout info">
+              <div class="callout-title">ℹ️ What you need</div>
+              <p>
+                A Web3 wallet (MetaMask, Trust Wallet, or
+                WalletConnect-compatible) and some BNB for gas fees. That's it.
+              </p>
+            </div>
+
+            <h2 id="what-is-verdex">What Is VerDex?</h2>
+            <p>
+              VerDex is an <strong>Automated Market Maker (AMM)</strong> style
+              DEX. Instead of matching individual buy and sell orders like a
+              traditional order book exchange, it uses smart contracts holding
+              pools of tokens to price and execute trades automatically.
+            </p>
+
+            <p>Key properties:</p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Blockchain</strong></td>
+                  <td>BNB Smart Chain (BSC) — Chain ID 56</td>
+                </tr>
+                <tr>
+                  <td><strong>Protocol type</strong></td>
+                  <td>AMM (Automated Market Maker)</td>
+                </tr>
+                <tr>
+                  <td><strong>Swap fee</strong></td>
+                  <td>0.3% per trade</td>
+                </tr>
+                <tr>
+                  <td><strong>Custody</strong></td>
+                  <td>Non-custodial — you hold your keys</td>
+                </tr>
+                <tr>
+                  <td><strong>Token pairs</strong></td>
+                  <td>40+ tokens, all paired against USDT</td>
+                </tr>
+                <tr>
+                  <td><strong>Price feeds</strong></td>
+                  <td>CoinGecko live prices</td>
+                </tr>
+                <tr>
+                  <td><strong>Charts</strong></td>
+                  <td>TradingView (real-time candlestick + line)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="how-it-works">How It Works</h2>
+            <p>
+              When you swap Token A for Token B on VerDex, the following
+              happens:
+            </p>
+
+            <div class="steps">
+              <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-body">
+                  <h4>Connect Your Wallet</h4>
+                  <p>
+                    You approve VerDex to read your address. No funds move at
+                    this step.
+                  </p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-body">
+                  <h4>Enter Swap Details</h4>
+                  <p>
+                    Choose tokens, enter an amount. VerDex calculates the output
+                    amount, price impact, and minimum received based on live
+                    prices.
+                  </p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-body">
+                  <h4>Approve (first time only)</h4>
+                  <p>
+                    If you're selling an ERC-20 token for the first time,
+                    MetaMask asks you to approve the VerDex contract to spend
+                    it. This is a one-time transaction per token.
+                  </p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-body">
+                  <h4>Confirm Swap</h4>
+                  <p>
+                    You sign the swap transaction in your wallet. The smart
+                    contract executes the trade atomically — either fully
+                    completing or fully reverting.
+                  </p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-body">
+                  <h4>Receive Tokens</h4>
+                  <p>
+                    The output tokens arrive directly in your wallet. No
+                    withdrawal needed.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="doc-nav">
+              <div></div>
+              <a class="doc-nav-btn next" onclick="showPage('quickstart')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Quick Start</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: QUICK START ══ -->
+          <div class="page" id="page-quickstart">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Getting
+              Started
+            </div>
+            <h1 class="doc-title">Quick <span class="green">Start</span></h1>
+            <div class="doc-meta">
+              <span>⚡ ~3 min read</span
+              ><span class="badge badge-green">Beginner</span>
+            </div>
+
+            <p>Get your first swap done in under 2 minutes.</p>
+
+            <h2 id="step1">Step 1 — Install MetaMask</h2>
+            <p>
+              Download <strong>MetaMask</strong> from
+              <a href="https://metamask.io" target="_blank">metamask.io</a> for
+              Chrome, Firefox, or as a mobile app. Create a new wallet and store
+              your seed phrase securely offline.
+            </p>
+
+            <div class="callout warn">
+              <div class="callout-title">⚠️ Never share your seed phrase</div>
+              <p>
+                Anyone with your 12-word seed phrase has full control of your
+                wallet. VerDex will never ask for it.
+              </p>
+            </div>
+
+            <h2 id="step2">Step 2 — Add BSC to MetaMask</h2>
+            <p>
+              VerDex runs on <strong>BNB Smart Chain</strong>. Add it to
+              MetaMask with these settings:
+            </p>
+
+            <pre><code><span class="code-comment">// BNB Smart Chain Network Settings</span>
+<span class="code-key">Network Name</span>:    <span class="code-str">BNB Smart Chain</span>
+<span class="code-key">RPC URL</span>:         <span class="code-str">https://bsc-dataseed.binance.org/</span>
+<span class="code-key">Chain ID</span>:        <span class="code-num">56</span>
+<span class="code-key">Currency Symbol</span>: <span class="code-str">BNB</span>
+<span class="code-key">Block Explorer</span>:  <span class="code-str">https://bscscan.com</span></code></pre>
+
+            <h2 id="step3">Step 3 — Fund Your Wallet</h2>
+            <p>
+              You need at least <strong>0.005 BNB</strong> for gas fees. Buy BNB
+              on Binance, Coinbase, or any major exchange and withdraw to your
+              wallet address on the BSC network.
+            </p>
+
+            <h2 id="step4">Step 4 — Launch VerDex</h2>
+            <p>
+              Go to
+              <a onclick="window.location.href='index.html'">index.html</a>,
+              click <strong>Launch App</strong>, then click
+              <strong>Connect Wallet</strong> and approve the MetaMask popup.
+            </p>
+
+            <h2 id="step5">Step 5 — Make Your First Swap</h2>
+            <p>
+              Select the token you want to sell (e.g. BNB), choose your target
+              token (e.g. USDT), enter the amount, review the details, and click
+              <strong>Swap</strong>. Confirm in MetaMask. Done.
+            </p>
+
+            <div class="callout info">
+              <div class="callout-title">💡 Tip</div>
+              <p>
+                Start with a small test swap to get familiar with the flow
+                before trading larger amounts.
+              </p>
+            </div>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('intro')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Introduction</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('connect')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Connect Wallet</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: CONNECT WALLET ══ -->
+          <div class="page" id="page-connect">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Getting
+              Started
+            </div>
+            <h1 class="doc-title">Connect <span class="green">Wallet</span></h1>
+            <div class="doc-meta">
+              <span>🔗 ~4 min read</span
+              ><span class="badge badge-green">v1.0</span>
+            </div>
+
+            <p>
+              VerDex supports any wallet that implements the
+              <strong>EIP-1193</strong> provider standard. Below are the
+              supported options and how to connect them.
+            </p>
+
+            <h2 id="supported-wallets">Supported Wallets</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Wallet</th>
+                  <th>Platform</th>
+                  <th>Method</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>MetaMask</strong></td>
+                  <td>Chrome, Firefox, iOS, Android</td>
+                  <td>Browser extension / Mobile app</td>
+                </tr>
+                <tr>
+                  <td><strong>Trust Wallet</strong></td>
+                  <td>iOS, Android</td>
+                  <td>In-app browser</td>
+                </tr>
+                <tr>
+                  <td><strong>WalletConnect</strong></td>
+                  <td>Any mobile wallet</td>
+                  <td>QR code scan</td>
+                </tr>
+                <tr>
+                  <td><strong>Coinbase Wallet</strong></td>
+                  <td>Chrome, iOS, Android</td>
+                  <td>Browser extension / Mobile app</td>
+                </tr>
+                <tr>
+                  <td><strong>Rabby Wallet</strong></td>
+                  <td>Chrome</td>
+                  <td>Browser extension</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="desktop">Connecting on Desktop</h2>
+            <p>
+              Click <strong>Connect Wallet</strong> in the top-right corner of
+              the app. MetaMask (or whichever extension you have installed) will
+              open a popup asking you to approve the connection. Click
+              <em>Connect</em> and select your account.
+            </p>
+
+            <h2 id="mobile">Connecting on Mobile</h2>
+            <p>
+              On mobile Chrome without the MetaMask extension, the Connect
+              Wallet button will automatically redirect you to open VerDex
+              inside the <strong>MetaMask in-app browser</strong>, where your
+              wallet is already available.
+            </p>
+
+            <p>
+              Alternatively, open your Trust Wallet or MetaMask app and paste
+              the VerDex URL into the built-in browser.
+            </p>
+
+            <div class="callout info">
+              <div class="callout-title">📱 Mobile best practice</div>
+              <p>
+                For the smoothest mobile experience, always open VerDex from
+                inside your wallet app's browser, not from Safari or Chrome.
+              </p>
+            </div>
+
+            <h2 id="after-connect">After Connecting</h2>
+            <p>Once connected, VerDex will:</p>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              "
+            >
+              <li>
+                Display your shortened address in the top-right button (e.g.
+                <code>0x7a41...a898</code>)
+              </li>
+              <li>
+                Fetch your live on-chain token balances for all supported tokens
+              </li>
+              <li>
+                Show your balance next to the <em>You Pay</em> field in the swap
+                panel
+              </li>
+              <li>
+                Enable the <strong>MAX</strong> button to fill your full
+                available balance
+              </li>
+              <li>
+                Request a one-time USDT spending approval for the DEX contract
+              </li>
+            </ul>
+
+            <h2 id="disconnect">Disconnecting</h2>
+            <p>
+              Click your address button in the top-right to disconnect. This
+              clears the local session — no on-chain transaction needed.
+            </p>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('quickstart')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Quick Start</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('swap')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Swapping Tokens</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: SWAP ══ -->
+          <div class="page" id="page-swap">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Core
+              Features
+            </div>
+            <h1 class="doc-title">
+              Swapping <span class="green">Tokens</span>
+            </h1>
+            <div class="doc-meta">
+              <span>🔄 ~6 min read</span
+              ><span class="badge badge-green">Core</span>
+            </div>
+
+            <p>
+              The swap interface is the heart of VerDex. Here's a complete
+              walkthrough of every field, what it means, and how to use it
+              effectively.
+            </p>
+
+            <h2 id="the-swap-panel">The Swap Panel</h2>
+
+            <h3>You Pay (From)</h3>
+            <p>
+              The token you are selling. Click the token selector to open the
+              token picker modal. Your wallet balance for this token is shown
+              next to <em>Bal:</em>. Click <strong>MAX</strong> to fill the
+              maximum swappable amount (slightly less than your full BNB balance
+              to cover gas).
+            </p>
+
+            <h3>You Receive (To)</h3>
+            <p>
+              The token you will receive. The amount is calculated automatically
+              based on the current live price ratio minus the 0.3% protocol fee.
+            </p>
+
+            <h3>Flip Button (⇅)</h3>
+            <p>
+              Swaps the From and To tokens. The chart updates to reflect the new
+              primary token.
+            </p>
+
+            <h2 id="swap-info">Swap Info Row</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Rate</strong></td>
+                  <td>
+                    The current exchange rate, e.g.
+                    <code>1 ETH = 2450.0000 USDT</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Balance</strong></td>
+                  <td>Your wallet balance of the From token</td>
+                </tr>
+                <tr>
+                  <td><strong>Price Impact</strong></td>
+                  <td>Estimated % price move caused by your trade size</td>
+                </tr>
+                <tr>
+                  <td><strong>Network Fee</strong></td>
+                  <td>Estimated BSC gas cost in USD</td>
+                </tr>
+                <tr>
+                  <td><strong>Min. Received</strong></td>
+                  <td>
+                    Minimum output after slippage tolerance is applied. If the
+                    output falls below this, the transaction reverts.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Route</strong></td>
+                  <td>The swap path, e.g. <code>ETH → USDT</code></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="slippage">Slippage Tolerance</h2>
+            <p>
+              Slippage is the difference between the expected price and the
+              actual price at execution time. Set it using the three preset
+              buttons (<code>0.1%</code>, <code>0.5%</code>, <code>1.0%</code>)
+              or enter a custom value.
+            </p>
+
+            <div class="callout warn">
+              <div class="callout-title">⚠️ Slippage guidance</div>
+              <p>
+                For major tokens (BTC, ETH, BNB) use <strong>0.1–0.5%</strong>.
+                For smaller-cap tokens with more volatile prices, you may need
+                <strong>1–3%</strong>. Setting slippage too low causes failed
+                transactions; too high exposes you to sandwich attacks.
+              </p>
+            </div>
+
+            <h2 id="swap-button-states">Swap Button States</h2>
+            <p>
+              The swap button label changes dynamically to tell you exactly
+              what's needed:
+            </p>
+            <table>
+              <thead>
+                <tr>
+                  <th>Button Text</th>
+                  <th>What It Means</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><em>Connect Wallet to Swap</em></td>
+                  <td>No wallet connected. Click to open the wallet prompt.</td>
+                </tr>
+                <tr>
+                  <td><em>Enter an Amount</em></td>
+                  <td>The From amount is empty or zero.</td>
+                </tr>
+                <tr>
+                  <td><em>Insufficient X Balance</em></td>
+                  <td>You don't have enough of the From token.</td>
+                </tr>
+                <tr>
+                  <td><em>Swap X → Y</em></td>
+                  <td>Ready to swap. Click to execute.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('connect')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Connect Wallet</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('tokens')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Supported Tokens</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: TOKENS ══ -->
+          <div class="page" id="page-tokens">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Core
+              Features
+            </div>
+            <h1 class="doc-title">
+              Supported <span class="green">Tokens</span>
+            </h1>
+            <div class="doc-meta">
+              <span>🪙 ~3 min read</span
+              ><span class="badge badge-green">46 Tokens</span>
+            </div>
+
+            <p>
+              VerDex supports <strong>46 tokens</strong> at launch, all paired
+              against USDT (Tether). Prices are sourced live from CoinGecko and
+              update every 45 seconds.
+            </p>
+
+            <h2 id="layer-1s">Layer 1s &amp; Majors</h2>
+            <div class="token-grid">
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #f7931a">BTC</div>
+                <div>
+                  <span class="token-card-sym">BTC</span
+                  ><span class="token-card-name">Bitcoin</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #627eea">ETH</div>
+                <div>
+                  <span class="token-card-sym">ETH</span
+                  ><span class="token-card-name">Ethereum</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #f3ba2f">BNB</div>
+                <div>
+                  <span class="token-card-sym">BNB</span
+                  ><span class="token-card-name">BNB</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #9945ff">SOL</div>
+                <div>
+                  <span class="token-card-sym">SOL</span
+                  ><span class="token-card-name">Solana</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #346aa9">XRP</div>
+                <div>
+                  <span class="token-card-sym">XRP</span
+                  ><span class="token-card-name">XRP</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #0033ad">ADA</div>
+                <div>
+                  <span class="token-card-sym">ADA</span
+                  ><span class="token-card-name">Cardano</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #e84142">AVAX</div>
+                <div>
+                  <span class="token-card-sym">AVAX</span
+                  ><span class="token-card-name">Avalanche</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #e6007a">DOT</div>
+                <div>
+                  <span class="token-card-sym">DOT</span
+                  ><span class="token-card-name">Polkadot</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #ef0027">TRX</div>
+                <div>
+                  <span class="token-card-sym">TRX</span
+                  ><span class="token-card-name">TRON</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #0098ea">TON</div>
+                <div>
+                  <span class="token-card-sym">TON</span
+                  ><span class="token-card-name">Toncoin</span>
+                </div>
+              </div>
+            </div>
+
+            <h2 id="defi">DeFi &amp; Infrastructure</h2>
+            <div class="token-grid">
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #2a5ada">LINK</div>
+                <div>
+                  <span class="token-card-sym">LINK</span
+                  ><span class="token-card-name">Chainlink</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #ff007a">UNI</div>
+                <div>
+                  <span class="token-card-sym">AAVE</span
+                  ><span class="token-card-name">Aave</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #6d3ce1">MKR</div>
+                <div>
+                  <span class="token-card-sym">MKR</span
+                  ><span class="token-card-name">Maker</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #28a0f0">ARB</div>
+                <div>
+                  <span class="token-card-sym">ARB</span
+                  ><span class="token-card-name">Arbitrum</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #ff0420">OP</div>
+                <div>
+                  <span class="token-card-sym">OP</span
+                  ><span class="token-card-name">Optimism</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #1b53f0">ZK</div>
+                <div>
+                  <span class="token-card-sym">ZK</span
+                  ><span class="token-card-name">ZKsync</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #2bbbad">INJ</div>
+                <div>
+                  <span class="token-card-sym">INJ</span
+                  ><span class="token-card-name">Injective</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #4cc9f0">TAO</div>
+                <div>
+                  <span class="token-card-sym">TAO</span
+                  ><span class="token-card-name">Bittensor</span>
+                </div>
+              </div>
+            </div>
+
+            <h2 id="memecoins">Meme Coins</h2>
+            <div class="token-grid">
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #c2a633">DOGE</div>
+                <div>
+                  <span class="token-card-sym">DOGE</span
+                  ><span class="token-card-name">Dogecoin</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #ffa409">SHIB</div>
+                <div>
+                  <span class="token-card-sym">SHIB</span
+                  ><span class="token-card-name">Shiba Inu</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #00a550">PEPE</div>
+                <div>
+                  <span class="token-card-sym">PEPE</span
+                  ><span class="token-card-name">Pepe</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #9945ff">WIF</div>
+                <div>
+                  <span class="token-card-sym">WIF</span
+                  ><span class="token-card-name">dogwifhat</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #ff6b35">
+                  FLOKI
+                </div>
+                <div>
+                  <span class="token-card-sym">FLOKI</span
+                  ><span class="token-card-name">Floki</span>
+                </div>
+              </div>
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #f4511e">BONK</div>
+                <div>
+                  <span class="token-card-sym">BONK</span
+                  ><span class="token-card-name">Bonk</span>
+                </div>
+              </div>
+            </div>
+
+            <h2 id="stablecoins">Stablecoins</h2>
+            <div class="token-grid">
+              <div class="token-card">
+                <div class="token-dot-sm" style="background: #26a17b">USDT</div>
+                <div>
+                  <span class="token-card-sym">USDT</span
+                  ><span class="token-card-name">Tether</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout info">
+              <div class="callout-title">ℹ️ Adding custom tokens</div>
+              <p>
+                Custom token support is on the roadmap. For now, you can only
+                swap tokens in the curated list above.
+              </p>
+            </div>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('swap')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Swapping Tokens</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('fees')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Fees &amp; Slippage</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: CHARTS ══ -->
+          <div class="page" id="page-charts">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Core
+              Features
+            </div>
+            <h1 class="doc-title">
+              Charts <span class="green">&amp; Markets</span>
+            </h1>
+            <div class="doc-meta"><span>📈 ~4 min read</span></div>
+
+            <p>
+              VerDex embeds a full <strong>TradingView</strong> charting widget
+              for each token, giving you professional-grade analysis tools
+              directly inside the DEX.
+            </p>
+
+            <h2 id="chart-types">Chart Types</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Best For</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Candlestick</strong></td>
+                  <td>Reading open/high/low/close and spotting patterns</td>
+                </tr>
+                <tr>
+                  <td><strong>Line</strong></td>
+                  <td>Clean price direction overview</td>
+                </tr>
+                <tr>
+                  <td><strong>Area</strong></td>
+                  <td>Visualising overall trend over longer periods</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="timeframes">Timeframes</h2>
+            <p>
+              Switch between <code>1H</code>, <code>4H</code>, <code>1D</code>,
+              and <code>1W</code> using the timeframe buttons above the chart.
+              The TradingView widget also has its own toolbar for finer control.
+            </p>
+
+            <h2 id="market-stats">Market Stats Bar</h2>
+            <p>Below the chart, four stat cards show the current token's:</p>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+              "
+            >
+              <li><strong>Price</strong> — live USD price from CoinGecko</li>
+              <li>
+                <strong>24h High</strong> — highest price in the last 24 hours
+              </li>
+              <li>
+                <strong>24h Low</strong> — lowest price in the last 24 hours
+              </li>
+              <li><strong>Market Cap</strong> — circulating supply × price</li>
+            </ul>
+
+            <h2 id="sidebar-markets">Sidebar Markets List</h2>
+            <p>
+              The left sidebar lists all supported tokens with live prices and
+              24h % change. Click any row to switch the active chart and swap
+              pair. Use the <strong>search box</strong> at the top to filter by
+              name or symbol.
+            </p>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('tokens')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Supported Tokens</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('orderbook')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Order Book</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: ORDER BOOK ══ -->
+          <div class="page" id="page-orderbook">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Core
+              Features
+            </div>
+            <h1 class="doc-title">Order <span class="green">Book</span></h1>
+            <div class="doc-meta"><span>📋 ~3 min read</span></div>
+
+            <p>
+              The order book panel shows simulated depth around the current
+              market price, refreshing every 6 seconds to reflect current market
+              conditions.
+            </p>
+
+            <h2 id="reading-ob">Reading the Order Book</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Column</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Price</strong></td>
+                  <td>The ask or bid price in USD</td>
+                </tr>
+                <tr>
+                  <td><strong>Amount</strong></td>
+                  <td>Token quantity at that price level</td>
+                </tr>
+                <tr>
+                  <td><strong>Total</strong></td>
+                  <td>USD value of that level (Price × Amount)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <p>
+              Red rows are <strong>asks</strong> (sell orders above market).
+              Green rows are <strong>bids</strong> (buy orders below market).
+              The horizontal bar behind each row represents relative depth — how
+              much liquidity exists at that price level.
+            </p>
+
+            <h2 id="spread">Spread</h2>
+            <p>
+              The <strong>spread</strong> is the difference between the lowest
+              ask and highest bid. A tighter spread means more liquid markets
+              with less cost to enter and exit positions.
+            </p>
+
+            <h2 id="recent-trades">Recent Trades</h2>
+            <p>
+              The panel beside the order book shows the last 12 trades: price,
+              amount, timestamp, and whether it was a buy or sell. This
+              refreshes every 6 seconds.
+            </p>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('charts')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Charts &amp; Markets</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('fees')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Fees &amp; Slippage</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: FEES ══ -->
+          <div class="page" id="page-fees">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Trading
+            </div>
+            <h1 class="doc-title">
+              Fees <span class="green">&amp; Slippage</span>
+            </h1>
+            <div class="doc-meta"><span>💸 ~4 min read</span></div>
+
+            <h2 id="protocol-fee">Protocol Fee</h2>
+            <p>
+              VerDex charges a flat <strong>0.3%</strong> fee on every swap.
+              This is deducted from the output amount before it reaches your
+              wallet.
+            </p>
+
+            <div class="formula">
+              Output = (InputAmount × Price) ×
+              <span class="f-green">(1 − 0.003)</span>
+              <small
+                >Example: Swapping 1 ETH @ $2,450 → 2,442.65 USDT after
+                fee</small
+              >
+            </div>
+
+            <h2 id="gas-fees">Gas Fees (BSC)</h2>
+            <p>
+              In addition to the protocol fee, every on-chain transaction
+              requires a small amount of <strong>BNB for gas</strong>. Typical
+              swap gas cost on BSC is:
+            </p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Transaction Type</th>
+                  <th>Typical Gas Cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Token approval (one-time)</td>
+                  <td>~0.0002 BNB (~$0.12)</td>
+                </tr>
+                <tr>
+                  <td>Token swap</td>
+                  <td>~0.0005–0.001 BNB (~$0.30–$0.60)</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="callout info">
+              <div class="callout-title">💡 Keep BNB for gas</div>
+              <p>
+                Always keep at least <strong>0.005 BNB</strong> in your wallet
+                to cover gas. The MAX button automatically leaves a 0.002 BNB
+                buffer when you're selling native BNB.
+              </p>
+            </div>
+
+            <h2 id="slippage-settings">Slippage Settings</h2>
+            <p>
+              Slippage tolerance defines the maximum price movement you'll
+              accept between submitting and executing a transaction.
+            </p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Setting</th>
+                  <th>Recommended For</th>
+                  <th>Risk</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>0.1%</strong></td>
+                  <td>BTC, ETH, BNB, USDT</td>
+                  <td><span class="badge badge-green">Low</span></td>
+                </tr>
+                <tr>
+                  <td><strong>0.5%</strong></td>
+                  <td>Most altcoins</td>
+                  <td><span class="badge badge-green">Low</span></td>
+                </tr>
+                <tr>
+                  <td><strong>1.0%</strong></td>
+                  <td>Small-cap tokens</td>
+                  <td><span class="badge badge-yellow">Medium</span></td>
+                </tr>
+                <tr>
+                  <td><strong>&gt; 2%</strong></td>
+                  <td>Highly volatile tokens</td>
+                  <td><span class="badge badge-red">High</span></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="callout danger">
+              <div class="callout-title">🚨 Sandwich attack risk</div>
+              <p>
+                Setting slippage above 2% on large trades makes you vulnerable
+                to MEV bots that front-run and back-run your transaction. Use
+                the minimum slippage that gets your transaction through.
+              </p>
+            </div>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('tokens')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Supported Tokens</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('priceimpact')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Price Impact</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: PRICE IMPACT ══ -->
+          <div class="page" id="page-priceimpact">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Trading
+            </div>
+            <h1 class="doc-title">Price <span class="green">Impact</span></h1>
+            <div class="doc-meta"><span>⚠️ ~3 min read</span></div>
+
+            <p>
+              Price impact is the effect your trade has on the token's market
+              price. Larger trades relative to pool liquidity cause larger price
+              impact.
+            </p>
+
+            <h2 id="impact-thresholds">Impact Thresholds</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Price Impact</th>
+                  <th>Indicator</th>
+                  <th>Guidance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>&lt; 1%</td>
+                  <td><span class="badge badge-green">Good</span></td>
+                  <td>Normal trade, proceed confidently</td>
+                </tr>
+                <tr>
+                  <td>1% – 3%</td>
+                  <td><span class="badge badge-yellow">Moderate</span></td>
+                  <td>Consider splitting into smaller trades</td>
+                </tr>
+                <tr>
+                  <td>&gt; 3%</td>
+                  <td><span class="badge badge-red">High</span></td>
+                  <td>Split trade or accept significant slippage</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="reduce-impact">Reducing Price Impact</h2>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              "
+            >
+              <li>Break large trades into multiple smaller transactions</li>
+              <li>
+                Trade during high-liquidity periods (US and EU market hours)
+              </li>
+              <li>Use the most liquid pairs (BTC/USDT, ETH/USDT, BNB/USDT)</li>
+            </ul>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('fees')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Fees &amp; Slippage</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('routing')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Trade Routing</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: ROUTING ══ -->
+          <div class="page" id="page-routing">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Trading
+            </div>
+            <h1 class="doc-title">Trade <span class="green">Routing</span></h1>
+            <div class="doc-meta"><span>🗺️ ~3 min read</span></div>
+
+            <p>
+              All trades on VerDex are <strong>USDT-routed</strong>. Every token
+              is paired against USDT. This means:
+            </p>
+
+            <div class="formula">
+              Token A → USDT → Token B
+              <small
+                >Even "direct" swaps route through the USDT liquidity pool
+                internally</small
+              >
+            </div>
+
+            <h2 id="why-usdt">Why USDT Routing?</h2>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              "
+            >
+              <li>
+                <strong>Simplified liquidity</strong> — instead of needing a
+                separate pool for every possible token pair, all tokens share a
+                common USDT pool
+              </li>
+              <li>
+                <strong>Predictable pricing</strong> — prices are always
+                denominated in USD, making comparison easy
+              </li>
+              <li>
+                <strong>Lower impermanence loss risk</strong> — USDT is stable,
+                so LP providers face less IL compared to volatile-volatile pools
+              </li>
+            </ul>
+
+            <h2 id="route-display">Route Display</h2>
+            <p>
+              The <em>Route</em> field in the swap info panel shows the path as
+              <code>TokenA → TokenB</code> for simplicity, even though USDT is
+              the intermediary under the hood.
+            </p>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('priceimpact')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Price Impact</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('security')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Security Model</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: SECURITY ══ -->
+          <div class="page" id="page-security">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Security
+            </div>
+            <h1 class="doc-title">Security <span class="green">Model</span></h1>
+            <div class="doc-meta"><span>🛡️ ~5 min read</span></div>
+
+            <p>
+              VerDex is designed with security as a first principle. Here's how
+              we keep your funds safe.
+            </p>
+
+            <h2 id="non-custodial">Non-Custodial Architecture</h2>
+            <p>
+              VerDex <strong>never holds your funds</strong>. Your tokens stay
+              in your wallet until the exact moment a swap transaction is mined
+              on-chain. The smart contract acts as a trustless intermediary — no
+              human can intercept or pause your trade.
+            </p>
+
+            <h2 id="approvals">Token Approvals</h2>
+            <p>
+              To trade an ERC-20 token, you must first approve the VerDex
+              contract to spend it. We request
+              <code>MaxUint256</code> (unlimited) approval by default to save
+              gas on future swaps, but you can revoke approvals at any time via
+              <a href="https://bscscan.com" target="_blank">BscScan</a> or a
+              tool like
+              <a href="https://revoke.cash" target="_blank">revoke.cash</a>.
+            </p>
+
+            <div class="callout warn">
+              <div class="callout-title">⚠️ Approval hygiene</div>
+              <p>
+                It's good practice to periodically review and revoke token
+                approvals for contracts you no longer use. A compromised
+                contract could drain approved tokens.
+              </p>
+            </div>
+
+            <h2 id="smart-contract-safety">Smart Contract Safety</h2>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              "
+            >
+              <li>
+                All swap logic is immutable once deployed — no admin can change
+                the fee or routing after launch
+              </li>
+              <li>
+                Transactions are atomic — if any part fails, the entire
+                transaction reverts and you pay only the gas cost
+              </li>
+              <li>
+                The <code>minReceived</code> parameter protects you from
+                receiving less than expected
+              </li>
+            </ul>
+
+            <h2 id="opsec">Personal OpSec</h2>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              "
+            >
+              <li>Never share your seed phrase or private key with anyone</li>
+              <li>
+                Always verify you're on the correct VerDex URL before connecting
+                your wallet
+              </li>
+              <li>
+                Be cautious of phishing sites mimicking the VerDex interface
+              </li>
+              <li>Use a hardware wallet (Ledger, Trezor) for large holdings</li>
+            </ul>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('routing')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Trade Routing</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('contracts')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Smart Contracts</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: CONTRACTS ══ -->
+          <div class="page" id="page-contracts">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Security
+            </div>
+            <h1 class="doc-title">
+              Smart <span class="green">Contracts</span>
+            </h1>
+            <div class="doc-meta"><span>📄 ~3 min read</span></div>
+
+            <p>
+              All VerDex contracts are deployed on
+              <strong>BNB Smart Chain Mainnet</strong> (Chain ID 56) and are
+              publicly verifiable on BscScan.
+            </p>
+
+            <h2 id="deployed-contracts">Deployed Contracts</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Contract</th>
+                  <th>Address</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>VerDex Router</strong></td>
+                  <td><code>0x7a4177C1...DE9a898</code></td>
+                  <td>Executes all swaps and routing logic</td>
+                </tr>
+                <tr>
+                  <td><strong>USDT (BSC)</strong></td>
+                  <td><code>0x55d39832...197955</code></td>
+                  <td>Tether USDT on BSC — the base trading pair</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h2 id="verify">Verifying on BscScan</h2>
+            <p>
+              You can verify all contract interactions by viewing your wallet
+              address on
+              <a href="https://bscscan.com" target="_blank">bscscan.com</a>.
+              Every swap transaction includes the input token, output token,
+              amounts, and gas used.
+            </p>
+
+            <pre><code><span class="code-comment">// Checking a transaction on BscScan</span>
+<span class="code-num">1.</span> Go to bscscan.com
+<span class="code-num">2.</span> Paste your wallet address in the search bar
+<span class="code-num">3.</span> Click the "BEP-20 Token Txns" tab
+<span class="code-num">4.</span> Every VerDex swap appears here with full details</code></pre>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('security')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Security Model</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('faq')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">FAQ</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: FAQ ══ -->
+          <div class="page" id="page-faq">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Reference
+            </div>
+            <h1 class="doc-title">
+              Frequently Asked <span class="green">Questions</span>
+            </h1>
+            <div class="doc-meta"><span>❓ ~5 min read</span></div>
+
+            <h3>Why did my transaction fail?</h3>
+            <p>
+              The most common causes are: insufficient BNB for gas, slippage
+              tolerance set too low for volatile market conditions, or the token
+              price moved significantly between submission and execution. Try
+              increasing slippage to 0.5–1% and ensure you have at least 0.005
+              BNB.
+            </p>
+
+            <h3>Why is my balance showing 0?</h3>
+            <p>
+              VerDex fetches on-chain balances from BSC mainnet. Make sure your
+              wallet is connected to
+              <strong>BNB Smart Chain (Chain ID 56)</strong>, not Ethereum or
+              another network. Balances update after connection and after each
+              swap.
+            </p>
+
+            <h3>I approved USDT but the swap still failed. Why?</h3>
+            <p>
+              The approval only permits the contract to spend USDT. The swap
+              itself is a separate transaction that also requires BNB for gas.
+              Ensure you have enough BNB in your wallet.
+            </p>
+
+            <h3>Can I trade tokens not on the list?</h3>
+            <p>
+              Not currently. Custom token import is on the roadmap for v1.1. For
+              now, only the 46 curated tokens are supported.
+            </p>
+
+            <h3>Is VerDex safe? Has it been audited?</h3>
+            <p>
+              The smart contract architecture follows established DEX patterns.
+              A full third-party security audit is planned before the mainnet
+              liquidity launch. Always use caution with any DeFi protocol and
+              never invest more than you can afford to lose.
+            </p>
+
+            <h3>What network does VerDex run on?</h3>
+            <p>
+              BNB Smart Chain (BSC) Mainnet, Chain ID 56. BSC offers fast block
+              times (~3 seconds) and very low gas fees compared to Ethereum.
+            </p>
+
+            <h3>Why does my swap show a high price impact?</h3>
+            <p>
+              Price impact increases with trade size relative to available
+              liquidity. For large trades, consider splitting into multiple
+              smaller swaps or using a more liquid pair.
+            </p>
+
+            <h3>How do I add BSC to MetaMask?</h3>
+            <p>
+              See the <a onclick="showPage('quickstart')">Quick Start</a> guide
+              — Step 2 has the exact RPC settings to paste into MetaMask.
+            </p>
+
+            <h3>Can I use VerDex on mobile?</h3>
+            <p>
+              Yes. Open VerDex from inside the MetaMask mobile app browser, or
+              Trust Wallet's built-in browser. The interface is fully
+              responsive.
+            </p>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('contracts')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Smart Contracts</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('glossary')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Glossary</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: GLOSSARY ══ -->
+          <div class="page" id="page-glossary">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Reference
+            </div>
+            <h1 class="doc-title">Glossary</h1>
+            <div class="doc-meta"><span>📚 Reference</span></div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Term</th>
+                  <th>Definition</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>AMM</strong></td>
+                  <td>
+                    Automated Market Maker. A smart contract that prices and
+                    executes trades automatically using a mathematical formula
+                    instead of an order book.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>DEX</strong></td>
+                  <td>
+                    Decentralized Exchange. A trading platform that operates
+                    without a central authority, using smart contracts to
+                    facilitate trades.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Gas</strong></td>
+                  <td>
+                    The fee paid to BSC validators to process a transaction.
+                    Paid in BNB.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Liquidity Pool</strong></td>
+                  <td>
+                    A smart contract holding two tokens that users trade
+                    against. Liquidity providers deposit tokens to earn fees.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Slippage</strong></td>
+                  <td>
+                    The difference between the expected trade price and the
+                    actual executed price due to market movement.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Price Impact</strong></td>
+                  <td>
+                    The effect your trade size has on the market price. Larger
+                    trades relative to liquidity = higher impact.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Non-custodial</strong></td>
+                  <td>
+                    A system where users retain full control of their private
+                    keys and funds at all times.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Token Approval</strong></td>
+                  <td>
+                    A transaction granting a smart contract permission to spend
+                    a specific token from your wallet.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>BEP-20</strong></td>
+                  <td>
+                    The token standard on BNB Smart Chain, equivalent to ERC-20
+                    on Ethereum.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Spread</strong></td>
+                  <td>
+                    The gap between the highest bid (buy) and lowest ask (sell)
+                    price. Tight spreads = liquid market.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>MEV</strong></td>
+                  <td>
+                    Maximal Extractable Value. Profit bots can extract by
+                    reordering transactions — e.g. sandwich attacks.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>USDT</strong></td>
+                  <td>
+                    Tether — a USD-pegged stablecoin used as the base pair on
+                    VerDex.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Seed Phrase</strong></td>
+                  <td>
+                    12 or 24 words that are the master backup for your wallet.
+                    Never share these.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('faq')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">FAQ</span>
+              </a>
+              <a class="doc-nav-btn next" onclick="showPage('changelog')">
+                <span class="doc-nav-label">Next →</span>
+                <span class="doc-nav-title">Changelog</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- ══ PAGE: CHANGELOG ══ -->
+          <div class="page" id="page-changelog">
+            <div class="breadcrumb">
+              <a onclick="showPage('intro')">Docs</a> <span>/</span> Reference
+            </div>
+            <h1 class="doc-title">Change<span class="green">log</span></h1>
+            <div class="doc-meta"><span>📝 Release History</span></div>
+
+            <h2 id="v1-0">
+              v1.0.0 — May 2025
+              <span class="badge badge-green" style="margin-left: 8px"
+                >Latest</span
+              >
+            </h2>
+            <ul
+              style="
+                color: var(--text-dim);
+                font-size: 0.92rem;
+                padding-left: 20px;
+                margin: 12px 0 32px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              "
+            >
+              <li>🚀 Initial launch on BSC Mainnet</li>
+              <li>🔄 Swap panel with live CoinGecko price feeds</li>
+              <li>
+                📈 TradingView charting integration (candlestick, line, area)
+              </li>
+              <li>🦊 MetaMask, Trust Wallet, WalletConnect support</li>
+              <li>💰 On-chain balance fetching for 46 tokens</li>
+              <li>📱 Mobile-responsive layout with sidebar toggle</li>
+              <li>🔍 Sidebar token search</li>
+              <li>📊 Simulated order book and recent trades panel</li>
+              <li>🛡️ USDT spending approval via DEX contract</li>
+            </ul>
+
+            <h2 id="roadmap">Roadmap</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Feature</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>v1.1</strong></td>
+                  <td>Custom token import by contract address</td>
+                  <td><span class="badge badge-yellow">Planned</span></td>
+                </tr>
+                <tr>
+                  <td><strong>v1.1</strong></td>
+                  <td>Liquidity provision (add/remove LP)</td>
+                  <td><span class="badge badge-yellow">Planned</span></td>
+                </tr>
+                <tr>
+                  <td><strong>v1.2</strong></td>
+                  <td>Limit orders</td>
+                  <td><span class="badge badge-yellow">Planned</span></td>
+                </tr>
+                <tr>
+                  <td><strong>v1.2</strong></td>
+                  <td>Token farming / yield</td>
+                  <td><span class="badge badge-yellow">Planned</span></td>
+                </tr>
+                <tr>
+                  <td><strong>v2.0</strong></td>
+                  <td>Multi-chain support (ETH, Polygon, Arbitrum)</td>
+                  <td><span class="badge badge-yellow">Planned</span></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="doc-nav">
+              <a class="doc-nav-btn" onclick="showPage('glossary')">
+                <span class="doc-nav-label">← Previous</span>
+                <span class="doc-nav-title">Glossary</span>
+              </a>
+              <div></div>
+            </div>
+          </div>
+        </div>
+        <!-- /docs-content -->
+
+        <!-- ════ RIGHT TOC ════ -->
+        <div class="docs-toc" id="docsToc">
+          <div class="toc-title">On This Page</div>
+          <div id="tocLinks"></div>
+        </div>
+      </div>
+      <!-- /docs-main -->
+    </div>
+    <!-- /layout -->
+
+    <script>
+      // ── PAGE NAVIGATION ────────────────────────────────────────────
+      function showPage(id) {
+        // Hide all pages
+        document
+          .querySelectorAll('.page')
+          .forEach((p) => p.classList.remove('active'));
+        // Deactivate all nav links
+        document
+          .querySelectorAll('.nav-link')
+          .forEach((l) => l.classList.remove('active'));
+
+        // Show target page
+        const page = document.getElementById('page-' + id);
+        if (page) {
+          page.classList.add('active');
+          // Scroll to top of content
+          document.querySelector('.docs-content').scrollTop = 0;
+          window.scrollTo(0, 0);
+        }
+
+        // Activate correct nav link (find by onclick attribute)
+        document.querySelectorAll('.nav-link').forEach((l) => {
+          if (
+            l.getAttribute('onclick') &&
+            l.getAttribute('onclick').includes("'" + id + "'")
+          ) {
+            l.classList.add('active');
+          }
+        });
+
+        // Build TOC from h2 headings on this page
+        buildTOC(page);
+
+        // Close mobile nav if open
+        document.getElementById('docsSidebar').classList.remove('mob-open');
+      }
+
+      // ── BUILD TABLE OF CONTENTS ────────────────────────────────────
+      function buildTOC(page) {
+        if (!page) return;
+        const tocEl = document.getElementById('tocLinks');
+        const headings = page.querySelectorAll('h2, h3');
+        if (!tocEl) return;
+
+        tocEl.innerHTML = '';
+        headings.forEach((h) => {
+          const link = document.createElement('a');
+          link.className = 'toc-link' + (h.tagName === 'H3' ? ' sub' : '');
+          link.textContent = h.textContent.replace(/[→←]/g, '').trim();
+          link.href = '#';
+          link.onclick = (e) => {
+            e.preventDefault();
+            h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          };
+          tocEl.appendChild(link);
+        });
+      }
+
+      // ── SEARCH ─────────────────────────────────────────────────────
+      const searchIndex = {
+        intro: [
+          'introduction',
+          'what is verdex',
+          'how it works',
+          'amm',
+          'overview',
+        ],
+        quickstart: [
+          'quick start',
+          'metamask',
+          'install',
+          'bsc',
+          'network',
+          'first swap',
+        ],
+        connect: [
+          'connect wallet',
+          'trust wallet',
+          'walletconnect',
+          'mobile',
+          'disconnect',
+        ],
+        swap: [
+          'swap',
+          'trading',
+          'slippage',
+          'from',
+          'to',
+          'flip',
+          'max',
+          'route',
+        ],
+        tokens: [
+          'tokens',
+          'btc',
+          'eth',
+          'bnb',
+          'usdt',
+          'shib',
+          'doge',
+          'supported',
+        ],
+        charts: [
+          'chart',
+          'tradingview',
+          'candlestick',
+          'line',
+          'area',
+          'market stats',
+          'timeframe',
+        ],
+        orderbook: [
+          'order book',
+          'asks',
+          'bids',
+          'spread',
+          'recent trades',
+          'depth',
+        ],
+        fees: ['fee', 'gas', 'slippage', '0.3%', 'bnb gas', 'cost', 'sandwich'],
+        priceimpact: ['price impact', 'impact', 'large trade', 'liquidity'],
+        routing: ['routing', 'route', 'usdt routing', 'path', 'intermediate'],
+        security: [
+          'security',
+          'safe',
+          'non-custodial',
+          'approval',
+          'opsec',
+          'hardware wallet',
+        ],
+        contracts: [
+          'contract',
+          'address',
+          'bscscan',
+          'router',
+          'deployed',
+          'verify',
+        ],
+        faq: [
+          'faq',
+          'failed',
+          'balance',
+          'question',
+          'approve',
+          'mobile',
+          'network',
+        ],
+        glossary: [
+          'glossary',
+          'amm',
+          'dex',
+          'gas',
+          'slippage',
+          'bep-20',
+          'seed phrase',
+          'mev',
+        ],
+        changelog: [
+          'changelog',
+          'v1',
+          'release',
+          'roadmap',
+          'update',
+          'new',
+          'planned',
+        ],
+      };
+
+      function searchDocs(query) {
+        if (!query || query.length < 2) return;
+        const q = query.toLowerCase();
+        for (const [pageId, keywords] of Object.entries(searchIndex)) {
+          if (keywords.some((kw) => kw.includes(q))) {
+            showPage(pageId);
+            return;
+          }
+        }
+      }
+
+      // Allow Enter to search
+      document
+        .querySelector('.header-search')
+        .addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') searchDocs(e.target.value);
+        });
+
+      // ── MOBILE NAV ─────────────────────────────────────────────────
+      function toggleMobNav() {
+        document.getElementById('docsSidebar').classList.toggle('mob-open');
+      }
+
+      // ── INIT ───────────────────────────────────────────────────────
+      // Build TOC for the default intro page on load
+      buildTOC(document.getElementById('page-intro'));
+    </script>
+  </body>
+</html>
