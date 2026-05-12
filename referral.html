@@ -287,19 +287,88 @@
 
     /* ═══ RESPONSIVE ═══ */
     @media(max-width:860px) {
-      nav {
-      position: relative; padding: 14px 20px; }
+      nav { padding: 13px 16px; }
       .nav-links { display: none; }
       .btn-connect-nav { display: none; }
       .nav-hamburger { display: flex; }
-      .ref-hero { padding: 32px 12px 28px; }
-      .ref-main { grid-template-columns: 1fr; padding: 16px 12px 40px; gap: 14px; width: 100%; }
 
+      /* Hero */
+      .ref-hero { padding: 28px 16px 24px; }
+      .ref-title { font-size: clamp(1.9rem, 8vw, 2.8rem); }
+      .ref-sub { font-size: 0.85rem; margin-bottom: 24px; }
 
+      /* Badges — all 4 in one row, compact */
+      .reward-badges { grid-template-columns: repeat(4,1fr); gap: 6px; }
+      .reward-badge { padding: 10px 4px; border-radius: 8px; }
+      .badge-val { font-size: 1rem; }
+      .badge-label { font-size: 0.48rem; letter-spacing: 0.04em; margin-top: 3px; }
 
+      /* Grid */
+      .ref-main {
+        grid-template-columns: 1fr;
+        padding: 14px 14px 40px;
+        gap: 12px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Cards */
+      .card { width: 100%; box-sizing: border-box; border-radius: 10px; }
+      .card-header { padding: 12px 14px; }
+      .card-title { font-size: 0.88rem; }
+      .card-sub { font-size: 0.64rem; }
+      .card-body { padding: 14px; }
+
+      /* Link box */
+      .link-box { padding: 10px 10px; gap: 8px; }
+      .link-text { font-size: 0.65rem; }
+      .btn-copy { padding: 7px 10px; font-size: 0.65rem; }
+      .copy-hint { font-size: 0.62rem; }
+
+      /* Share */
+      .share-row { gap: 6px; }
+      .btn-share { padding: 8px 4px; font-size: 0.6rem; }
+
+      /* Steps */
+      .step-num { width: 24px; height: 24px; font-size: 0.65rem; }
+      .step-title { font-size: 0.82rem; }
+      .step-desc { font-size: 0.7rem; }
+
+      /* Earnings */
+      .earnings-total { padding: 14px; }
+      .earnings-amount { font-size: 1.8rem; }
+      .earnings-usd { font-size: 0.65rem; }
+
+      /* Stats grid */
+      .stats-grid { gap: 8px; margin-bottom: 12px; }
+      .stat-card { padding: 10px 6px; border-radius: 8px; }
+      .stat-card-val { font-size: 1.1rem; }
+      .stat-card-label { font-size: 0.55rem; }
+
+      /* Progress */
+      .progress-label { font-size: 0.58rem; }
+
+      /* Withdraw row */
+      .withdraw-row { gap: 8px; }
+      .withdraw-info { padding: 10px 11px; }
+      .withdraw-info-label { font-size: 0.56rem; }
+      .withdraw-info-val { font-size: 0.8rem; }
+      .btn-withdraw { padding: 10px 12px; font-size: 0.8rem; }
+
+      /* Table */
+      .ref-table th { font-size: 0.56rem; padding: 7px 10px; }
+      .ref-table td { font-size: 0.68rem; padding: 9px 10px; }
+      .ref-status { font-size: 0.56rem; padding: 2px 6px; }
+
+      /* CTA */
+      .btn-launch-dex { padding: 12px; font-size: 0.88rem; }
     }
+
     @media(max-width:400px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .reward-badges { grid-template-columns: repeat(2,1fr); gap: 6px; }
+      .reward-badge { padding: 12px 8px; }
+      .badge-val { font-size: 1.2rem; }
+      .badge-label { font-size: 0.52rem; }
       .share-row { flex-direction: column; }
       .withdraw-row { flex-direction: column; }
       .btn-withdraw { width: 100%; text-align: center; }
