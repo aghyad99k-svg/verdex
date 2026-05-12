@@ -178,10 +178,12 @@
       display: grid;
       grid-template-columns: minmax(0,1fr) minmax(0,1fr);
       gap: 20px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     /* ═══ CARDS ═══ */
-    .card{background:var(--grey);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .card{background:var(--grey);border:1px solid var(--border);border-radius:14px;overflow:hidden;min-width:0;word-break:break-word}
     .card-header{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:rgba(0,255,127,0.025)}
     .card-icon{font-size:1.1rem;flex-shrink:0}
     .card-title{font-weight:700;font-size:0.92rem;color:var(--text)}
@@ -297,40 +299,48 @@
       .ref-title { font-size: clamp(1.9rem, 8vw, 2.8rem); }
       .ref-sub { font-size: 0.85rem; margin-bottom: 24px; }
 
-      /* Badges — all 4 in one row, compact */
+      /* Badges */
       .reward-badges { grid-template-columns: repeat(4,1fr); gap: 6px; }
       .reward-badge { padding: 10px 4px; border-radius: 8px; }
       .badge-val { font-size: 1rem; }
       .badge-label { font-size: 0.48rem; letter-spacing: 0.04em; margin-top: 3px; }
 
-      /* Grid */
+      /* Grid — KEY FIX: strict width + padding keeps cards on screen */
       .ref-main {
         grid-template-columns: 1fr;
-        padding: 14px 10px 40px;
-        gap: 10px;
-        width: 100%;
+        width: 100vw;
+        max-width: 100vw;
+        padding: 14px 16px 40px;
+        gap: 12px;
         box-sizing: border-box;
+        overflow: hidden;
       }
 
-      /* Cards */
-      .card { width: 100%; box-sizing: border-box; border-radius: 10px; }
-      .card-header { padding: 10px 10px; }
+      /* Cards — must not exceed grid width */
+      .card {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .card-header { padding: 12px 14px; }
       .card-title { font-size: 0.88rem; }
       .card-sub { font-size: 0.64rem; }
-      .card-body { padding: 10px; }
+      .card-body { padding: 14px; overflow: hidden; }
 
       /* Link box */
-      .link-box { padding: 10px 10px; gap: 8px; }
-      .link-text { font-size: 0.65rem; }
-      .btn-copy { padding: 7px 10px; font-size: 0.65rem; }
-      .copy-hint { font-size: 0.62rem; }
+      .link-box { padding: 10px; gap: 8px; max-width: 100%; }
+      .link-text { font-size: 0.65rem; max-width: 0; flex: 1; }
+      .btn-copy { padding: 7px 10px; font-size: 0.65rem; flex-shrink: 0; }
+      .copy-hint { font-size: 0.62rem; white-space: normal; }
 
       /* Share */
       .share-row { gap: 6px; }
       .btn-share { padding: 8px 4px; font-size: 0.6rem; }
 
       /* Steps */
-      .step-num { width: 24px; height: 24px; font-size: 0.65rem; }
+      .step-num { width: 24px; height: 24px; font-size: 0.65rem; flex-shrink: 0; }
       .step-title { font-size: 0.82rem; }
       .step-desc { font-size: 0.7rem; }
 
@@ -348,20 +358,24 @@
       /* Progress */
       .progress-label { font-size: 0.58rem; }
 
-      /* Withdraw row */
+      /* Withdraw */
       .withdraw-row { gap: 8px; }
       .withdraw-info { padding: 10px 11px; }
       .withdraw-info-label { font-size: 0.56rem; }
       .withdraw-info-val { font-size: 0.8rem; }
-      .btn-withdraw { padding: 10px 12px; font-size: 0.8rem; }
+      .btn-withdraw { padding: 10px 12px; font-size: 0.8rem; flex-shrink: 0; }
 
       /* Table */
-      .ref-table th { font-size: 0.56rem; padding: 7px 10px; }
-      .ref-table td { font-size: 0.68rem; padding: 9px 10px; }
+      .ref-table { table-layout: fixed; width: 100%; }
+      .ref-table th { font-size: 0.56rem; padding: 7px 8px; }
+      .ref-table td { font-size: 0.65rem; padding: 9px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .ref-status { font-size: 0.56rem; padding: 2px 6px; }
 
       /* CTA */
       .btn-launch-dex { padding: 12px; font-size: 0.88rem; }
+
+      /* Column wrappers */
+      .ref-main > div { width: 100%; min-width: 0; overflow: hidden; }
     }
 
     @media(max-width:400px) {
@@ -411,7 +425,7 @@
 
 <!-- HERO -->
 <div class="ref-hero">
-  <div style="max-width:860px;margin:0 auto">
+  <div style="max-width:860px;margin:0 auto;width:100%;box-sizing:border-box">
     <div class="ref-eyebrow"><span class="pulse-dot"></span>&nbsp; Live Referral Program</div>
     <h1 class="ref-title">Earn <span>$1 Per</span><br/>Referral</h1>
     <p class="ref-sub">Share your unique referral link. Every friend who completes a swap on VerDex earns you $1 USDT — paid directly to your wallet.</p>
