@@ -273,7 +273,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
 
       /* ── TABS ── */
       .gov-tabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
   background: var(--grey2);
   border: 1px solid var(--border);
@@ -287,14 +288,13 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
   z-index: 5;
 }
 .gov-tab {
-  flex: 1;
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-dim);
-  padding: 8px 4px;
+  padding: 9px 4px;
   border-radius: 5px;
   cursor: pointer;
   border: none;
@@ -303,6 +303,8 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:20px 4
   text-align: center;
   white-space: nowrap;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .gov-tab.active {
   background: var(--green);
