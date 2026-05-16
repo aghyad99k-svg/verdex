@@ -3,7 +3,7 @@
  * @param {string} containerId - The ID of the container div
  * @param {string} symbol - The pair to display (e.g., "BINANCE:ETHUSDT")
  */
-function initTradingViewChart(containerId, symbol = 'BINANCE:ETHUSDT') {
+function initTradingViewChart(containerId, symbol = 'BINANCE:AAVEUSDT') {
   // Clear the container first to prevent multiple charts stacking
   document.getElementById(containerId).innerHTML = '';
 
