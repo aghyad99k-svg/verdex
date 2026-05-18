@@ -1261,17 +1261,7 @@
             <div class="copy-hint" id="copyHint">
               Your link is permanently tied to your wallet address
             </div>
-            <div class="share-row" id="shareRow" style="display: none">
-              <button class="btn-share" onclick="shareTwitter()">
-                𝕏 Twitter
-              </button>
-              <button class="btn-share" onclick="shareTelegram()">
-                ✈ Telegram
-              </button>
-              <button class="btn-share" onclick="shareWhatsApp()">
-                📱 WhatsApp
-              </button>
-            </div>
+            <div class="share-row" id="shareRow" style="display: none"></div>
           </div>
         </div>
 
@@ -1489,15 +1479,15 @@
     <div class="toast" id="toast"></div>
 
     <script>
-     // Set this to false when you are ready to present!
-const DEBUG_MODE = false; 
+      // Set this to false when you are ready to present!
+      const DEBUG_MODE = false;
 
-if (!DEBUG_MODE) {
-    console.log = function() {};
-    console.warn = function() {};
-    console.info = function() {};
-    // We leave console.error active so you can still catch real crashes
-}
+      if (!DEBUG_MODE) {
+        console.log = function () {};
+        console.warn = function () {};
+        console.info = function () {};
+        // We leave console.error active so you can still catch real crashes
+      }
       window.isHuman = false;
 
       // Once the user moves the mouse or touches the screen, they are marked as human
