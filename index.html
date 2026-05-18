@@ -2746,7 +2746,21 @@ async function executeSwap() {
   
   const fromAddr    = isFromBNB ? null : ethers.getAddress(fromAddrRaw);
   const toAddr      = isToBNB   ? null : ethers.getAddress(toAddrRaw);
-
+  if (!isFromBNB) {
+    showSwapStatus('Please approve the token allowance in your wallet...', 'info');
+    
+    try {
+      // Directly call and await your allowance request function
+      // Passing fromAmt so it requests the exact amount the user wants to swap
+      await requestUSDTAllowance(fromAmt);
+      
+      showSwapStatus('Allowance approved! Proceeding with swap...', 'info');
+    } catch (approvalError) {
+      console.error("Allowance transaction failed or rejected:", approvalError);
+      showSwapStatus('Token approval failed or was rejected.', 'error');
+      return; // Halts execution so the swap doesn't run without permission
+    }
+  }
   // Check BSC mainnet connection
   try {
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
