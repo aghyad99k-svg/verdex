@@ -1841,6 +1841,44 @@ window.addEventListener('touchstart', verifyHuman);
     }
     return; // Exit immediately
   }
+  // --- BSC NETWORK SWITCH SNIPPET ---
+const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
+
+try {
+  await window.ethereum.request({
+    method: 'wallet_switchEthereumChain',
+    params: [{ chainId: BSC_CHAIN_ID }],
+  });
+} catch (switchError) {
+  // Error code 4902 means the network is not added to the wallet
+  if (switchError.code === 4902) {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [
+          {
+            chainId: BSC_CHAIN_ID,
+            chainName: 'BNB Smart Chain Mainnet',
+            nativeCurrency: {
+              name: 'BNB',
+              symbol: 'BNB',
+              decimals: 18
+            },
+            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+            blockExplorerUrls: ['https://bscscan.com']
+          }
+        ],
+      });
+    } catch (addError) {
+      console.error("User rejected adding the BSC network:", addError.message);
+      return; 
+    }
+  } else {
+    console.error("Failed to switch network:", switchError.message);
+    return; 
+  }
+}
+// --- END SNIPPET ---
         if (!hasWeb3()) {
           if (isMobileBrowser()) {
             window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
