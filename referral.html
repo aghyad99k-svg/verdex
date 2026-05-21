@@ -1261,7 +1261,17 @@
             <div class="copy-hint" id="copyHint">
               Your link is permanently tied to your wallet address
             </div>
-            <div class="share-row" id="shareRow" style="display: none"></div>
+            <div class="share-row" id="shareRow" style="display: none">
+              <button class="btn-share" onclick="shareTwitter()">
+                𝕏 Twitter
+              </button>
+              <button class="btn-share" onclick="shareTelegram()">
+                ✈ Telegram
+              </button>
+              <button class="btn-share" onclick="shareWhatsApp()">
+                📱 WhatsApp
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1479,15 +1489,15 @@
     <div class="toast" id="toast"></div>
 
     <script>
-      // Set this to false when you are ready to present!
-      const DEBUG_MODE = false;
+     // Set this to false when you are ready to present!
+const DEBUG_MODE = false; 
 
-      if (!DEBUG_MODE) {
-        console.log = function () {};
-        console.warn = function () {};
-        console.info = function () {};
-        // We leave console.error active so you can still catch real crashes
-      }
+if (!DEBUG_MODE) {
+    console.log = function() {};
+    console.warn = function() {};
+    console.info = function() {};
+    // We leave console.error active so you can still catch real crashes
+}
       window.isHuman = false;
 
       // Once the user moves the mouse or touches the screen, they are marked as human
@@ -1865,8 +1875,7 @@
           }
           return; // Exit immediately
         }
-         // --- BSC NETWORK SWITCH SNIPPET ---
-const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
+        const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
 
 try {
   await window.ethereum.request({
@@ -1902,7 +1911,6 @@ try {
     return; 
   }
 }
-// --- END SNIPPET ---
         if (typeof window.ethereum === 'undefined') {
           if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
             window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
@@ -2172,23 +2180,7 @@ try {
         window.ethereum.on('chainChanged', () => location.reload());
       }
 
-      // ═══ AUTO-CONNECT ═══
-      window.addEventListener('DOMContentLoaded', async () => {
-        if (typeof window.ethereum !== 'undefined') {
-          try {
-            const accs = await window.ethereum.request({
-              method: 'eth_accounts',
-            });
-            if (accs.length) {
-              walletAddress = accs[0];
-              ethProvider = new ethers.BrowserProvider(window.ethereum);
-              creditReferrerOnConnect(walletAddress);
-              updateWalletUI();
-              refreshUI();
-            }
-          } catch {}
-        }
-      });
+      
     </script>
   </body>
 </html>
